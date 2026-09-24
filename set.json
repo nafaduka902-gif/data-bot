@@ -112,5 +112,63 @@
     },
     "createdAt": "2026-09-24T21:20:49.766Z",
     "updatedAt": "2026-09-24T21:20:49.766Z"
+  },
+  {
+    "searchTitle": "Kaiju No 8",
+    "searchType": "series",
+    "searchTitleNormalized": "kaiju no 8",
+    "imdbID": "tt21975436",
+    "title": "Kaiju No. 8",
+    "year": "2024–2025",
+    "rated": "TV-MA",
+    "released": "13 Apr 2024",
+    "runtime": "N/A",
+    "genre": "Animation, Action, Adventure",
+    "director": "N/A",
+    "writer": "N/A",
+    "actors": "Genta Nakamura, Masaya Fukunishi, Ai Fairouz",
+    "plot": "A man working a job far removed from his childhood dreams gets wrapped up in an unexpected situation - becoming a monster, he aims once again to fulfill his lifelong dream.",
+    "language": "Japanese",
+    "country": "Japan",
+    "awards": "4 wins & 28 nominations total",
+    "poster": "https://m.media-amazon.com/images/M/MV5BM2VmNTc3OWQtOTVmMy00MGZlLTk3N2QtM2YwZDE5MWVjZmM5XkEyXkFqcGc@._V1_SX300.jpg",
+    "imdbRating": "8.2",
+    "imdbVotes": "30,123",
+    "type": "series",
+    "totalSeasons": "2",
+    "episodeCount": 24,
+    "status": "2 فصل 24 قسمت",
+    "translatedPlotFa": "مردی که شغلی بسیار متفاوت از رویاهای کودکی‌اش دارد، در موقعیتی غیرمنتظره گرفتار می‌شود - او که تبدیل به یک هیولا شده، بار دیگر قصد دارد رویای همیشگی‌اش را محقق کند.",
+    "omdb": {
+      "Title": "Kaiju No. 8",
+      "Year": "2024–2025",
+      "Rated": "TV-MA",
+      "Released": "13 Apr 2024",
+      "Runtime": "N/A",
+      "Genre": "Animation, Action, Adventure",
+      "Director": "N/A",
+      "Writer": "N/A",
+      "Actors": "Genta Nakamura, Masaya Fukunishi, Ai Fairouz",
+      "Plot": "A man working a job far removed from his childhood dreams gets wrapped up in an unexpected situation - becoming a monster, he aims once again to fulfill his lifelong dream.",
+      "Language": "Japanese",
+      "Country": "Japan",
+      "Awards": "4 wins & 28 nominations total",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BM2VmNTc3OWQtOTVmMy00MGZlLTk3N2QtM2YwZDE5MWVjZmM5XkEyXkFqcGc@._V1_SX300.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "8.2/10"
+        }
+      ],
+      "Metascore": "N/A",
+      "imdbRating": "8.2",
+      "imdbVotes": "30,123",
+      "imdbID": "tt21975436",
+      "Type": "series",
+      "totalSeasons": "2",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-24T21:21:35.571Z",
+    "updatedAt": "2026-09-24T21:21:35.571Z"
   }
 ]
