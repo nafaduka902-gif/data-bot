@@ -170,5 +170,63 @@
     },
     "createdAt": "2026-09-24T21:21:35.571Z",
     "updatedAt": "2026-09-24T21:21:35.571Z"
+  },
+  {
+    "searchTitle": "Captain Laserhawk",
+    "searchType": "series",
+    "searchTitleNormalized": "captain laserhawk",
+    "imdbID": "tt14837566",
+    "title": "Captain Laserhawk: A Blood Dragon Remix",
+    "year": "2023–2024",
+    "rated": "TV-MA",
+    "released": "19 Oct 2023",
+    "runtime": "N/A",
+    "genre": "Animation, Action, Adventure",
+    "director": "N/A",
+    "writer": "Adi Shankar",
+    "actors": "Nathaniel Curtis, Caroline Ford, Yves Bigerel",
+    "plot": "Year 1992. The United States has been renamed Eden, a technocracy dominated by corruption. Super soldier Dolph Laserhawk is locked up in the Supermaxx maximum security prison. He leads a team of rebels under the orders of a shady ...",
+    "language": "English",
+    "country": "United States, Canada, France",
+    "awards": "N/A",
+    "poster": "https://m.media-amazon.com/images/M/MV5BMjk3Mjc2YjctNzU4Mi00OTJhLTkzMzUtZjMxOGYyOTI2NDNjXkEyXkFqcGc@._V1_SX300.jpg",
+    "imdbRating": "7.0",
+    "imdbVotes": "3,640",
+    "type": "series",
+    "totalSeasons": "2",
+    "episodeCount": 7,
+    "status": "2 فصل 7 قسمت",
+    "translatedPlotFa": "سال ۱۹۹۲. ایالات متحده به ادن تغییر نام داده است، کشوری تکنوکراسی که تحت سلطه فساد است. سرباز فوق‌العاده، دولف لیزرهاوک، در زندان فوق امنیتی سوپرمکس زندانی است. او تیمی از شورشیان را تحت فرمان یک فرد مرموز رهبری می‌کند...",
+    "omdb": {
+      "Title": "Captain Laserhawk: A Blood Dragon Remix",
+      "Year": "2023–2024",
+      "Rated": "TV-MA",
+      "Released": "19 Oct 2023",
+      "Runtime": "N/A",
+      "Genre": "Animation, Action, Adventure",
+      "Director": "N/A",
+      "Writer": "Adi Shankar",
+      "Actors": "Nathaniel Curtis, Caroline Ford, Yves Bigerel",
+      "Plot": "Year 1992. The United States has been renamed Eden, a technocracy dominated by corruption. Super soldier Dolph Laserhawk is locked up in the Supermaxx maximum security prison. He leads a team of rebels under the orders of a shady ...",
+      "Language": "English",
+      "Country": "United States, Canada, France",
+      "Awards": "N/A",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BMjk3Mjc2YjctNzU4Mi00OTJhLTkzMzUtZjMxOGYyOTI2NDNjXkEyXkFqcGc@._V1_SX300.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "7.0/10"
+        }
+      ],
+      "Metascore": "N/A",
+      "imdbRating": "7.0",
+      "imdbVotes": "3,640",
+      "imdbID": "tt14837566",
+      "Type": "series",
+      "totalSeasons": "2",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-24T22:01:04.146Z",
+    "updatedAt": "2026-09-24T22:01:04.146Z"
   }
 ]
