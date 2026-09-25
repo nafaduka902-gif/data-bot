@@ -355,5 +355,63 @@
     },
     "createdAt": "2026-09-25T02:07:20.413Z",
     "updatedAt": "2026-09-25T02:07:20.413Z"
+  },
+  {
+    "searchTitle": "Demon slayer",
+    "searchType": "series",
+    "searchTitleNormalized": "demon slayer",
+    "imdbID": "tt9335498",
+    "title": "Demon Slayer: Kimetsu no Yaiba",
+    "year": "2019–2024",
+    "rated": "TV-MA",
+    "released": "22 Jan 2021",
+    "runtime": "25 min",
+    "genre": "Animation, Action, Adventure",
+    "director": "N/A",
+    "writer": "Koyoharu Gotouge",
+    "actors": "Natsuki Hanae, Zach Aguilar, Abby Trott",
+    "plot": "A family is attacked by demons and only two members survive - Tanjiro and his sister Nezuko, who is turning into a demon slowly. Tanjiro sets out to become a demon slayer to avenge his family and cure his sister.",
+    "language": "Japanese, English",
+    "country": "Japan",
+    "awards": "29 wins & 55 nominations total",
+    "poster": "https://m.media-amazon.com/images/M/MV5BMWU1OGEwNmQtNGM3MS00YTYyLThmYmMtN2FjYzQzNzNmNTE0XkEyXkFqcGc@._V1_QL75_UX380_CR0,4,380,562_.jpg",
+    "imdbRating": "8.5",
+    "imdbVotes": "236,387",
+    "type": "series",
+    "totalSeasons": "4",
+    "episodeCount": 64,
+    "status": "4 فصل 64 قسمت",
+    "translatedPlotFa": "خانواده‌ای مورد حمله شیاطین قرار می‌گیرند و تنها دو عضو آن زنده می‌مانند - تانجیرو و خواهرش نزوکو که به آرامی در حال تبدیل شدن به یک شیطان است. تانجیرو برای انتقام خانواده‌اش و درمان خواهرش، تصمیم می‌گیرد یک قاتل شیاطین شود.",
+    "omdb": {
+      "Title": "Demon Slayer: Kimetsu no Yaiba",
+      "Year": "2019–2024",
+      "Rated": "TV-MA",
+      "Released": "22 Jan 2021",
+      "Runtime": "25 min",
+      "Genre": "Animation, Action, Adventure",
+      "Director": "N/A",
+      "Writer": "Koyoharu Gotouge",
+      "Actors": "Natsuki Hanae, Zach Aguilar, Abby Trott",
+      "Plot": "A family is attacked by demons and only two members survive - Tanjiro and his sister Nezuko, who is turning into a demon slowly. Tanjiro sets out to become a demon slayer to avenge his family and cure his sister.",
+      "Language": "Japanese, English",
+      "Country": "Japan",
+      "Awards": "29 wins & 55 nominations total",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BMWU1OGEwNmQtNGM3MS00YTYyLThmYmMtN2FjYzQzNzNmNTE0XkEyXkFqcGc@._V1_QL75_UX380_CR0,4,380,562_.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "8.5/10"
+        }
+      ],
+      "Metascore": "N/A",
+      "imdbRating": "8.5",
+      "imdbVotes": "236,387",
+      "imdbID": "tt9335498",
+      "Type": "series",
+      "totalSeasons": "4",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-25T07:42:08.748Z",
+    "updatedAt": "2026-09-25T07:42:08.748Z"
   }
 ]
