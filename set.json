@@ -228,5 +228,63 @@
     },
     "createdAt": "2026-09-24T22:01:04.146Z",
     "updatedAt": "2026-09-24T22:01:04.146Z"
+  },
+  {
+    "searchTitle": "Solo leveling",
+    "searchType": "series",
+    "searchTitleNormalized": "solo leveling",
+    "imdbID": "tt21209876",
+    "title": "Solo Leveling",
+    "year": "2024–",
+    "rated": "TV-MA",
+    "released": "06 Jan 2024",
+    "runtime": "N/A",
+    "genre": "Animation, Action, Adventure",
+    "director": "N/A",
+    "writer": "Chugong",
+    "actors": "Taito Ban, Aleks Le, Makoto Furukawa",
+    "plot": "Follows the adventures of Sung Jinwoo in a world that is constantly threatened by monsters and evil forces. In his battles Sung transforms himself from the weakest hunter of all mankind to one of the strongest hunters in existence.",
+    "language": "Japanese, English",
+    "country": "Japan, South Korea",
+    "awards": "13 wins & 27 nominations total",
+    "poster": "https://m.media-amazon.com/images/M/MV5BM2M4YzdkMTEtMjUyYy00ZWY0LWI5ODQtNGRkZWQ1MzU5MWM2XkEyXkFqcGc@._V1_QL75_UY562_CR9,0,380,562_.jpg",
+    "imdbRating": "8.5",
+    "imdbVotes": "121,674",
+    "type": "series",
+    "totalSeasons": "2",
+    "episodeCount": 26,
+    "status": "2 فصل 26 قسمت",
+    "translatedPlotFa": "این سریال ماجراجویی‌های سونگ جینوو را در دنیایی که دائماً توسط هیولاها و نیروهای شیطانی تهدید می‌شود، دنبال می‌کند. سونگ در نبردهایش، خود را از ضعیف‌ترین شکارچی تمام بشریت به یکی از قوی‌ترین شکارچیان موجود تبدیل می‌کند.",
+    "omdb": {
+      "Title": "Solo Leveling",
+      "Year": "2024–",
+      "Rated": "TV-MA",
+      "Released": "06 Jan 2024",
+      "Runtime": "N/A",
+      "Genre": "Animation, Action, Adventure",
+      "Director": "N/A",
+      "Writer": "Chugong",
+      "Actors": "Taito Ban, Aleks Le, Makoto Furukawa",
+      "Plot": "Follows the adventures of Sung Jinwoo in a world that is constantly threatened by monsters and evil forces. In his battles Sung transforms himself from the weakest hunter of all mankind to one of the strongest hunters in existence.",
+      "Language": "Japanese, English",
+      "Country": "Japan, South Korea",
+      "Awards": "13 wins & 27 nominations total",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BM2M4YzdkMTEtMjUyYy00ZWY0LWI5ODQtNGRkZWQ1MzU5MWM2XkEyXkFqcGc@._V1_QL75_UY562_CR9,0,380,562_.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "8.5/10"
+        }
+      ],
+      "Metascore": "N/A",
+      "imdbRating": "8.5",
+      "imdbVotes": "121,674",
+      "imdbID": "tt21209876",
+      "Type": "series",
+      "totalSeasons": "2",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-25T02:03:46.231Z",
+    "updatedAt": "2026-09-25T02:03:46.231Z"
   }
 ]
