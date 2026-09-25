@@ -413,5 +413,63 @@
     },
     "createdAt": "2026-09-25T07:42:08.748Z",
     "updatedAt": "2026-09-25T07:42:08.748Z"
+  },
+  {
+    "searchTitle": "Your name",
+    "searchType": "series",
+    "searchTitleNormalized": "your name",
+    "imdbID": "tt7094874",
+    "title": "Live Up to Your Name",
+    "year": "2017",
+    "rated": "N/A",
+    "released": "12 Aug 2017",
+    "runtime": "41S min",
+    "genre": "Comedy, Drama, Fantasy",
+    "director": "N/A",
+    "writer": "N/A",
+    "actors": "Kim Nam-gil, Kim Ah-jung, Yun Ju-sang",
+    "plot": "The best acupuncturist of Joseon, Heo Im, finds himself traveling 400 years into the future, where he meets Choi Yeon Kyung, doctor in a modern hospital. Though impressed by her, differences in their methods and priorities make th...",
+    "language": "Korean",
+    "country": "South Korea",
+    "awards": "1 nomination total",
+    "poster": "https://m.media-amazon.com/images/M/MV5BYWQyMGRhMTEtNTY1YS00N2Y1LTgxZjItNTQ0MTBjNzIyNDlhXkEyXkFqcGc@._V1_SX300.jpg",
+    "imdbRating": "7.9",
+    "imdbVotes": "2,248",
+    "type": "series",
+    "totalSeasons": "1",
+    "episodeCount": 1,
+    "status": "1 فصل 1 قسمت",
+    "translatedPlotFa": "بهترین متخصص طب سوزنی چوسان، هئو ایم، خود را در حال سفر به ۴۰۰ سال آینده می‌یابد، جایی که با چوی یئون کیونگ، پزشک یک بیمارستان مدرن، آشنا می‌شود. اگرچه تحت تأثیر او قرار می‌گیرد، اما تفاوت در روش‌ها و اولویت‌هایشان باعث می‌شود که...",
+    "omdb": {
+      "Title": "Live Up to Your Name",
+      "Year": "2017",
+      "Rated": "N/A",
+      "Released": "12 Aug 2017",
+      "Runtime": "41S min",
+      "Genre": "Comedy, Drama, Fantasy",
+      "Director": "N/A",
+      "Writer": "N/A",
+      "Actors": "Kim Nam-gil, Kim Ah-jung, Yun Ju-sang",
+      "Plot": "The best acupuncturist of Joseon, Heo Im, finds himself traveling 400 years into the future, where he meets Choi Yeon Kyung, doctor in a modern hospital. Though impressed by her, differences in their methods and priorities make th...",
+      "Language": "Korean",
+      "Country": "South Korea",
+      "Awards": "1 nomination total",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BYWQyMGRhMTEtNTY1YS00N2Y1LTgxZjItNTQ0MTBjNzIyNDlhXkEyXkFqcGc@._V1_SX300.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "7.9/10"
+        }
+      ],
+      "Metascore": "N/A",
+      "imdbRating": "7.9",
+      "imdbVotes": "2,248",
+      "imdbID": "tt7094874",
+      "Type": "series",
+      "totalSeasons": "1",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-25T07:42:59.302Z",
+    "updatedAt": "2026-09-25T07:42:59.302Z"
   }
 ]
