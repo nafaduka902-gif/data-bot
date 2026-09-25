@@ -3,13 +3,13 @@
     "kind": "group",
     "chatId": -1002239235244,
     "welcomeEnabled": true,
-    "welcomeDeleteAfterSeconds": 300,
+    "welcomeDeleteAfterSeconds": 180,
     "joinNoticeDeleteAfterSeconds": 300,
     "captchaEnabled": true,
     "linkFilterEnabled": true,
     "warningLimit": 3,
     "warningAction": "ban",
     "locked": false,
-    "updatedAt": "2026-09-25T02:11:58.972Z"
+    "updatedAt": "2026-09-25T09:36:12.374Z"
   }
 ]
