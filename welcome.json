@@ -158,5 +158,13 @@
     "chatTitle": "Anime Faarsi Chats | چت انیمه فارسی",
     "welcomeMessageId": 3721,
     "createdAt": "2026-09-25T11:31:49.893Z"
+  },
+  {
+    "kind": "pending",
+    "userId": 6258474002,
+    "chatId": -1004489761102,
+    "chatTitle": "Anime Farsi Team",
+    "welcomeMessageId": 15,
+    "createdAt": "2026-09-25T11:39:10.598Z"
   }
 ]
