@@ -6,5 +6,24 @@
     "name": "تیم دوبلاژ لاروا | Larva Team",
     "username": "Larva_dub",
     "updatedAt": "2026-09-25T02:04:27.355Z"
+  },
+  {
+    "id": "1790301914642-2048310529",
+    "ownerId": 2048310529,
+    "chatId": 2048310529,
+    "text": "<b>📺 سریال « تک‌رو شدن در سطح »\n\n📼 Solo Leveling\n✨ IMDb: 8.5\n\n🎭 ژانر: انیمیشن | اکشن | ماجراجویی\n🪙 محصول: ژاپن | کره جنوبی\n⭕ وضعیت: 2 فصل 26 قسمت\n🍿 بازیگران: Taito Ban | Aleks Le | Makoto Furukawa\n\n📝 خلاصه داستان : این سریال ماجراجویی‌های سونگ جینوو را در دنیایی که دائماً توسط هیولاها و نیروهای شیطانی تهدید می‌شود، دنبال می‌کند. سونگ در نبردهایش، خود را از ضعیف‌ترین شکارچی تمام بشریت به یکی از قوی‌ترین شکارچیان موجود تبدیل می‌کند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n📥 فصل 01 دوبله فارسی | <a href=\"https://t.me/jsjs\">720p</a>\n\n✅ @FaarsiMovie</b>",
+    "entities": [],
+    "parseMode": "HTML",
+    "sourceChatId": "",
+    "sourceMessageId": 0,
+    "sourceLink": "",
+    "title": "Solo leveling",
+    "destinationId": -1004371575314,
+    "destinationName": "تیم دوبلاژ لاروا | Larva Team",
+    "sendAt": 1790319911973,
+    "status": "pending",
+    "createdAt": "2026-09-25T02:05:14.642Z",
+    "kind": "scheduled:1790301914642-2048310529",
+    "updatedAt": "2026-09-25T02:05:14.642Z"
   }
 ]
