@@ -286,5 +286,74 @@
     },
     "createdAt": "2026-09-25T02:03:46.231Z",
     "updatedAt": "2026-09-25T02:03:46.231Z"
+  },
+  {
+    "searchTitle": "Pokémon Detective Pikachu",
+    "searchType": "movie",
+    "searchTitleNormalized": "pokémon detective pikachu",
+    "imdbID": "tt5884052",
+    "title": "Pokémon: Detective Pikachu",
+    "year": "2019",
+    "rated": "PG",
+    "released": "10 May 2019",
+    "runtime": "104 min",
+    "genre": "Adventure, Comedy, Family",
+    "director": "Rob Letterman",
+    "writer": "Dan Hernandez, Benji Samit, Rob Letterman",
+    "actors": "Ryan Reynolds, Justice Smith, Kathryn Newton",
+    "plot": "In a world where people collect Pokémon to do battle, a boy comes across an intelligent talking Pikachu who seeks to be a detective.",
+    "language": "English, Japanese",
+    "country": "United Kingdom, Canada, Japan, United States",
+    "awards": "9 nominations total",
+    "poster": "https://m.media-amazon.com/images/M/MV5BNDU4Mzc3NzE5NV5BMl5BanBnXkFtZTgwMzE1NzI1NzM@._V1_QL75_UX380_CR0,0,380,562_.jpg",
+    "imdbRating": "6.5",
+    "imdbVotes": "196,534",
+    "type": "movie",
+    "totalSeasons": "",
+    "episodeCount": 0,
+    "status": "",
+    "translatedPlotFa": "در دنیایی که مردم پوکمون‌ها را برای نبرد جمع‌آوری می‌کنند، پسری با یک پیکاچوی باهوش و سخنگو روبرو می‌شود که می‌خواهد کارآگاه شود.",
+    "omdb": {
+      "Title": "Pokémon: Detective Pikachu",
+      "Year": "2019",
+      "Rated": "PG",
+      "Released": "10 May 2019",
+      "Runtime": "104 min",
+      "Genre": "Adventure, Comedy, Family",
+      "Director": "Rob Letterman",
+      "Writer": "Dan Hernandez, Benji Samit, Rob Letterman",
+      "Actors": "Ryan Reynolds, Justice Smith, Kathryn Newton",
+      "Plot": "In a world where people collect Pokémon to do battle, a boy comes across an intelligent talking Pikachu who seeks to be a detective.",
+      "Language": "English, Japanese",
+      "Country": "United Kingdom, Canada, Japan, United States",
+      "Awards": "9 nominations total",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BNDU4Mzc3NzE5NV5BMl5BanBnXkFtZTgwMzE1NzI1NzM@._V1_QL75_UX380_CR0,0,380,562_.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "6.5/10"
+        },
+        {
+          "Source": "Rotten Tomatoes",
+          "Value": "68%"
+        },
+        {
+          "Source": "Metacritic",
+          "Value": "53/100"
+        }
+      ],
+      "Metascore": "53",
+      "imdbRating": "6.5",
+      "imdbVotes": "196,534",
+      "imdbID": "tt5884052",
+      "Type": "movie",
+      "DVD": "N/A",
+      "BoxOffice": "$144,174,568",
+      "Production": "N/A",
+      "Website": "N/A",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-25T02:07:20.413Z",
+    "updatedAt": "2026-09-25T02:07:20.413Z"
   }
 ]
