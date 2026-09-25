@@ -126,5 +126,13 @@
     "chatTitle": "Anime Faarsi Chats | چت انیمه فارسی",
     "welcomeMessageId": 3709,
     "createdAt": "2026-09-25T11:01:44.543Z"
+  },
+  {
+    "kind": "pending",
+    "userId": 7450075312,
+    "chatId": -1003493631796,
+    "chatTitle": "Chat Group Friends",
+    "welcomeMessageId": 150,
+    "createdAt": "2026-09-25T11:01:56.595Z"
   }
 ]
