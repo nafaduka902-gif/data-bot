@@ -529,5 +529,63 @@
     },
     "createdAt": "2026-09-25T10:10:56.628Z",
     "updatedAt": "2026-09-25T10:10:56.628Z"
+  },
+  {
+    "searchTitle": "Goat",
+    "searchType": "series",
+    "searchTitleNormalized": "goat",
+    "imdbID": "tt3218114",
+    "title": "Pig Goat Banana Cricket",
+    "year": "2015–2017",
+    "rated": "TV-Y7",
+    "released": "16 Jul 2015",
+    "runtime": "22 min",
+    "genre": "Animation, Action, Adventure",
+    "director": "N/A",
+    "writer": "Johnny Ryan, Dave Cooper",
+    "actors": "Matt Jones, Candi Milo, Tom Wilson",
+    "plot": "A series of absurd interwoven stories about four friends and roommates, naive Pig, bohemian Goat, selfish Banana, and mad scientist Cricket.",
+    "language": "English",
+    "country": "United States, Mexico, South Korea",
+    "awards": "3 wins & 8 nominations",
+    "poster": "https://m.media-amazon.com/images/M/MV5BZGFhNWY5ZTctOWZlNi00ZmMwLTk5NDgtYjNlNTExMTU5YzlkXkEyXkFqcGc@._V1_SX300.jpg",
+    "imdbRating": "3.4",
+    "imdbVotes": "1,071",
+    "type": "series",
+    "totalSeasons": "3",
+    "episodeCount": 25,
+    "status": "3 فصل 25 قسمت",
+    "translatedPlotFa": "مجموعه‌ای از داستان‌های پوچ و در هم تنیده درباره چهار دوست و هم‌خانه، خوک ساده‌لوح، بز کولی، موز خودخواه و دانشمند دیوانه کریکت.",
+    "omdb": {
+      "Title": "Pig Goat Banana Cricket",
+      "Year": "2015–2017",
+      "Rated": "TV-Y7",
+      "Released": "16 Jul 2015",
+      "Runtime": "22 min",
+      "Genre": "Animation, Action, Adventure",
+      "Director": "N/A",
+      "Writer": "Johnny Ryan, Dave Cooper",
+      "Actors": "Matt Jones, Candi Milo, Tom Wilson",
+      "Plot": "A series of absurd interwoven stories about four friends and roommates, naive Pig, bohemian Goat, selfish Banana, and mad scientist Cricket.",
+      "Language": "English",
+      "Country": "United States, Mexico, South Korea",
+      "Awards": "3 wins & 8 nominations",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BZGFhNWY5ZTctOWZlNi00ZmMwLTk5NDgtYjNlNTExMTU5YzlkXkEyXkFqcGc@._V1_SX300.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "3.4/10"
+        }
+      ],
+      "Metascore": "N/A",
+      "imdbRating": "3.4",
+      "imdbVotes": "1,071",
+      "imdbID": "tt3218114",
+      "Type": "series",
+      "totalSeasons": "3",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-26T08:56:25.040Z",
+    "updatedAt": "2026-09-26T08:56:25.040Z"
   }
 ]
