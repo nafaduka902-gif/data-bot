@@ -645,5 +645,63 @@
     },
     "createdAt": "2026-09-26T18:50:19.536Z",
     "updatedAt": "2026-09-26T18:50:19.536Z"
+  },
+  {
+    "searchTitle": "Hellsing Ultimate",
+    "searchType": "series",
+    "searchTitleNormalized": "hellsing ultimate",
+    "imdbID": "tt0495212",
+    "title": "Hellsing Ultimate",
+    "year": "2006–2012",
+    "rated": "Not Rated",
+    "released": "05 Dec 2006",
+    "runtime": "50 min",
+    "genre": "Animation, Action, Fantasy",
+    "director": "N/A",
+    "writer": "Kohta Hirano",
+    "actors": "Crispin Freeman, Katie Gray, Victoria Harwood",
+    "plot": "The vampire Alucard, his master Sir Integra Fairbrook Wingates Hellsing, and his newly sired ward Seras Victoria, try to protect England from a war-crazed SS-Major who seeks to start an eternal war with his vampire army.",
+    "language": "Japanese",
+    "country": "Japan",
+    "awards": "5 wins & 3 nominations total",
+    "poster": "https://m.media-amazon.com/images/M/MV5BZTA2OWJiYzgtZWFiOS00ZmYyLWFiMjMtYzg5YjNlMTA5NGJjXkEyXkFqcGc@._V1_SX300.jpg",
+    "imdbRating": "8.2",
+    "imdbVotes": "30,632",
+    "type": "series",
+    "totalSeasons": "1",
+    "episodeCount": 10,
+    "status": "1 فصل 10 قسمت",
+    "translatedPlotFa": "خون‌آشام آلوکارد، اربابش سر اینتگرا فیربروک وینگیتس هلسینگ، و سراس ویکتوریا، سرپرست جدیدش، سعی می‌کنند از انگلستان در برابر یک سرگرد اس‌اس دیوانه جنگ که به دنبال آغاز جنگی ابدی با ارتش خون‌آشام خود است، محافظت کنند.",
+    "omdb": {
+      "Title": "Hellsing Ultimate",
+      "Year": "2006–2012",
+      "Rated": "Not Rated",
+      "Released": "05 Dec 2006",
+      "Runtime": "50 min",
+      "Genre": "Animation, Action, Fantasy",
+      "Director": "N/A",
+      "Writer": "Kohta Hirano",
+      "Actors": "Crispin Freeman, Katie Gray, Victoria Harwood",
+      "Plot": "The vampire Alucard, his master Sir Integra Fairbrook Wingates Hellsing, and his newly sired ward Seras Victoria, try to protect England from a war-crazed SS-Major who seeks to start an eternal war with his vampire army.",
+      "Language": "Japanese",
+      "Country": "Japan",
+      "Awards": "5 wins & 3 nominations total",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BZTA2OWJiYzgtZWFiOS00ZmYyLWFiMjMtYzg5YjNlMTA5NGJjXkEyXkFqcGc@._V1_SX300.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "8.2/10"
+        }
+      ],
+      "Metascore": "N/A",
+      "imdbRating": "8.2",
+      "imdbVotes": "30,632",
+      "imdbID": "tt0495212",
+      "Type": "series",
+      "totalSeasons": "1",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-26T20:14:38.750Z",
+    "updatedAt": "2026-09-26T20:14:38.750Z"
   }
 ]
