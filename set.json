@@ -587,5 +587,63 @@
     },
     "createdAt": "2026-09-26T08:56:25.040Z",
     "updatedAt": "2026-09-26T08:56:25.040Z"
+  },
+  {
+    "searchTitle": "super monsters",
+    "searchType": "series",
+    "searchTitleNormalized": "super monsters",
+    "imdbID": "tt6214876",
+    "title": "Super Monsters",
+    "year": "2017–",
+    "rated": "TV-Y",
+    "released": "13 Oct 2017",
+    "runtime": "23 min",
+    "genre": "Animation, Adventure, Comedy",
+    "director": "N/A",
+    "writer": "Avi Arad",
+    "actors": "Nicole Anthony, Vincent Tong, Alessandro Juliani",
+    "plot": "Preschool kids whose parents are the world's most famous monsters try to master their special powers while preparing for kindergarten.",
+    "language": "English",
+    "country": "Canada, United States",
+    "awards": "1 nomination total",
+    "poster": "https://m.media-amazon.com/images/M/MV5BMTYyODgxYzktNDZkNC00YThkLWJjNzgtMjFhZTlmMjZlNTI1XkEyXkFqcGc@._V1_SX300.jpg",
+    "imdbRating": "6.1",
+    "imdbVotes": "507",
+    "type": "series",
+    "totalSeasons": "3",
+    "episodeCount": 23,
+    "status": "3 فصل 23 قسمت",
+    "translatedPlotFa": "بچه‌های پیش‌دبستانی که والدینشان معروف‌ترین هیولاهای دنیا هستند، سعی می‌کنند ضمن آماده شدن برای مهدکودک، بر قدرت‌های ویژه خود مسلط شوند.",
+    "omdb": {
+      "Title": "Super Monsters",
+      "Year": "2017–",
+      "Rated": "TV-Y",
+      "Released": "13 Oct 2017",
+      "Runtime": "23 min",
+      "Genre": "Animation, Adventure, Comedy",
+      "Director": "N/A",
+      "Writer": "Avi Arad",
+      "Actors": "Nicole Anthony, Vincent Tong, Alessandro Juliani",
+      "Plot": "Preschool kids whose parents are the world's most famous monsters try to master their special powers while preparing for kindergarten.",
+      "Language": "English",
+      "Country": "Canada, United States",
+      "Awards": "1 nomination total",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BMTYyODgxYzktNDZkNC00YThkLWJjNzgtMjFhZTlmMjZlNTI1XkEyXkFqcGc@._V1_SX300.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "6.1/10"
+        }
+      ],
+      "Metascore": "N/A",
+      "imdbRating": "6.1",
+      "imdbVotes": "507",
+      "imdbID": "tt6214876",
+      "Type": "series",
+      "totalSeasons": "3",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-26T18:50:19.536Z",
+    "updatedAt": "2026-09-26T18:50:19.536Z"
   }
 ]
