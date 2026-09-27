@@ -1,5 +1,14 @@
 [
   {
+    "kind": "activity:1790522201222",
+    "userId": 1790522201222,
+    "action": "admin details changed",
+    "actorId": 2048310529,
+    "targetId": 8351620456,
+    "details": "BenSoftwareAdmin | بن",
+    "createdAt": "2026-09-27T15:16:41.222Z"
+  },
+  {
     "kind": "activity:1790522157025",
     "userId": 1790522157025,
     "action": "permission changed",
