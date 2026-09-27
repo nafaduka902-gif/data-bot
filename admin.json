@@ -17,9 +17,10 @@
       "welcome",
       "nofilter",
       "filter",
-      "warnings"
+      "warnings",
+      "group"
     ],
     "createdAt": "2026-09-27T15:13:45.128Z",
-    "updatedAt": "2026-09-27T15:14:52.452Z"
+    "updatedAt": "2026-09-27T15:15:11.070Z"
   }
 ]
