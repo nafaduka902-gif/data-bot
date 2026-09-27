@@ -2,8 +2,8 @@
   {
     "kind": "admin:8351620456",
     "userId": 8351620456,
-    "username": "",
-    "name": "",
+    "username": "BenSoftwareAdmin",
+    "name": "بن",
     "role": "admin",
     "enabled": true,
     "active": true,
@@ -21,6 +21,6 @@
       "group"
     ],
     "createdAt": "2026-09-27T15:13:45.128Z",
-    "updatedAt": "2026-09-27T15:15:55.798Z"
+    "updatedAt": "2026-09-27T15:16:40.360Z"
   }
 ]
