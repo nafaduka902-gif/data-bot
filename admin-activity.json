@@ -1,5 +1,14 @@
 [
   {
+    "kind": "activity:1790522157025",
+    "userId": 1790522157025,
+    "action": "permission changed",
+    "actorId": 2048310529,
+    "targetId": 8351620456,
+    "details": "group",
+    "createdAt": "2026-09-27T15:15:57.025Z"
+  },
+  {
     "kind": "activity:1790522140485",
     "userId": 1790522140485,
     "action": "permission changed",
