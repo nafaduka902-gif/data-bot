@@ -703,5 +703,63 @@
     },
     "createdAt": "2026-09-26T20:14:38.750Z",
     "updatedAt": "2026-09-26T20:14:38.750Z"
+  },
+  {
+    "searchTitle": "Tomb Raider King",
+    "searchType": "series",
+    "searchTitleNormalized": "tomb raider king",
+    "imdbID": "tt32869308",
+    "title": "Tomb Raider King",
+    "year": "2026–",
+    "rated": "N/A",
+    "released": "08 Jul 2026",
+    "runtime": "N/A",
+    "genre": "Animation, Action, Adventure",
+    "director": "N/A",
+    "writer": "Sanjijiksong, Yoonz",
+    "actors": "Nobuhiko Okamoto, Yoshimasa Hosoya, Masaaki Mizunaka",
+    "plot": "God-like tombs surface globally, granting magical relics. Betrayed and left for dead, elite hunter Jooheon travels 15 years into the past to loot every tomb, hoard artifacts, and execute revenge.",
+    "language": "Korean",
+    "country": "South Korea",
+    "awards": "N/A",
+    "poster": "https://m.media-amazon.com/images/M/MV5BNWQ4NDk2MDktMTZmOS00ZGQ0LTg5ZDUtZTRkNThmZjk0MWZjXkEyXkFqcGc@._V1_QL75_UY562_CR9,0,380,562_.jpg",
+    "imdbRating": "7.1",
+    "imdbVotes": "173",
+    "type": "series",
+    "totalSeasons": "1",
+    "episodeCount": 1,
+    "status": "1 فصل 1 قسمت",
+    "translatedPlotFa": "مقبره‌های خداگونه در سراسر جهان پدیدار می‌شوند و آثار جادویی به جا می‌گذارند. جوهان، شکارچی نخبه، که به او خیانت شده و رها شده تا بمیرد، ۱۵ سال به گذشته سفر می‌کند تا تمام مقبره‌ها را غارت کند، آثار باستانی را جمع‌آوری کند و انتقام بگیرد.",
+    "omdb": {
+      "Title": "Tomb Raider King",
+      "Year": "2026–",
+      "Rated": "N/A",
+      "Released": "08 Jul 2026",
+      "Runtime": "N/A",
+      "Genre": "Animation, Action, Adventure",
+      "Director": "N/A",
+      "Writer": "Sanjijiksong, Yoonz",
+      "Actors": "Nobuhiko Okamoto, Yoshimasa Hosoya, Masaaki Mizunaka",
+      "Plot": "God-like tombs surface globally, granting magical relics. Betrayed and left for dead, elite hunter Jooheon travels 15 years into the past to loot every tomb, hoard artifacts, and execute revenge.",
+      "Language": "Korean",
+      "Country": "South Korea",
+      "Awards": "N/A",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BNWQ4NDk2MDktMTZmOS00ZGQ0LTg5ZDUtZTRkNThmZjk0MWZjXkEyXkFqcGc@._V1_QL75_UY562_CR9,0,380,562_.jpg",
+      "Ratings": [
+        {
+          "Source": "Internet Movie Database",
+          "Value": "7.1/10"
+        }
+      ],
+      "Metascore": "N/A",
+      "imdbRating": "7.1",
+      "imdbVotes": "173",
+      "imdbID": "tt32869308",
+      "Type": "series",
+      "totalSeasons": "1",
+      "Response": "True"
+    },
+    "createdAt": "2026-09-28T03:53:43.826Z",
+    "updatedAt": "2026-09-28T03:53:43.826Z"
   }
 ]
