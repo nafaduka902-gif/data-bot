@@ -1,11 +1,9 @@
 {
-  "version": "b741c6097edbe26c595cb668f1ac163facb214a7",
-  "previousVersion": "e59664fe6815920e5d784b213666c86f550f9c53",
+  "version": "6a86e628399fc7646d0969fd762ca810609677b7",
+  "previousVersion": "6a86e628399fc7646d0969fd762ca810609677b7",
   "file": "source/bot.js",
   "branch": "main",
   "source": "github",
-  "updatedAt": "2026-09-29T08:14:39.978Z",
-  "status": "running",
-  "action": "automatic-rollback",
-  "startedAt": "2026-09-29T08:28:19.714Z"
+  "updatedAt": "2026-09-29T08:28:52.763Z",
+  "status": "pending"
 }
