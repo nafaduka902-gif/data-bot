@@ -7988,7 +7988,7 @@ bot.start(
 
     if (isAdmin(ctx)) {
       await ctx.reply(
-        '<b>Owner Panel</b>',
+        '<b>Owner Panelll</b>',
         {
           parse_mode: 'HTML',
           reply_markup:
@@ -14518,8 +14518,11 @@ bot.on(
       'X-GitHub-Api-Version': '2022-11-28'
     };
 
+    const nowPath =
+      `${GITHUB_BACKUP_DIR}/now.json`;
+
     const nowUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_BACKUP_DIR}/now.json?ref=${GITHUB_BRANCH}`;
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${nowPath}?ref=${GITHUB_BRANCH}`;
 
     const response = await axios.get(
       nowUrl,
@@ -14539,13 +14542,44 @@ bot.on(
 
     if (!nowData.version) return;
 
-    await bot.telegram.sendMessage(
-      UPDATE_ADMIN_ID,
-      '🚀 Bot started successfully.\n\n' +
-      '🔖 Version: ' + nowData.version.substring(0, 7) + '\n' +
-      '📦 Source: ' + (nowData.source || 'github') + '\n' +
-      '🕐 Updated: ' + (nowData.updatedAt || 'unknown')
-    );
+    // Tell GitHub that this version actually started
+    if (nowData.status === 'pending') {
+      const runningData = {
+        ...nowData,
+        status: 'running',
+        startedAt: new Date().toISOString()
+      };
+
+      const runningContent =
+        Buffer.from(
+          JSON.stringify(runningData, null, 2),
+          'utf8'
+        ).toString('base64');
+
+      await axios.put(
+        nowUrl.split('?')[0],
+        {
+          message: 'Mark bot version as running',
+          content: runningContent,
+          sha: response.data.sha,
+          branch: GITHUB_BRANCH
+        },
+        { headers }
+      );
+
+      await bot.telegram.sendMessage(
+        UPDATE_ADMIN_ID,
+        '🚀 Bot started successfully.\n\n' +
+        '🔖 Version: ' +
+        nowData.version.substring(0, 7) +
+        '\n' +
+        '📦 Source: ' +
+        (nowData.source || 'github') +
+        '\n' +
+        '🕐 Updated: ' +
+        (nowData.updatedAt || 'unknown')
+      );
+    }
 
   } catch (error) {
     console.error('startup version check:', error);
