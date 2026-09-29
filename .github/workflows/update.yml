@@ -35,12 +35,16 @@ jobs:
           bot_id = os.environ["NXCREATE_BOT_ID"]
 
           payload = {
-              "apiKey": api_key,
-              "tool": "update_bot_code",
-              "arguments": {
-                  "botId": bot_id,
-                  "code": code,
-                  "restart": True
+              "jsonrpc": "2.0",
+              "id": 1,
+              "method": "tools/call",
+              "params": {
+                  "name": "update_bot_code",
+                  "arguments": {
+                      "botId": bot_id,
+                      "code": code,
+                      "restart": True
+                  }
               }
           }
 
