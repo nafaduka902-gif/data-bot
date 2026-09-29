@@ -9727,6 +9727,7 @@ const REQUIRED_CHANNELS = [
   '@Anime_Faarsi',
   '@FaarsiMovie',
   '@Dubb_Anime',
+  '@AnimeFaarsi',
   '@Anime_FaarsiNews',
   '@Anime_FaarsiChat',
   '@Anime_FaarsiEdits',
@@ -9923,6 +9924,12 @@ function requiredChannelsKeyboard() {
       [
         {
           text: '📢 عضویت کانال 8',
+          url: 'https://t.me/AnimeFaarsi'
+        }
+      ],
+      [
+        {
+          text: '📢 عضویت کانال 9',
           url: 'https://t.me/AnimitionFaarsi'
         }
       ],
