@@ -8552,50 +8552,86 @@ bot.command('backupfile', async (ctx) => {
       return ctx.reply('❌ Only the main owner can use this command.');
     }
 
-    const currentRawUrl =
-      `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE_PATH}`;
-
-    const backupApiUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_BACKUP_DIR}?ref=${GITHUB_BRANCH}`;
-
-    const githubHeaders = {
+    const headers = {
       Authorization: `Bearer ${GITHUB_TOKEN}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28'
     };
 
-    const response = await axios.get(
-      backupApiUrl,
-      {
-        headers: githubHeaders
-      }
+    await ctx.reply('⏳ Checking GitHub backups...');
+
+    // Current bot.js
+    const currentApiUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
+
+    const currentResponse = await axios.get(
+      currentApiUrl,
+      { headers }
     );
 
-    const backups = Array.isArray(response.data)
-      ? response.data
-          .filter(file =>
-            file.type === 'file' &&
-            file.name.startsWith('bot-') &&
-            file.name.endsWith('.js')
-          )
-          .sort((a, b) =>
-            b.name.localeCompare(a.name)
-          )
-      : [];
+    const currentFile = currentResponse.data;
+
+    if (!currentFile || !currentFile.sha) {
+      throw new Error('Current bot.js was not found on GitHub.');
+    }
+
+    const currentSha = currentFile.sha;
+
+    const currentRawUrl =
+      `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE_PATH}`;
+
+    // Get complete Git tree
+    const treeUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`;
+
+    const treeResponse = await axios.get(
+      treeUrl,
+      { headers }
+    );
+
+    const tree = treeResponse.data;
+
+    if (!tree || !Array.isArray(tree.tree)) {
+      throw new Error('Could not read the GitHub file tree.');
+    }
+
+    // Find backups
+    const backupPrefix = `${GITHUB_BACKUP_DIR}/`;
+
+    const backups = tree.tree
+      .filter(file =>
+        file.type === 'blob' &&
+        typeof file.path === 'string' &&
+        file.path.startsWith(backupPrefix) &&
+        file.path.endsWith('.js')
+      )
+      .sort((a, b) =>
+        b.path.localeCompare(a.path)
+      );
 
     let message =
-      '✅ Current bot.js backup is ready.\n\n' +
+      '✅ Current bot.js is ready.\n\n' +
+      '🔖 Current version:\n' +
+      currentSha.substring(0, 7) +
+      '\n\n' +
       '📦 Current bot.js:\n' +
       currentRawUrl;
 
     if (backups.length > 0) {
+      const latestBackup = backups[0];
+
+      const backupRawUrl =
+        `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${latestBackup.path}`;
+
       message +=
-        '\n\n🗄 Previous bot.js:\n' +
-        backups[0].download_url;
+        '\n\n🗄 Previous version:\n' +
+        backupRawUrl +
+        '\n\n' +
+        '📁 ' + latestBackup.path;
     } else {
       message +=
-        '\n\n🗄 Previous bot.js:\n' +
-        'No backup exists yet.';
+        '\n\n🗄 Previous version:\n' +
+        'No backup found.';
     }
 
     await ctx.reply(message);
@@ -8603,9 +8639,22 @@ bot.command('backupfile', async (ctx) => {
   } catch (error) {
     console.error('backupfile error:', error);
 
+    let details = 'Unknown GitHub error.';
+
+    if (error.response && error.response.data) {
+      if (error.response.data.message) {
+        details = error.response.data.message;
+      } else {
+        details = JSON.stringify(error.response.data);
+      }
+    } else if (error.message) {
+      details = error.message;
+    }
+
     await ctx.reply(
       '❌ Backup failed.\n\n' +
-      'Please try again.'
+      'Error:\n' +
+      details
     );
   }
 });
