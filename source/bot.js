@@ -10619,6 +10619,107 @@ bot.command(
   }
 );
 
+bot.command('status', async (ctx) => {
+  try {
+    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
+      return ctx.reply('❌ Only the main owner can use this command.');
+    }
+
+    const headers = {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+
+    const nowPath =
+      `${GITHUB_BACKUP_DIR}/now.json`;
+
+    const nowUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${nowPath}?ref=${GITHUB_BRANCH}`;
+
+    const response = await axios.get(
+      nowUrl,
+      { headers }
+    );
+
+    const encoded = response.data?.content;
+
+    if (!encoded) {
+      return ctx.reply('❌ Version information not found.');
+    }
+
+    const nowData = JSON.parse(
+      Buffer.from(
+        encoded.replace(/\s/g, ''),
+        'base64'
+      ).toString('utf8')
+    );
+
+    const version =
+      nowData.version
+        ? nowData.version.substring(0, 7)
+        : 'Unknown';
+
+    const status =
+      nowData.status === 'running'
+        ? '🟢 Running'
+        : '🟡 ' + (nowData.status || 'Unknown');
+
+    let uptime = 'Unknown';
+
+    if (nowData.startedAt) {
+      const started =
+        new Date(nowData.startedAt).getTime();
+
+      const seconds =
+        Math.max(
+          0,
+          Math.floor(
+            (Date.now() - started) / 1000
+          )
+        );
+
+      const days =
+        Math.floor(seconds / 86400);
+
+      const hours =
+        Math.floor((seconds % 86400) / 3600);
+
+      const minutes =
+        Math.floor((seconds % 3600) / 60);
+
+      const secs =
+        seconds % 60;
+
+      uptime =
+        (days ? days + 'd ' : '') +
+        (hours ? hours + 'h ' : '') +
+        (minutes ? minutes + 'm ' : '') +
+        secs + 's';
+    }
+
+    await ctx.reply(
+      '📊 Bot Status\n\n' +
+      '🤖 Status: ' + status + '\n' +
+      '🔖 Version: ' + version + '\n' +
+      '📦 Source: ' + (nowData.source || 'github') + '\n' +
+      '🌿 Branch: ' + (nowData.branch || GITHUB_BRANCH) + '\n' +
+      '⏱️ Uptime: ' + uptime + '\n' +
+      '🕐 Started: ' + (nowData.startedAt || 'Unknown') + '\n' +
+      '🔄 Updated: ' + (nowData.updatedAt || 'Unknown')
+    );
+
+  } catch (error) {
+    console.error('status:', error);
+
+    await ctx.reply(
+      '❌ Failed to get bot status.\n\n' +
+      (error.message || 'Please try again.')
+    );
+  }
+});
+
+
 bot.command(
   'setseries',
   async ctx => {
