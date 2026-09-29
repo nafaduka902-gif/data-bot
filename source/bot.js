@@ -1,6 +1,6 @@
 const ADMIN_ID = 2048310529;
 const OMDB_API_KEY = 'c984bcec';
-const DEFAULT_DOWNLOAD_URL = 'https://t.me/dubb_anime';
+let DEFAULT_DOWNLOAD_URL = 'https://t.me/dubb_anime';
 
 const GITHUB_OWNER = 'nafaduka902-gif';
 const GITHUB_REPO = 'data-bot';
@@ -10719,6 +10719,26 @@ bot.command('status', async (ctx) => {
   }
 });
 
+bot.command('ping', async (ctx) => {
+  try {
+    const start = Date.now();
+
+    const message = await ctx.reply('🏓 Pinging...');
+
+    const ping = Date.now() - start;
+
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      message.message_id,
+      undefined,
+      '🏓 Pong!\n\n' +
+      '⚡ Response: ' + ping + ' ms'
+    );
+
+  } catch (error) {
+    console.error('ping:', error);
+  }
+});
 
 bot.command(
   'setseries',
@@ -14702,6 +14722,531 @@ bot.on(
   }
 })();
 
+
+// ==========================================
+// FULL BOT EXPORT / IMPORT
+// ==========================================
+
+const FULL_BACKUP_FILE =
+  `${GITHUB_BACKUP_DIR}/full-bot-backup.json`;
+
+const FULL_BACKUP_LOCAL_FILES = [
+  GITHUB_FILE,
+  GITHUB_CHANNEL_FILE,
+  GITHUB_WELCOME_FILE,
+  GITHUB_ADMIN_FILE,
+  GITHUB_WARNINGS_FILE,
+  GITHUB_FILTER_FILE,
+  GITHUB_NOFILTER_FILE,
+  GITHUB_GROUPS_FILE,
+  GITHUB_SCHEDULE_FILE
+];
+
+
+// ==========================================
+// GITHUB GET FILE
+// ==========================================
+
+async function githubGetFile(filePath) {
+  const headers = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+
+  const url =
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filePath}?ref=${GITHUB_BRANCH}`;
+
+  const response = await axios.get(
+    url,
+    { headers }
+  );
+
+  return response.data;
+}
+
+
+// ==========================================
+// GITHUB PUT FILE
+// ==========================================
+
+async function githubPutFile(
+  filePath,
+  content,
+  message,
+  existingSha = null
+) {
+  const headers = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+
+  const url =
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filePath}`;
+
+  const payload = {
+    message,
+    content: Buffer.from(
+      content,
+      'utf8'
+    ).toString('base64'),
+    branch: GITHUB_BRANCH
+  };
+
+  if (existingSha) {
+    payload.sha = existingSha;
+  }
+
+  const response = await axios.put(
+    url,
+    payload,
+    { headers }
+  );
+
+  return response.data;
+}
+
+
+// ==========================================
+// /export
+// ==========================================
+
+bot.command('export', async (ctx) => {
+  try {
+    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
+      return ctx.reply(
+        '❌ Only the main owner can use this command.'
+      );
+    }
+
+    const progress = await ctx.reply(
+      '⏳ Creating full bot backup...'
+    );
+
+    // ======================================
+    // GET CURRENT bot.js
+    // ======================================
+
+    const botFile =
+      await githubGetFile(
+        GITHUB_FILE_PATH
+      );
+
+    const botSource =
+      Buffer.from(
+        botFile.content.replace(/\s/g, ''),
+        'base64'
+      ).toString('utf8');
+
+
+    // ======================================
+    // GET ALL DATABASES
+    // ======================================
+
+    const databases = {};
+
+    for (
+      const fileName of FULL_BACKUP_LOCAL_FILES
+    ) {
+      try {
+        const file =
+          await githubGetFile(fileName);
+
+        const decoded =
+          Buffer.from(
+            file.content.replace(/\s/g, ''),
+            'base64'
+          ).toString('utf8');
+
+        databases[fileName] = {
+          content: JSON.parse(decoded)
+        };
+
+      } catch (error) {
+        databases[fileName] = {
+          content: null,
+          error: 'File not found'
+        };
+      }
+    }
+
+
+    // ======================================
+    // CREATE FULL BACKUP
+    // ======================================
+
+    const backup = {
+      backupType: 'FULL_BOT_BACKUP',
+      backupVersion: 2,
+      createdAt: new Date().toISOString(),
+
+      bot: {
+        username: BOT_USERNAME,
+        adminId: ADMIN_ID,
+        file: GITHUB_FILE_PATH,
+        source: botSource
+      },
+
+      config: {
+        defaultDownloadUrl:
+          DEFAULT_DOWNLOAD_URL
+      },
+
+      defaults: {
+        welcomeText:
+          DEFAULT_WELCOME_TEXT,
+
+        rulesText:
+          DEFAULT_RULES_TEXT
+      },
+
+      databases
+    };
+
+
+    const backupContent =
+      JSON.stringify(
+        backup,
+        null,
+        2
+      );
+
+
+    // ======================================
+    // CHECK EXISTING BACKUP
+    // ======================================
+
+    let existingSha = null;
+
+    try {
+      const existing =
+        await githubGetFile(
+          FULL_BACKUP_FILE
+        );
+
+      existingSha =
+        existing.sha;
+
+    } catch (error) {
+      if (
+        !error.response ||
+        error.response.status !== 404
+      ) {
+        throw error;
+      }
+    }
+
+
+    // ======================================
+    // SAVE FULL BACKUP
+    // ======================================
+
+    await githubPutFile(
+      FULL_BACKUP_FILE,
+      backupContent,
+      'Create full bot backup',
+      existingSha
+    );
+
+
+    const rawUrl =
+      `https://raw.githubusercontent.com/` +
+      `${GITHUB_OWNER}/${GITHUB_REPO}/` +
+      `${GITHUB_BRANCH}/${FULL_BACKUP_FILE}`;
+
+
+    // ======================================
+    // SUCCESS
+    // ======================================
+
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      progress.message_id,
+      undefined,
+
+      '✅ Full bot backup created successfully.\n\n' +
+
+      '📦 Backup:\n' +
+      rawUrl +
+      '\n\n' +
+
+      '📋 Backup contains:\n' +
+      '🤖 Full bot.js\n' +
+      '🗄️ All JSON databases\n' +
+      '👥 Groups\n' +
+      '🛡️ Admins & permissions\n' +
+      '👋 Welcome & rules\n' +
+      '⚠️ Warnings\n' +
+      '🔍 Filters & no-filters\n' +
+      '📢 Channel settings\n' +
+      '⏰ Schedules\n' +
+      '🔗 Download URL\n' +
+      '⚙️ Bot configuration\n\n' +
+
+      '🔐 Private credentials are excluded.'
+    );
+
+  } catch (error) {
+
+    console.error(
+      'full export:',
+      error
+    );
+
+    await ctx.reply(
+      '❌ Full export failed.\n\n' +
+      (error.message ||
+        'Please try again.')
+    );
+  }
+});
+
+
+// ==========================================
+// /import
+// ==========================================
+
+bot.command('import', async (ctx) => {
+  try {
+    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
+      return ctx.reply(
+        '❌ Only the main owner can use this command.'
+      );
+    }
+
+    const progress = await ctx.reply(
+      '⏳ Loading full bot backup...'
+    );
+
+
+    // ======================================
+    // LOAD BACKUP
+    // ======================================
+
+    const backupFile =
+      await githubGetFile(
+        FULL_BACKUP_FILE
+      );
+
+    const decoded =
+      Buffer.from(
+        backupFile.content.replace(/\s/g, ''),
+        'base64'
+      ).toString('utf8');
+
+    const backup =
+      JSON.parse(decoded);
+
+
+    // ======================================
+    // VALIDATE BACKUP
+    // ======================================
+
+    if (
+      backup.backupType !==
+      'FULL_BOT_BACKUP'
+    ) {
+      throw new Error(
+        'Invalid full bot backup.'
+      );
+    }
+
+    if (
+      !backup.databases ||
+      typeof backup.databases !== 'object'
+    ) {
+      throw new Error(
+        'Backup databases are missing.'
+      );
+    }
+
+    if (
+      !backup.bot ||
+      typeof backup.bot.source !== 'string'
+    ) {
+      throw new Error(
+        'Backup bot.js source is missing.'
+      );
+    }
+
+
+    // ======================================
+    // RESTORE DATABASES FIRST
+    // ======================================
+
+    for (
+      const fileName of FULL_BACKUP_LOCAL_FILES
+    ) {
+
+      const database =
+        backup.databases[fileName];
+
+      if (
+        !database ||
+        database.content === null ||
+        database.content === undefined
+      ) {
+        continue;
+      }
+
+      let existingSha = null;
+
+      try {
+
+        const current =
+          await githubGetFile(fileName);
+
+        existingSha =
+          current.sha;
+
+      } catch (error) {
+
+        if (
+          !error.response ||
+          error.response.status !== 404
+        ) {
+          throw error;
+        }
+      }
+
+
+      await githubPutFile(
+        fileName,
+
+        JSON.stringify(
+          database.content,
+          null,
+          2
+        ),
+
+        `Restore ${fileName} from full bot backup`,
+
+        existingSha
+      );
+    }
+
+
+    // ======================================
+    // RESTORE DOWNLOAD URL
+    // ======================================
+
+    if (
+      backup.config &&
+      typeof backup.config.defaultDownloadUrl ===
+        'string'
+    ) {
+
+      DEFAULT_DOWNLOAD_URL =
+        backup.config.defaultDownloadUrl;
+    }
+
+
+    // ======================================
+    // RESTORE WELCOME CACHE
+    // ======================================
+
+    try {
+
+      if (
+        backup.databases[
+          GITHUB_WELCOME_FILE
+        ]?.content !== undefined
+      ) {
+
+        jsonStoreCacheV1.set(
+          GITHUB_WELCOME_FILE,
+
+          backup.databases[
+            GITHUB_WELCOME_FILE
+          ].content
+        );
+      }
+
+    } catch (_) {}
+
+
+    // ======================================
+    // RESTORE bot.js LAST
+    // ======================================
+    // This is intentionally done last.
+    // If GitHub Actions deploys source/bot.js,
+    // the restored code becomes the active version.
+
+    let currentBotSha = null;
+
+    try {
+
+      const currentBot =
+        await githubGetFile(
+          GITHUB_FILE_PATH
+        );
+
+      currentBotSha =
+        currentBot.sha;
+
+    } catch (error) {
+
+      if (
+        !error.response ||
+        error.response.status !== 404
+      ) {
+        throw error;
+      }
+    }
+
+
+    await githubPutFile(
+      GITHUB_FILE_PATH,
+
+      backup.bot.source,
+
+      'Restore bot.js from full bot backup',
+
+      currentBotSha
+    );
+
+
+    // ======================================
+    // SUCCESS
+    // ======================================
+
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      progress.message_id,
+      undefined,
+
+      '✅ Full bot restore completed.\n\n' +
+
+      '🤖 bot.js: restored\n' +
+      '🗄️ JSON databases: restored\n' +
+      '⚙️ Configuration: restored\n' +
+      '🔗 Download URL: restored\n' +
+      '👥 Groups: restored\n' +
+      '🛡️ Admins & permissions: restored\n' +
+      '👋 Welcome & rules: restored\n' +
+      '⚠️ Warnings: restored\n' +
+      '🔍 Filters & no-filters: restored\n' +
+      '📢 Channel settings: restored\n' +
+      '⏰ Schedules: restored\n\n' +
+
+      '🚀 Restored bot.js was uploaded to GitHub.'
+    );
+
+  } catch (error) {
+
+    console.error(
+      'full import:',
+      error
+    );
+
+    await ctx.reply(
+      '❌ Full import failed.\n\n' +
+      (error.message ||
+        'Please try again.')
+    );
+  }
+});
 
 
 bot.catch(
