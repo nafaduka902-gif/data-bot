@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "kind": "admin:8351620456",
+    "userId": 8351620456,
+    "username": "BenSoftwareAdmin",
+    "name": "بن",
+    "role": "admin",
+    "enabled": true,
+    "active": true,
+    "permissions": [
+      "sequence",
+      "set",
+      "searchTools",
+      "fileTools",
+      "postTools",
+      "userInfo",
+      "welcome",
+      "nofilter",
+      "filter",
+      "warnings",
+      "group"
+    ],
+    "createdAt": "2026-09-27T15:13:45.128Z",
+    "updatedAt": "2026-09-27T15:16:40.360Z"
+  }
+]
