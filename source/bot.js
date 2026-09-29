@@ -1797,74 +1797,40 @@ async function nfAI(message) {
 
 bot.command('nfon', async (ctx) => {
   if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply(
-      '❌ This command is only available to the bot owner.'
-    );
+    return ctx.reply('❌ This command is only available to the bot owner.');
   }
 
   nfEnabled = true;
 
   return ctx.reply(
-    '🟢 /nf AI mode enabled.\n\nEvery message will now be sent to AI until /nfoff.'
+    '🟢 /nf has been enabled.\n\nEvery normal message will now be sent to AI until /nfoff.'
   );
 });
 
 bot.command('nfoff', async (ctx) => {
   if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply(
-      '❌ This command is only available to the bot owner.'
-    );
+    return ctx.reply('❌ This command is only available to the bot owner.');
   }
 
   nfEnabled = false;
 
-  return ctx.reply(
-    '🔴 /nf AI mode disabled.'
-  );
+  return ctx.reply('🔴 /nf has been disabled.');
 });
 
 bot.command('nfstatus', async (ctx) => {
   if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply(
-      '❌ This command is only available to the bot owner.'
-    );
+    return ctx.reply('❌ This command is only available to the bot owner.');
   }
 
   return ctx.reply(
     nfEnabled
-      ? '🟢 /nf AI mode: ON'
-      : '🔴 /nf AI mode: OFF'
+      ? '🟢 /nf status: ON'
+      : '🔴 /nf status: OFF'
   );
 });
 
-bot.command('nf', async (ctx) => {
-  if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply(
-      '❌ This command is only available to the bot owner.'
-    );
-  }
-
-  if (!nfEnabled) {
-    return ctx.reply(
-      '🔴 /nf AI mode is disabled.\n\nUse /nfon to enable it.'
-    );
-  }
-
-  const text = String(ctx.message?.text || '')
-    .replace(/^\/nf(?:@\w+)?\s*/i, '')
-    .trim();
-
-  if (!text) {
-    return ctx.reply(
-      'Example:\n\n/nf Hello\n/nf Create a JavaScript ping command'
-    );
-  }
-
-  return nfProcessMessage(ctx, text);
-});
-
 async function nfProcessMessage(ctx, userText) {
-  let thinkingMessage;
+  let thinkingMessage = null;
 
   try {
     thinkingMessage = await ctx.reply('🤖 Thinking...');
@@ -1888,19 +1854,17 @@ async function nfProcessMessage(ctx, userText) {
 
     const buttons = [];
 
-    for (let index = 0; index < formatted.codeBlocks.length; index++) {
-      const item = formatted.codeBlocks[index];
+    for (let i = 0; i < formatted.codeBlocks.length; i++) {
+      const item = formatted.codeBlocks[i];
 
       nfCodeStore.set(item.id, item.code);
 
       buttons.push([
         {
           text:
-            `📋 Copy Code${
-              formatted.codeBlocks.length > 1
-                ? ` ${index + 1}`
-                : ''
-            }`,
+            formatted.codeBlocks.length > 1
+              ? `📋 Copy Code ${i + 1}`
+              : '📋 Copy Code',
           callback_data: `nfcopy:${item.id}`
         }
       ]);
@@ -1921,13 +1885,17 @@ async function nfProcessMessage(ctx, userText) {
   } catch (error) {
     console.error('NF AI ERROR:', error);
 
+    const errorText =
+      '❌ Error:\n' +
+      nfEscapeHtml(String(error?.message || error));
+
     if (thinkingMessage) {
       try {
         await ctx.telegram.editMessageText(
           ctx.chat.id,
           thinkingMessage.message_id,
           undefined,
-          '❌ Error:\n' + nfEscapeHtml(String(error?.message || error)),
+          errorText,
           {
             parse_mode: 'HTML'
           }
@@ -1940,85 +1908,64 @@ async function nfProcessMessage(ctx, userText) {
     }
 
     await ctx.reply(
-      '❌ Error:\n' + String(error?.message || error)
+      '❌ Error:\n' +
+      String(error?.message || error)
     );
   }
 }
 
-bot.on('callback_query', async (ctx) => {
-  const data = String(ctx.callbackQuery?.data || '');
-
-  if (!data.startsWith('nfcopy:')) {
-    return;
-  }
-
-  if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.answerCbQuery(
-      '❌ Only the bot owner can use this button.',
-      {
-        show_alert: true
-      }
-    );
-  }
-
-  const id = data.slice('nfcopy:'.length);
-  const code = nfCodeStore.get(id);
-
-  if (!code) {
-    return ctx.answerCbQuery(
-      '❌ This code is no longer available.',
-      {
-        show_alert: true
-      }
-    );
-  }
-
-  await ctx.answerCbQuery('📋 Code is ready to copy.');
-
-  return ctx.reply(
-    `<pre><code>${nfEscapeHtml(code)}</code></pre>`,
-    {
-      parse_mode: 'HTML'
+bot.use(async (ctx, next) => {
+  try {
+    if (ctx.from?.id !== ADMIN_ID) {
+      return next();
     }
-  );
-});
 
-bot.on('message', async (ctx) => {
-  if (!nfEnabled) {
-    return;
+    const callbackData = String(
+      ctx.callbackQuery?.data || ''
+    );
+
+    if (callbackData.startsWith('nfcopy:')) {
+      const id = callbackData.slice('nfcopy:'.length);
+      const code = nfCodeStore.get(id);
+
+      if (!code) {
+        return ctx.answerCbQuery(
+          '❌ This code is no longer available.',
+          {
+            show_alert: true
+          }
+        );
+      }
+
+      await ctx.answerCbQuery('📋 Code is ready to copy.');
+
+      return ctx.reply(
+        `<pre><code>${nfEscapeHtml(code)}</code></pre>`,
+        {
+          parse_mode: 'HTML'
+        }
+      );
+    }
+
+    if (!nfEnabled) {
+      return next();
+    }
+
+    const text = String(ctx.message?.text || '').trim();
+
+    if (!text) {
+      return next();
+    }
+
+    if (text.startsWith('/')) {
+      return next();
+    }
+
+    return nfProcessMessage(ctx, text);
+  } catch (error) {
+    console.error('NF MIDDLEWARE ERROR:', error);
+    return next();
   }
-
-  if (ctx.from?.id !== ADMIN_ID) {
-    return;
-  }
-
-  const messageText = String(ctx.message?.text || '').trim();
-
-  if (!messageText) {
-    return;
-  }
-
-  if (/^\/nfoff(?:@\w+)?(?:\s|$)/i.test(messageText)) {
-    return;
-  }
-
-  if (/^\/nfon(?:@\w+)?(?:\s|$)/i.test(messageText)) {
-    return;
-  }
-
-  if (/^\/nfstatus(?:@\w+)?(?:\s|$)/i.test(messageText)) {
-    return;
-  }
-
-  if (/^\/nf(?:@\w+)?(?:\s|$)/i.test(messageText)) {
-    return;
-  }
-
-  if (messageText.startsWith('/')) {
-    return;
-  }
-
-  return nfProcessMessage(ctx, messageText);
 });
 
 
