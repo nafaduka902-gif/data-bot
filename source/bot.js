@@ -8370,177 +8370,138 @@ bot.command('updatebot', async (ctx) => {
       return ctx.reply('❌ Only the main owner can use this command.');
     }
 
-    updateBotStates.set(ctx.from.id, {
-      waitingForFile: true
-    });
+    updateBotStates.set(ctx.from.id, { waitingForFile: true });
 
     await ctx.reply(
-      '📦 Please send the new bot.js file.\n\n' +
-      '⚠️ Only bot.js files are accepted.'
+      '📦 Send the new bot.js file.\n\n' +
+      '⚠️ Only bot.js is accepted.'
     );
 
   } catch (error) {
-    console.error('updatebot start error:', error);
-
-    await ctx.reply(
-      '❌ Failed to start the update process.\n\n' +
-      'Please try again.'
-    );
+    console.error('updatebot start:', error);
+    await ctx.reply('❌ Failed to start update.');
   }
 });
 
 
 bot.on('document', async (ctx) => {
   try {
-    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
-      return;
-    }
+    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) return;
 
     const state = updateBotStates.get(ctx.from.id);
-
-    if (!state || !state.waitingForFile) {
-      return;
-    }
+    if (!state || !state.waitingForFile) return;
 
     const document = ctx.message.document;
 
     if (!document || document.file_name !== 'bot.js') {
       return ctx.reply(
-        '❌ Invalid file.\n\n' +
-        'Please send a file named exactly:\n' +
-        'bot.js'
+        '❌ Invalid file.\n\nSend a file named exactly bot.js'
       );
     }
 
     updateBotStates.delete(ctx.from.id);
 
-    await ctx.reply(
-      '⏳ File received.\n' +
-      'Creating a backup of the current bot.js...'
-    );
-
-    const githubHeaders = {
+    const headers = {
       Authorization: `Bearer ${GITHUB_TOKEN}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28'
     };
 
-    // Get current bot.js
+    await ctx.reply('⏳ Updating bot.js...');
+
+    // Current GitHub version
     const currentUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
 
-    const currentResponse = await axios.get(
-      currentUrl,
-      {
-        headers: githubHeaders
-      }
-    );
-
+    const currentResponse = await axios.get(currentUrl, { headers });
     const currentFile = currentResponse.data;
 
-    if (
-      !currentFile ||
-      !currentFile.content ||
-      !currentFile.sha
-    ) {
-      throw new Error('Current bot.js could not be read.');
+    if (!currentFile || !currentFile.sha || !currentFile.content) {
+      throw new Error('Current bot.js not found.');
     }
 
-    // Create unique backup name
-    const now = new Date();
+    const currentSha = currentFile.sha;
 
-    const timestamp =
-      now.getUTCFullYear() +
-      '-' +
-      String(now.getUTCMonth() + 1).padStart(2, '0') +
-      '-' +
-      String(now.getUTCDate()).padStart(2, '0') +
-      '_' +
-      String(now.getUTCHours()).padStart(2, '0') +
-      '-' +
-      String(now.getUTCMinutes()).padStart(2, '0') +
-      '-' +
-      String(now.getUTCSeconds()).padStart(2, '0');
-
+    // Backup name based on GitHub SHA
     const backupPath =
-      `${GITHUB_BACKUP_DIR}/bot-${timestamp}.js`;
+      `${GITHUB_BACKUP_DIR}/bot-${currentSha}.js`;
 
-    // Save previous version
     const backupUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${backupPath}`;
 
-    await axios.put(
-      backupUrl,
-      {
-        message: `Backup bot.js before update ${timestamp}`,
-        content: currentFile.content.replace(/\s/g, ''),
-        branch: GITHUB_BRANCH
-      },
-      {
-        headers: githubHeaders
+    let backupExists = false;
+
+    try {
+      await axios.get(backupUrl, { headers });
+      backupExists = true;
+    } catch (error) {
+      if (!error.response || error.response.status !== 404) {
+        throw error;
       }
-    );
+    }
 
-    await ctx.reply(
-      '✅ Previous version backed up successfully.\n\n' +
-      '📁 ' + backupPath + '\n\n' +
-      '⏳ Uploading the new bot.js to GitHub...'
-    );
+    if (!backupExists) {
+      await axios.put(
+        backupUrl,
+        {
+          message: `Backup bot.js ${currentSha.substring(0, 7)}`,
+          content: currentFile.content.replace(/\s/g, ''),
+          branch: GITHUB_BRANCH
+        },
+        { headers }
+      );
+    }
 
-    // Download new bot.js from Telegram
+    // Download new bot.js
     const fileUrl =
       await ctx.telegram.getFileLink(document.file_id);
 
     const fileResponse = await axios.get(
       fileUrl,
-      {
-        responseType: 'arraybuffer'
-      }
+      { responseType: 'arraybuffer' }
     );
 
     const newCode =
       Buffer.from(fileResponse.data).toString('utf8');
 
     if (!newCode.trim()) {
-      throw new Error('The new bot.js file is empty.');
+      throw new Error('New bot.js is empty.');
     }
 
     const newContent =
       Buffer.from(newCode, 'utf8').toString('base64');
 
-    // Replace current bot.js
-    const updateUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
-
+    // Update GitHub
     await axios.put(
-      updateUrl,
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`,
       {
-        message: `Update bot.js ${timestamp}`,
+        message: `Update bot.js`,
         content: newContent,
-        sha: currentFile.sha,
+        sha: currentSha,
         branch: GITHUB_BRANCH
       },
-      {
-        headers: githubHeaders
-      }
+      { headers }
     );
 
+    const backupRawUrl =
+      `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${backupPath}`;
+
     await ctx.reply(
-      '✅ bot.js has been successfully updated on GitHub.\n\n' +
-      '📦 Path: ' + GITHUB_FILE_PATH + '\n' +
-      '🌿 Branch: ' + GITHUB_BRANCH + '\n' +
-      '🗄 Backup: ' + backupPath + '\n\n' +
-      '⏳ GitHub Actions is updating NxCreator...'
+      '✅ Update uploaded successfully.\n\n' +
+      '🗄 Previous version:\n' +
+      backupRawUrl +
+      '\n\n' +
+      '⏳ NxCreator is updating...'
     );
 
   } catch (error) {
-    console.error('updatebot error:', error);
+    console.error('updatebot:', error);
 
     updateBotStates.delete(ctx.from.id);
 
     await ctx.reply(
       '❌ Update failed.\n\n' +
-      'The previous version was not removed.'
+      (error.message || 'Please try again.')
     );
   }
 });
@@ -8558,29 +8519,23 @@ bot.command('backupfile', async (ctx) => {
       'X-GitHub-Api-Version': '2022-11-28'
     };
 
-    await ctx.reply('⏳ Checking GitHub backups...');
-
-    // Current bot.js
-    const currentApiUrl =
+    const currentUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
 
     const currentResponse = await axios.get(
-      currentApiUrl,
+      currentUrl,
       { headers }
     );
 
     const currentFile = currentResponse.data;
 
     if (!currentFile || !currentFile.sha) {
-      throw new Error('Current bot.js was not found on GitHub.');
+      throw new Error('Current bot.js not found.');
     }
-
-    const currentSha = currentFile.sha;
 
     const currentRawUrl =
       `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE_PATH}`;
 
-    // Get complete Git tree
     const treeUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`;
 
@@ -8589,76 +8544,42 @@ bot.command('backupfile', async (ctx) => {
       { headers }
     );
 
-    const tree = treeResponse.data;
-
-    if (!tree || !Array.isArray(tree.tree)) {
-      throw new Error('Could not read the GitHub file tree.');
-    }
-
-    // Find backups
-    const backupPrefix = `${GITHUB_BACKUP_DIR}/`;
-
-    const backups = tree.tree
+    const backups = (treeResponse.data.tree || [])
       .filter(file =>
         file.type === 'blob' &&
-        typeof file.path === 'string' &&
-        file.path.startsWith(backupPrefix) &&
+        file.path.startsWith(`${GITHUB_BACKUP_DIR}/bot-`) &&
         file.path.endsWith('.js')
       )
-      .sort((a, b) =>
-        b.path.localeCompare(a.path)
-      );
+      .sort((a, b) => b.path.localeCompare(a.path));
 
     let message =
-      '✅ Current bot.js is ready.\n\n' +
-      '🔖 Current version:\n' +
-      currentSha.substring(0, 7) +
-      '\n\n' +
       '📦 Current bot.js:\n' +
       currentRawUrl;
 
-    if (backups.length > 0) {
-      const latestBackup = backups[0];
+    if (backups.length) {
+      const latest = backups[0];
 
       const backupRawUrl =
-        `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${latestBackup.path}`;
+        `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${latest.path}`;
 
       message +=
         '\n\n🗄 Previous version:\n' +
-        backupRawUrl +
-        '\n\n' +
-        '📁 ' + latestBackup.path;
+        backupRawUrl;
     } else {
-      message +=
-        '\n\n🗄 Previous version:\n' +
-        'No backup found.';
+      message += '\n\n🗄 No previous version found.';
     }
 
     await ctx.reply(message);
 
   } catch (error) {
-    console.error('backupfile error:', error);
-
-    let details = 'Unknown GitHub error.';
-
-    if (error.response && error.response.data) {
-      if (error.response.data.message) {
-        details = error.response.data.message;
-      } else {
-        details = JSON.stringify(error.response.data);
-      }
-    } else if (error.message) {
-      details = error.message;
-    }
+    console.error('backupfile:', error);
 
     await ctx.reply(
       '❌ Backup failed.\n\n' +
-      'Error:\n' +
-      details
+      (error.message || 'Please try again.')
     );
   }
 });
-
 
 
 bot.command(
