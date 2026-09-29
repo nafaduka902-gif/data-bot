@@ -8388,19 +8388,19 @@ bot.command('updatebot', async (ctx) => {
 bot.command('backupfile', async (ctx) => {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
-      return ctx.reply('❌ مالک اصلی انجام این دستور دارد.');
+      return ctx.reply('❌ Only the main owner can use this command.');
     }
 
     if (!GITHUB_TOKEN) {
-      return ctx.reply('❌ GITHUB_TOKEN تنظیم نشده است.');
+      return ctx.reply('❌ GITHUB_TOKEN is not configured.');
     }
 
-    await ctx.reply('⏳ در حال دریافت نسخه فعلی bot.js...');
+    await ctx.reply('⏳ Preparing bot.js backup...');
 
     const githubUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
 
-    const response = await axios.get(
+    const githubResponse = await axios.get(
       githubUrl + `?ref=${encodeURIComponent(GITHUB_BRANCH)}`,
       {
         headers: {
@@ -8410,15 +8410,50 @@ bot.command('backupfile', async (ctx) => {
       }
     );
 
-    const downloadUrl = response.data.download_url;
-
-    if (!downloadUrl) {
-      return ctx.reply('❌ لینک دانلود bot.js پیدا نشد.');
+    if (!githubResponse.data.content) {
+      return ctx.reply('❌ bot.js content was not found on GitHub.');
     }
 
-    await ctx.replyWithDocument(downloadUrl, {
+    const fileBuffer = Buffer.from(
+      githubResponse.data.content.replace(/\s/g, ''),
+      'base64'
+    );
+
+    await ctx.reply('⏳ Uploading bot.js to Catbox...');
+
+    const form = new FormData();
+
+    form.append('reqtype', 'fileupload');
+    form.append(
+      'fileToUpload',
+      new Blob([fileBuffer], {
+        type: 'application/javascript'
+      }),
+      'bot.js'
+    );
+
+    const catboxResponse = await axios.post(
+      'https://catbox.moe/user/api.php',
+      form
+    );
+
+    const fileUrl = String(catboxResponse.data || '').trim();
+
+    if (!fileUrl.startsWith('https://files.catbox.moe/')) {
+      throw new Error(
+        'Catbox returned an invalid file URL: ' + fileUrl
+      );
+    }
+
+    await ctx.reply(
+      '✅ Backup uploaded successfully.\n\n' +
+      '🔗 Download URL:\n' +
+      fileUrl
+    );
+
+    await ctx.replyWithDocument(fileUrl, {
       caption:
-        '📦 Backup فعلی bot.js\n' +
+        '📦 bot.js Backup\n' +
         '🌿 Branch: ' + GITHUB_BRANCH + '\n' +
         '📁 Path: ' + GITHUB_FILE_PATH
     });
@@ -8430,8 +8465,8 @@ bot.command('backupfile', async (ctx) => {
     );
 
     await ctx.reply(
-      '❌ دریافت Backup انجام نشد.\n\n' +
-      'خطا: ' +
+      '❌ Backup failed.\n\n' +
+      'Error: ' +
       (
         error.response?.data?.description ||
         error.response?.data?.message ||
@@ -8440,8 +8475,6 @@ bot.command('backupfile', async (ctx) => {
     );
   }
 });
-
-
 
 bot.on('document', async (ctx, next) => {
   try {
