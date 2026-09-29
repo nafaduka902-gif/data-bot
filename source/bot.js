@@ -1711,812 +1711,512 @@ function getAIDynamicSource(
 
 
 const NF_API_KEY = process.env.GROQ_API_KEY;
-const NF_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const NF_MODEL = 'openai/gpt-oss-120b';
 
-const nfEnabled = new Map();
+let nfEnabled = false;
+
+const nfCodeStore = new Map();
 const nfConversationState = new Map();
 const nfLocks = new Map();
-const nfCodeStore = new Map();
-const nfDeleteStore = new Map();
+const nfLastRequests = new Map();
 
-function nfEscapeHtml(value) {
-  return String(value ?? '')
+const NF_MODEL = 'openai/gpt-oss-120b';
+const NF_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+const NF_MAX_HISTORY = 6;
+const NF_MAX_TOOL_ROUNDS = 2;
+const NF_TIMEOUT = 45000;
+
+function nfEscapeHtml(text) {
+  return String(text || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
 
-function nfKey(ctx) {
-  return `${ctx.chat?.id || 0}:${ctx.from?.id || 0}`;
-}
-
-function nfIsOwner(ctx) {
-  return Number(ctx.from?.id) === 2048310529;
-}
-
 function nfState(ctx) {
-  const key = nfKey(ctx);
+  const key =
+    `${ctx.from?.id || 0}:${ctx.chat?.id || 0}`;
 
   if (!nfConversationState.has(key)) {
     nfConversationState.set(key, {
       history: [],
       lastUserMessageId: null,
-      botMessageIds: []
+      lastBotMessageId: null,
+      lastReplyMessageId: null,
+      lastOperation: null,
+      lastTool: null,
+      lastTarget: null
     });
   }
 
   return nfConversationState.get(key);
 }
 
-function nfRemember(ctx, role, content) {
+function nfRemember(
+  ctx,
+  userText,
+  answer,
+  tool,
+  operation
+) {
   const state = nfState(ctx);
+
+  state.lastUserMessageId =
+    ctx.message?.message_id ||
+    state.lastUserMessageId;
+
+  state.lastReplyMessageId =
+    ctx.message?.reply_to_message?.message_id ||
+    state.lastReplyMessageId;
+
+  state.lastOperation =
+    operation ||
+    state.lastOperation;
+
+  state.lastTool =
+    tool ||
+    state.lastTool;
 
   state.history.push({
-    role,
-    content: String(content || '').slice(0, 6000)
+    user:
+      String(userText || '').slice(0, 1500),
+    assistant:
+      String(answer || '').slice(0, 2500)
   });
 
-  if (state.history.length > 20) {
-    state.history.splice(
-      0,
-      state.history.length - 20
-    );
-  }
-}
-
-function nfTrackMessage(ctx, messageId) {
-  if (!messageId) return;
-
-  const state = nfState(ctx);
-
-  state.botMessageIds.push(
-    Number(messageId)
-  );
-
-  if (state.botMessageIds.length > 100) {
-    state.botMessageIds =
-      state.botMessageIds.slice(-100);
-  }
-}
-
-function nfTrackUserMessage(ctx) {
-  const state = nfState(ctx);
-
-  if (ctx.message?.message_id) {
-    state.lastUserMessageId =
-      Number(ctx.message.message_id);
+  if (
+    state.history.length >
+    NF_MAX_HISTORY
+  ) {
+    state.history =
+      state.history.slice(-NF_MAX_HISTORY);
   }
 }
 
 function nfFormat(text) {
-  let value = String(text || '').trim();
+  let source =
+    String(text || '').trim();
 
-  if (!value) {
-    return 'پاسخی دریافت نشد.';
-  }
+  const codes = [];
 
-  value = value.replace(
-    /```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g,
-    (_, lang, code) => {
-      return `<pre><code>${nfEscapeHtml(
-        code.trim()
-      )}</code></pre>`;
-    }
-  );
+  source =
+    source.replace(
+      /```(?:[\w+-]+)?\s*([\s\S]*?)```/g,
+      (match, code) => {
+        const id =
+          `${Date.now()}_${codes.length}_${Math.floor(Math.random() * 100000)}`;
 
-  value = value.replace(
-    /\*\*([^*\n]+)\*\*/g,
-    '<b>$1</b>'
-  );
+        codes.push({
+          id,
+          code:
+            String(code || '').trim()
+        });
 
-  return value;
-}
-
-function nfExtractCode(text) {
-  const match =
-    String(text || '').match(
-      /```(?:[a-zA-Z0-9_-]+)?\s*([\s\S]*?)```/
-    );
-
-  return match
-    ? match[1].trim()
-    : null;
-}
-
-function nfSplitText(text, limit = 3500) {
-  const value = String(text || '');
-
-  if (value.length <= limit) {
-    return [value];
-  }
-
-  const result = [];
-  let remaining = value;
-
-  while (remaining.length > limit) {
-    let index =
-      remaining.lastIndexOf('\n', limit);
-
-    if (index < 1000) {
-      index =
-        remaining.lastIndexOf(' ', limit);
-    }
-
-    if (index < 1000) {
-      index = limit;
-    }
-
-    result.push(
-      remaining.slice(0, index)
-    );
-
-    remaining =
-      remaining.slice(index).replace(
-        /^\s+/,
-        ''
-      );
-  }
-
-  if (remaining) {
-    result.push(remaining);
-  }
-
-  return result;
-}
-
-async function nfSendChunks(ctx, text) {
-  const chunks =
-    nfSplitText(text, 3500);
-
-  const sent = [];
-
-  for (const chunk of chunks) {
-    const code = nfExtractCode(chunk);
-
-    let message;
-
-    if (code) {
-      message = await ctx.reply(
-        nfFormat(chunk),
-        {
-          parse_mode: 'HTML',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: '📋 Copy Code',
-                  callback_data:
-                    `nfcopy:${Date.now()}:${Math.random()
-                      .toString(36)
-                      .slice(2, 8)}`
-                }
-              ]
-            ]
-          }
-        }
-      );
-
-      const key =
-        `${ctx.chat.id}:${message.message_id}`;
-
-      nfCodeStore.set(
-        key,
-        code
-      );
-
-      if (nfCodeStore.size > 100) {
-        const first =
-          nfCodeStore.keys().next().value;
-
-        if (first) {
-          nfCodeStore.delete(first);
-        }
+        return `\n___NF_CODE_${id}___\n`;
       }
-    } else {
-      message = await ctx.reply(
-        nfFormat(chunk),
-        {
-          parse_mode: 'HTML'
-        }
-      );
-    }
+    );
 
-    sent.push(message);
-    nfTrackMessage(
-      ctx,
-      message.message_id
+  source =
+    nfEscapeHtml(source);
+
+  source =
+    source.replace(
+      /\*\*([^*\n]+)\*\*/g,
+      '<b>$1</b>'
+    );
+
+  source =
+    source.replace(
+      /__([^_\n]+)__/g,
+      '<b>$1</b>'
+    );
+
+  source =
+    source.replace(
+      /`([^`\n]+)`/g,
+      '<code>$1</code>'
+    );
+
+  for (const item of codes) {
+    source =
+      source.replace(
+        `___NF_CODE_${item.id}___`,
+        `<pre><code>${nfEscapeHtml(item.code)}</code></pre>`
+      );
+  }
+
+  return {
+    html:
+      source ||
+      'No response received.',
+    codes
+  };
+}
+
+function nfGetToken() {
+  return (
+    process.env.BOT_TOKEN ||
+    process.env.TELEGRAM_BOT_TOKEN ||
+    process.env.TELEGRAM_TOKEN ||
+    bot?.telegram?.token ||
+    null
+  );
+}
+
+async function nfTelegram(
+  method,
+  params
+) {
+  const token =
+    nfGetToken();
+
+  if (!token) {
+    throw new Error(
+      'Telegram token unavailable'
     );
   }
 
-  return sent;
+  const response =
+    await axios.post(
+      `https://api.telegram.org/bot${token}/${method}`,
+      params || {},
+      {
+        timeout: 20000
+      }
+    );
+
+  if (!response.data?.ok) {
+    throw new Error(
+      response.data?.description ||
+      `Telegram API ${method} failed`
+    );
+  }
+
+  return response.data.result;
 }
 
-async function nfEditOrSend(
-  ctx,
+async function nfMemberCount(
+  chatId
+) {
+  return await nfTelegram(
+    'getChatMemberCount',
+    {
+      chat_id: chatId
+    }
+  );
+}
+
+async function nfGetChat(
+  chatId
+) {
+  return await nfTelegram(
+    'getChat',
+    {
+      chat_id: chatId
+    }
+  );
+}
+
+async function nfDelete(
+  chatId,
+  messageId
+) {
+  return await nfTelegram(
+    'deleteMessage',
+    {
+      chat_id: chatId,
+      message_id: messageId
+    }
+  );
+}
+
+async function nfEdit(
+  chatId,
   messageId,
   text
 ) {
-  const chunks =
-    nfSplitText(text, 3500);
-
-  const first =
-    nfFormat(chunks[0]);
-
-  try {
-    await ctx.telegram.editMessageText(
-      ctx.chat.id,
-      messageId,
-      undefined,
-      first,
-      {
-        parse_mode: 'HTML'
-      }
-    );
-  } catch {
-    try {
-      const sent =
-        await ctx.reply(
-          first,
-          {
-            parse_mode: 'HTML'
-          }
-        );
-
-      nfTrackMessage(
-        ctx,
-        sent.message_id
-      );
-    } catch {}
-  }
-
-  for (
-    let index = 1;
-    index < chunks.length;
-    index++
-  ) {
-    try {
-      await ctx.reply(
-        nfFormat(chunks[index]),
-        {
-          parse_mode: 'HTML'
-        }
-      );
-    } catch {}
-  }
+  return await nfTelegram(
+    'editMessageText',
+    {
+      chat_id: chatId,
+      message_id: messageId,
+      text
+    }
+  );
 }
 
 async function nfGetSource() {
+  const owner =
+    typeof GITHUB_OWNER !== 'undefined'
+      ? GITHUB_OWNER
+      : 'nafaduka902-gif';
+
+  const repo =
+    typeof GITHUB_REPO !== 'undefined'
+      ? GITHUB_REPO
+      : 'data-bot';
+
+  const branch =
+    typeof GITHUB_BRANCH !== 'undefined'
+      ? GITHUB_BRANCH
+      : 'main';
+
+  const file =
+    typeof GITHUB_FILE_PATH !== 'undefined'
+      ? GITHUB_FILE_PATH
+      : 'source/bot.js';
+
   const response =
     await axios.get(
-      `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE_PATH}`,
+      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${file}`,
       {
-        timeout: 15000
+        timeout: 30000
       }
     );
 
-  if (
-    !response.data ||
-    typeof response.data !== 'string'
-  ) {
-    throw new Error(
-      'SOURCE_NOT_AVAILABLE'
-    );
-  }
-
-  return response.data;
+  return String(
+    response.data || ''
+  );
 }
 
-function nfExtractCommands(source) {
-  const commands = [];
+function nfExtractCommands(
+  source
+) {
+  const found = [];
   const seen = {};
 
-  const patterns = [
-    /bot\.command\s*\(\s*['"`]([^'"`]+)['"`]/g,
-    /bot\.command\s*\(\s*\[\s*([^\]]+)\]/g,
-    /bot\.on\s*\(\s*['"`]text['"`][\s\S]{0,500}?\/([a-zA-Z0-9_]+)/g,
-    /case\s+['"`]\/([a-zA-Z0-9_]+)['"`]\s*:/g
-  ];
+  const add = name => {
+    const command =
+      '/' +
+      String(name || '')
+        .replace(/^\/+/, '')
+        .trim();
 
-  for (const pattern of patterns) {
-    let match;
-
-    while (
-      (match = pattern.exec(source))
+    if (
+      !command ||
+      !/^\/[A-Za-z0-9_]+$/.test(command)
     ) {
-      const raw =
-        String(match[1] || '');
-
-      const found =
-        raw.match(
-          /[a-zA-Z0-9_]+/g
-        ) || [];
-
-      for (const command of found) {
-        const name =
-          command.toLowerCase();
-
-        if (
-          name &&
-          !seen[name]
-        ) {
-          seen[name] = true;
-          commands.push(name);
-        }
-      }
+      return;
     }
-  }
 
-  return commands.sort(
-    (a, b) =>
-      a.localeCompare(
-        b,
-        'en',
-        {
-          numeric: true
-        }
-      )
-  );
-}
+    const key =
+      command.toLowerCase();
 
-function nfFindMatchingBrace(
-  source,
-  start
-) {
-  let depth = 0;
-  let quote = null;
-  let escaped = false;
-  let lineComment = false;
-  let blockComment = false;
+    if (!seen[key]) {
+      seen[key] = true;
+      found.push(command);
+    }
+  };
 
-  for (
-    let i = start;
-    i < source.length;
-    i++
+  const single =
+    /bot\.command\(\s*['"`]([A-Za-z0-9_]+)['"`]/g;
+
+  let match;
+
+  while (
+    (match = single.exec(source))
   ) {
-    const char =
-      source[i];
+    add(match[1]);
+  }
 
-    const next =
-      source[i + 1];
+  const arrays =
+    /bot\.command\(\s*\[([\s\S]*?)\]\s*(?:,|\))/g;
 
-    if (lineComment) {
-      if (char === '\n') {
-        lineComment = false;
-      }
+  while (
+    (match = arrays.exec(source))
+  ) {
+    const names =
+      match[1].match(
+        /['"`]([A-Za-z0-9_]+)['"`]/g
+      ) || [];
 
-      continue;
-    }
-
-    if (blockComment) {
-      if (
-        char === '*' &&
-        next === '/'
-      ) {
-        blockComment = false;
-        i++;
-      }
-
-      continue;
-    }
-
-    if (quote) {
-      if (escaped) {
-        escaped = false;
-        continue;
-      }
-
-      if (char === '\\') {
-        escaped = true;
-        continue;
-      }
-
-      if (char === quote) {
-        quote = null;
-      }
-
-      continue;
-    }
-
-    if (
-      char === '/' &&
-      next === '/'
-    ) {
-      lineComment = true;
-      i++;
-      continue;
-    }
-
-    if (
-      char === '/' &&
-      next === '*'
-    ) {
-      blockComment = true;
-      i++;
-      continue;
-    }
-
-    if (
-      char === '"' ||
-      char === "'" ||
-      char === '`'
-    ) {
-      quote = char;
-      continue;
-    }
-
-    if (char === '{') {
-      depth++;
-    }
-
-    if (char === '}') {
-      depth--;
-
-      if (depth === 0) {
-        return i;
-      }
+    for (const item of names) {
+      add(
+        item
+          .replace(/^['"`]/, '')
+          .replace(/['"`]$/, '')
+      );
     }
   }
 
-  return -1;
-}
-
-function nfExtractBlock(
-  source,
-  start
-) {
-  const brace =
-    source.indexOf(
-      '{',
-      start
-    );
-
-  if (brace === -1) {
-    return null;
-  }
-
-  const end =
-    nfFindMatchingBrace(
-      source,
-      brace
-    );
-
-  if (end === -1) {
-    return null;
-  }
-
-  return source.slice(
-    start,
-    end + 1
+  return found.sort(
+    (a, b) =>
+      a.localeCompare(b)
   );
 }
 
-function nfFindFunction(
-  source,
-  name
-) {
-  const safe =
-    String(name || '')
-      .replace(
-        /[.*+?^${}()|[\]\\]/g,
-        '\\$&'
-      );
-
-  const patterns = [
-    new RegExp(
-      `function\\s+${safe}\\s*\\(`,
-      'm'
-    ),
-    new RegExp(
-      `(?:const|let|var)\\s+${safe}\\s*=\\s*(?:async\\s*)?\\(`,
-      'm'
-    ),
-    new RegExp(
-      `(?:const|let|var)\\s+${safe}\\s*=\\s*(?:async\\s*)?[A-Za-z_$][\\w$]*\\s*=>`,
-      'm'
-    )
-  ];
-
-  for (const pattern of patterns) {
-    const match =
-      pattern.exec(source);
-
-    if (!match) {
-      continue;
-    }
-
-    const block =
-      nfExtractBlock(
-        source,
-        match.index
-      );
-
-    if (block) {
-      return block;
-    }
-  }
-
-  return null;
-}
-
-function nfFindCommandCode(
+function nfFindCommand(
   source,
   command
 ) {
-  const clean =
+  const name =
     String(command || '')
       .replace(/^\/+/, '')
       .trim();
 
-  if (!clean) {
+  if (!name) {
     return null;
   }
 
   const escaped =
-    clean.replace(
+    name.replace(
       /[.*+?^${}()|[\]\\]/g,
       '\\$&'
     );
 
-  const patterns = [
+  const pattern =
     new RegExp(
-      `bot\\.command\\s*\\(\\s*['"\`]${escaped}['"\`]`,
-      'm'
-    ),
-    new RegExp(
-      `bot\\.command\\s*\\(\\s*\\[[^\\]]*['"\`]${escaped}['"\`][^\\]]*\\]`,
-      'm'
-    ),
-    new RegExp(
-      `['"\`]\\/${escaped}['"\`]\\s*=>`,
-      'm'
-    )
-  ];
+      `bot\\.command\\(\\s*['"\`]${escaped}['"\`]`,
+      'i'
+    );
 
-  for (const pattern of patterns) {
-    const match =
-      pattern.exec(source);
-
-    if (!match) {
-      continue;
-    }
-
-    const block =
-      nfExtractBlock(
-        source,
-        match.index
-      );
-
-    if (block) {
-      return block;
-    }
-  }
-
-  return null;
-}
-
-function nfFindMention(text) {
   const match =
-    String(text || '').match(
-      /@([A-Za-z0-9_]{5,32})/
-    );
+    pattern.exec(source);
 
-  return match
-    ? `@${match[1]}`
-    : null;
+  if (!match) {
+    return null;
+  }
+
+  return source.slice(
+    Math.max(
+      0,
+      match.index - 200
+    ),
+    Math.min(
+      source.length,
+      match.index + 6000
+    )
+  );
 }
 
-function nfLooksLikeMemberCount(text) {
+function nfOwner(ctx) {
+  return (
+    Number(ctx.from?.id) ===
+    Number(ADMIN_ID)
+  );
+}
+
+function nfUpdateOwner(ctx) {
+  return (
+    Number(ctx.from?.id) ===
+    Number(
+      typeof UPDATE_ADMIN_ID !== 'undefined'
+        ? UPDATE_ADMIN_ID
+        : ADMIN_ID
+    )
+  );
+}
+
+function nfNormalize(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[يى]/g, 'ی')
+    .replace(/[ك]/g, 'ک')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function nfIsGreeting(text) {
   const value =
-    String(text || '').toLowerCase();
+    nfNormalize(text);
+
+  return [
+    'سلام',
+    'هلو',
+    'hello',
+    'hi',
+    'hey',
+    'خوبی',
+    'چطوری',
+    'چه خبر',
+    'عشقی',
+    'مرسی',
+    'تشکر',
+    'ممنون'
+  ].includes(value);
+}
+
+function nfIsCommandCount(text) {
+  const value =
+    nfNormalize(text);
 
   return (
-    /عضو|اعضا|ممبر|member|members|تعداد/.test(
-      value
+    (
+      value.includes('چند دستور') ||
+      value.includes('تعداد دستور') ||
+      value.includes('دستورات') ||
+      value.includes('دستورهای')
     ) &&
-    /کانال|چنل|channel|@/.test(
-      value
+    (
+      value.includes('ربات') ||
+      value.includes('بات')
     )
   );
 }
 
-function nfLooksLikeMainChannel(text) {
+function nfIsCommandList(text) {
   const value =
-    String(text || '').toLowerCase();
+    nfNormalize(text);
 
   return (
-    /کانال اصلی|چنل اصلی|main channel/.test(
-      value
+    (
+      value.includes('لیست') ||
+      value.includes('فهرست') ||
+      value.includes('همه')
+    ) &&
+    (
+      value.includes('دستور') ||
+      value.includes('کامند')
     )
   );
 }
 
-function nfResolveChannel(text) {
-  const mention =
-    nfFindMention(text);
-
-  if (mention) {
-    return mention;
-  }
-
-  if (
-    nfLooksLikeMainChannel(text)
-  ) {
-    if (
-      Array.isArray(
-        typeof REQUIRED_CHANNELS !==
-          'undefined'
-          ? REQUIRED_CHANNELS
-          : null
-      ) &&
-      REQUIRED_CHANNELS.length
-    ) {
-      return REQUIRED_CHANNELS[0];
-    }
-
-    return '@Anime_Faarsi';
-  }
-
-  return null;
-}
-
-async function nfGetChannelInfo(
-  ctx,
-  username
-) {
-  try {
-    const chat =
-      await ctx.telegram.getChat(
-        username
-      );
-
-    const count =
-      Number(
-        chat.member_count
-      );
-
-    if (
-      Number.isFinite(count)
-    ) {
-      return {
-        title:
-          chat.title ||
-          username,
-        username,
-        count
-      };
-    }
-
-    return {
-      title:
-        chat.title ||
-        username,
-      username,
-      count: null
-    };
-  } catch (error) {
-    const status =
-      Number(
-        error?.response?.error_code
-      );
-
-    if (status === 429) {
-      throw new Error(
-        'TELEGRAM_RATE_LIMIT'
-      );
-    }
-
-    throw error;
-  }
-}
-
-function nfIsDeleteRequest(
-  text
-) {
+function nfIsDeleteRequest(text) {
   const value =
-    String(text || '').trim();
+    nfNormalize(text);
 
   return (
-    /پاک کن|حذف کن|حذفش کن|این پیام رو پاک|این پیام را پاک|delete/i.test(
-      value
-    )
+    value.includes('پاک کن') ||
+    value.includes('حذف کن') ||
+    value.includes('حذفش کن') ||
+    value.includes('پاکش کن') ||
+    value === 'delete'
   );
 }
 
-function nfIsDeleteAllRequest(
-  text
-) {
+function nfIsPreviousDelete(text) {
   const value =
-    String(text || '').trim();
+    nfNormalize(text);
 
   return (
-    /تمام پیام|همه پیام|پیام(?:‌|\s)?های بالا|پیام های بالا|همه رو پاک|همه را پاک|پاک کن همه|clear chat|delete all/i.test(
-      value
-    )
+    value === 'قبلی' ||
+    value.includes('پیام قبلی') ||
+    value.includes('همون قبلی')
   );
 }
 
-async function nfDeleteReply(
-  ctx
-) {
-  const reply =
-    ctx.message?.reply_to_message;
+function nfLooksLikeUpdate(text) {
+  const value =
+    nfNormalize(text);
 
-  if (!reply) {
-    return false;
-  }
-
-  try {
-    await ctx.telegram.deleteMessage(
-      ctx.chat.id,
-      reply.message_id
-    );
-
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function nfDeleteTracked(
-  ctx
-) {
-  const state =
-    nfState(ctx);
-
-  const ids = [
-    ...(state.botMessageIds || [])
+  const updateWords = [
+    'اپدیت',
+    'آپدیت',
+    'به روز',
+    'به‌روز',
+    'نسخه جدید',
+    'فایل جدید',
+    'کد جدید',
+    'جایگزین',
+    'نسخه جدید ربات',
+    'فایل جدید ربات',
+    'کد جدید ربات'
   ];
 
-  if (
-    state.lastUserMessageId
-  ) {
-    ids.push(
-      state.lastUserMessageId
-    );
-  }
-
-  const unique =
-    [...new Set(ids)];
-
-  let deleted = 0;
-
-  for (const id of unique) {
-    try {
-      await ctx.telegram.deleteMessage(
-        ctx.chat.id,
-        id
-      );
-
-      deleted++;
-    } catch {}
-  }
-
-  state.botMessageIds = [];
-  state.lastUserMessageId = null;
-  state.history = [];
-
-  return deleted;
-}
-
-async function nfResetConversation(
-  ctx
-) {
-  const key =
-    nfKey(ctx);
-
-  nfConversationState.delete(
-    key
-  );
-
-  nfConversationState.set(
-    key,
-    {
-      history: [],
-      lastUserMessageId: null,
-      botMessageIds: []
-    }
+  return updateWords.some(
+    word =>
+      value.includes(word)
   );
 }
 
@@ -2525,256 +2225,166 @@ async function nfDirectRouter(
   text
 ) {
   const value =
-    String(text || '').trim();
+    nfNormalize(text);
 
-  if (!value) {
-    return {
-      handled: false
-    };
-  }
-
-  if (
-    nfIsDeleteAllRequest(
-      value
-    )
-  ) {
-    if (!nfIsOwner(ctx)) {
+  if (nfIsGreeting(text)) {
+    if (
+      value === 'خوبی' ||
+      value === 'چطوری'
+    ) {
       return {
         handled: true,
         text:
-          '❌ فقط مالک ربات می‌تواند پیام‌های ثبت‌شده این حالت را حذف کند.'
+          'خوبم، ممنون! شما چطورید؟'
       };
     }
 
-    const count =
-      await nfDeleteTracked(ctx);
+    if (
+      value === 'عشقی'
+    ) {
+      return {
+        handled: true,
+        text:
+          'قربانت ❤️'
+      };
+    }
+
+    if (
+      value === 'مرسی' ||
+      value === 'تشکر' ||
+      value === 'ممنون'
+    ) {
+      return {
+        handled: true,
+        text:
+          'خواهش می‌کنم ❤️'
+      };
+    }
 
     return {
       handled: true,
-      deleted: count,
-      silent: true
+      text:
+        'سلام! چطور می‌تونم کمکت کنم؟'
     };
   }
 
   if (
-    nfIsDeleteRequest(value) &&
-    ctx.message?.reply_to_message
+    value === 'اسمت چیه' ||
+    value === 'اسم تو چیه' ||
+    value === 'نامت چیست'
   ) {
-    const ok =
-      await nfDeleteReply(ctx);
-
     return {
       handled: true,
-      text: ok
-        ? '🗑 پیام حذف شد.'
-        : '❌ نتوانستم پیام ریپلای‌شده را حذف کنم.'
+      text:
+        'اسم من Anime Faarsi Bot است.'
     };
   }
 
   if (
-    nfLooksLikeMemberCount(
-      value
-    )
+    nfIsCommandCount(text)
   ) {
-    const channel =
-      nfResolveChannel(
-        value
+    const source =
+      await nfGetSource();
+
+    const commands =
+      nfExtractCommands(
+        source
       );
 
-    if (!channel) {
-      return {
-        handled: true,
-        text:
-          '❌ نام یا آیدی کانال مشخص نیست.'
-      };
-    }
-
-    try {
-      const info =
-        await nfGetChannelInfo(
-          ctx,
-          channel
-        );
-
-      if (
-        info.count === null
-      ) {
-        return {
-          handled: true,
-          text:
-            `📢 ${info.title}\nℹ️ تعداد اعضا از پاسخ تلگرام قابل دریافت نیست.`
-        };
-      }
-
-      return {
-        handled: true,
-        text:
-          `📢 ${info.title}\n👥 تعداد اعضا: ${info.count.toLocaleString('en-US')}`
-      };
-    } catch (error) {
-      return {
-        handled: true,
-        text:
-          error.message ===
-          'TELEGRAM_RATE_LIMIT'
-            ? '⏳ تلگرام موقتاً محدودیت درخواست داده؛ چند لحظه بعد دوباره امتحان کن.'
-            : `❌ دریافت اطلاعات کانال انجام نشد.`
-      };
-    }
+    return {
+      handled: true,
+      text:
+        `📊 تعداد دستورات فعلی ربات: ${commands.length}`
+    };
   }
 
-  const functionMatch =
-    value.match(
-      /(?:کد|code|سورس|source)\s+(?:فنکشن|function|تابع)?\s*([A-Za-z_$][\w$]*)/i
-    );
-
   if (
-    functionMatch
+    nfIsCommandList(text)
   ) {
-    try {
-      const source =
-        await nfGetSource();
+    const source =
+      await nfGetSource();
 
-      const functionCode =
-        nfFindFunction(
-          source,
-          functionMatch[1]
-        );
+    const commands =
+      nfExtractCommands(
+        source
+      );
 
-      if (!functionCode) {
-        return {
-          handled: true,
-          text:
-            `❌ تابع \`${functionMatch[1]}\` در bot.js پیدا نشد.`
-        };
-      }
-
-      return {
-        handled: true,
-        text:
-          `📦 کد تابع ${functionMatch[1]}:\n\n\`\`\`javascript\n${functionCode}\n\`\`\``
-      };
-    } catch {
-      return {
-        handled: true,
-        text:
-          '❌ دریافت کد فعلی bot.js انجام نشد.'
-      };
-    }
+    return {
+      handled: true,
+      text:
+        commands.length
+          ? `📋 دستورات فعلی ربات:\n\n${commands.join('\n')}`
+          : '❌ هیچ دستور واقعی در source پیدا نشد.'
+    };
   }
 
-  const commandCodeMatch =
-    value.match(
-      /(?:کد|code|سورس|source)\s+(?:دستور|command)?\s*\/?([A-Za-z0-9_]+)/i
-    );
+  if (
+    nfIsDeleteRequest(text)
+  ) {
+    const reply =
+      ctx.message?.reply_to_message;
+
+    if (reply?.message_id) {
+      await nfDelete(
+        ctx.chat.id,
+        reply.message_id
+      );
+
+      return {
+        handled: true,
+        text:
+          '🗑 پیام ریپلای‌شده حذف شد.'
+      };
+    }
+
+    return {
+      handled: false,
+      forceAI: true
+    };
+  }
 
   if (
-    commandCodeMatch &&
-    !/^(فنکشن|function|تابع)$/i.test(
-      commandCodeMatch[1]
-    )
+    nfIsPreviousDelete(text)
   ) {
-    try {
-      const source =
-        await nfGetSource();
+    const state =
+      nfState(ctx);
 
-      const command =
-        commandCodeMatch[1];
+    const target =
+      state.lastBotMessageId;
 
-      const commandCode =
-        nfFindCommandCode(
-          source,
-          command
-        );
-
-      if (!commandCode) {
-        return {
-          handled: true,
-          text:
-            `❌ کد دستور /${command} در bot.js پیدا نشد.`
-        };
-      }
+    if (target) {
+      await nfDelete(
+        ctx.chat.id,
+        target
+      );
 
       return {
         handled: true,
         text:
-          `📦 کد دستور /${command}:\n\n\`\`\`javascript\n${commandCode}\n\`\`\``
-      };
-    } catch {
-      return {
-        handled: true,
-        text:
-          '❌ دریافت کد دستور انجام نشد.'
+          '🗑 پیام قبلی ربات حذف شد.'
       };
     }
   }
 
   if (
-    /(?:چند|تعداد).*(?:دستور|command)/i.test(
-      value
-    ) ||
-    /(?:دستور|command).*(?:چند|تعداد)/i.test(
-      value
-    )
+    nfLooksLikeUpdate(text) &&
+    nfOwner(ctx)
   ) {
-    try {
-      const source =
-        await nfGetSource();
-
-      const commands =
-        nfExtractCommands(
-          source
-        );
-
-      return {
-        handled: true,
-        text:
-          `📊 تعداد دستورات فعلی ربات: ${commands.length}`
-      };
-    } catch {
-      return {
-        handled: true,
-        text:
-          '❌ نتوانستم فهرست واقعی دستورات را از bot.js بخوانم.'
-      };
-    }
-  }
-
-  if (
-    /(?:لیست|فهرست).*(?:دستور|command)/i.test(
-      value
-    ) ||
-    /(?:دستور|command).*(?:لیست|فهرست)/i.test(
-      value
-    )
-  ) {
-    try {
-      const source =
-        await nfGetSource();
-
-      const commands =
-        nfExtractCommands(
-          source
-        );
-
-      const numbered =
-        commands
-          .map(
-            (command, index) =>
-              `${index + 1}. /${command}`
-          )
-          .join('\n');
+    if (
+      typeof updateBotStates !==
+      'undefined'
+    ) {
+      updateBotStates.set(
+        ctx.from.id,
+        {
+          waitingForFile: true
+        }
+      );
 
       return {
         handled: true,
         text:
-          `📋 دستورات فعلی ربات: ${commands.length}\n\n${numbered}`
-      };
-    } catch {
-      return {
-        handled: true,
-        text:
-          '❌ دریافت فهرست دستورات انجام نشد.'
+          '📦 آماده‌ام. فایل جدید bot.js را ارسال کن.'
       };
     }
   }
@@ -2785,50 +2395,22 @@ async function nfDirectRouter(
 }
 
 async function nfAI(
-  ctx,
-  text
+  messages
 ) {
   if (!NF_API_KEY) {
     throw new Error(
-      'NF_API_KEY_MISSING'
+      'GROQ_API_KEY is not configured'
     );
   }
-
-  const state =
-    nfState(ctx);
-
-  const sourceInfo =
-    [
-      'تو AI داخلی Anime Faarsi Bot هستی.',
-      'نام ربات: Anime Faarsi Bot.',
-      'تو باید بر اساس اطلاعات واقعی ربات پاسخ بدهی.',
-      'هرگز درباره قابلیت، کد، تعداد اعضا، دستور یا وضعیت ربات حدس نزن.',
-      'اگر درخواست مربوط به کد bot.js است، ابتدا باید ابزار مستقیم منبع آن را استفاده کنی؛ درخواست‌های کد باید توسط Router قبل از تو حل شوند.',
-      'اگر اطلاعاتی در دسترس نیست، صادقانه بگو.',
-      'از گفتن اینکه «امکان ارائه کد منبع ندارم» خودداری کن؛ مالک ربات مجاز به دریافت کد خودش است.',
-      'پاسخ‌ها کوتاه، طبیعی و فارسی باشند مگر کاربر زبان دیگری بخواهد.'
-    ].join('\n');
-
-  const messages = [
-    {
-      role: 'system',
-      content: sourceInfo
-    },
-    ...state.history.slice(-12),
-    {
-      role: 'user',
-      content: text
-    }
-  ];
 
   const response =
     await axios.post(
       NF_API_URL,
       {
         model: NF_MODEL,
-        messages,
         temperature: 0.2,
-        max_tokens: 1800
+        max_tokens: 1200,
+        messages
       },
       {
         headers: {
@@ -2837,157 +2419,374 @@ async function nfAI(
           'Content-Type':
             'application/json'
         },
-        timeout: 20000
+        timeout:
+          NF_TIMEOUT
       }
     );
 
-  const answer =
-    response?.data?.choices?.[0]?.message?.content;
-
-  if (!answer) {
-    throw new Error(
-      'AI_EMPTY_RESPONSE'
-    );
-  }
-
-  return String(answer).trim();
+  return String(
+    response.data?.choices?.[0]?.message?.content ||
+    ''
+  );
 }
 
-async function nfProcess(
+function nfPrompt(
+  ctx,
+  state
+) {
+  return `
+You are Anime Faarsi Bot.
+
+You are the AI layer of an existing Telegram bot.
+
+Understand user intent by meaning, not by exact phrases.
+
+Never invent:
+- commands
+- member counts
+- archive results
+- bot capabilities
+- tool results
+- completed actions
+
+The runtime, not the AI, decides authorization.
+
+Owner:
+${nfOwner(ctx)}
+
+The bot has many existing features.
+Do not assume it is limited to a small fixed tool list.
+
+When the user asks about an existing bot feature:
+use real source/runtime information when available.
+
+When the user asks for an action that is not actually connected:
+do not pretend it was executed.
+
+UPDATE INTENT:
+
+Understand update requests semantically.
+Do not require a fixed phrase.
+
+If the owner clearly wants to start the existing update workflow,
+start the existing update state.
+
+Do not create another update mechanism.
+
+CONTEXT:
+
+${JSON.stringify({
+  lastUserMessageId:
+    state.lastUserMessageId,
+  lastBotMessageId:
+    state.lastBotMessageId,
+  lastReplyMessageId:
+    state.lastReplyMessageId,
+  lastOperation:
+    state.lastOperation,
+  lastTool:
+    state.lastTool,
+  history:
+    state.history
+})}
+
+Answer naturally in the user's language.
+
+Return plain text only.
+`;
+}
+
+async function nfAIAnswer(
   ctx,
   text
 ) {
-  const key =
-    nfKey(ctx);
+  const state =
+    nfState(ctx);
 
-  if (nfLocks.has(key)) {
-    return;
+  const messages = [
+    {
+      role: 'system',
+      content:
+        nfPrompt(
+          ctx,
+          state
+        )
+    }
+  ];
+
+  for (
+    const item of
+      state.history.slice(
+        -NF_MAX_HISTORY
+      )
+  ) {
+    messages.push({
+      role: 'user',
+      content:
+        String(
+          item.user || ''
+        ).slice(0, 1200)
+    });
+
+    messages.push({
+      role: 'assistant',
+      content:
+        String(
+          item.assistant || ''
+        ).slice(0, 1800)
+    });
   }
 
-  nfLocks.set(key, true);
+  messages.push({
+    role: 'user',
+    content:
+      String(text || '')
+        .slice(0, 3000)
+  });
 
-  try {
-    nfTrackUserMessage(ctx);
-    nfRemember(
-      ctx,
-      'user',
-      text
-    );
+  let lastError;
 
-    const direct =
-      await nfDirectRouter(
-        ctx,
-        text
-      );
-
-    if (direct.handled) {
-      if (direct.silent) {
-        return;
-      }
-
-      if (direct.text) {
-        const sent =
-          await ctx.reply(
-            nfFormat(
-              direct.text
-            ),
-            {
-              parse_mode: 'HTML'
-            }
-          );
-
-        nfTrackMessage(
-          ctx,
-          sent.message_id
-        );
-
-        nfRemember(
-          ctx,
-          'assistant',
-          direct.text
-        );
-      }
-
-      return;
-    }
-
-    const thinking =
-      await ctx.reply(
-        '🤖 Thinking...'
-      );
-
-    nfTrackMessage(
-      ctx,
-      thinking.message_id
-    );
-
-    let answer;
-
+  for (
+    let attempt = 0;
+    attempt < 2;
+    attempt++
+  ) {
     try {
-      answer =
-        await nfAI(
-          ctx,
-          text
-        );
+      return await nfAI(
+        messages
+      );
     } catch (error) {
+      lastError =
+        error;
+
       const status =
         Number(
           error?.response?.status
         );
 
       if (
-        status === 429
+        status !== 429 &&
+        status !== 408 &&
+        status !== 500 &&
+        status !== 502 &&
+        status !== 503 &&
+        status !== 504
       ) {
-        answer =
-          '⏳ سرویس هوش مصنوعی فعلاً به محدودیت درخواست رسیده. چند لحظه بعد دوباره امتحان کن.';
-      } else if (
-        error.code ===
-        'ECONNABORTED'
+        break;
+      }
+
+      if (
+        attempt === 0
       ) {
-        answer =
-          '⏱ پاسخ هوش مصنوعی بیش از حد طول کشید. دوباره امتحان کن.';
-      } else {
-        answer =
-          '❌ در دریافت پاسخ هوش مصنوعی مشکلی پیش آمد.';
+        await new Promise(
+          resolve =>
+            setTimeout(
+              resolve,
+              status === 429
+                ? 2500
+                : 1000
+            )
+        );
       }
     }
+  }
+
+  throw lastError ||
+    new Error(
+      'AI request failed'
+    );
+}
+
+async function nfProcess(
+  ctx,
+  text
+) {
+  const lockKey =
+    `${ctx.from?.id}:${ctx.chat?.id}`;
+
+  if (
+    nfLocks.get(lockKey)
+  ) {
+    return;
+  }
+
+  nfLocks.set(
+    lockKey,
+    true
+  );
+
+  let thinking = null;
+
+  try {
+    const direct =
+      await nfDirectRouter(
+        ctx,
+        text
+      );
+
+    if (
+      direct.handled
+    ) {
+      const sent =
+        await ctx.reply(
+          direct.text
+        );
+
+      const state =
+        nfState(ctx);
+
+      state.lastBotMessageId =
+        sent.message_id;
+
+      nfRemember(
+        ctx,
+        text,
+        direct.text,
+        null,
+        'direct'
+      );
+
+      return;
+    }
+
+    thinking =
+      await ctx.reply(
+        '🤖 Thinking...'
+      );
+
+    const answer =
+      await nfAIAnswer(
+        ctx,
+        text
+      );
+
+    const formatted =
+      nfFormat(
+        answer
+      );
+
+    const keyboard = [];
+
+    for (
+      const item of
+        formatted.codes
+    ) {
+      nfCodeStore.set(
+        item.id,
+        item.code
+      );
+
+      keyboard.push([
+        {
+          text:
+            formatted.codes.length > 1
+              ? `📋 Copy Code ${keyboard.length + 1}`
+              : '📋 Copy Code',
+          callback_data:
+            `nfcopy:${item.id}`
+        }
+      ]);
+    }
+
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      thinking.message_id,
+      undefined,
+      formatted.html,
+      {
+        parse_mode:
+          'HTML',
+        ...(keyboard.length
+          ? {
+              reply_markup: {
+                inline_keyboard:
+                  keyboard
+              }
+            }
+          : {})
+      }
+    );
+
+    const state =
+      nfState(ctx);
+
+    state.lastBotMessageId =
+      thinking.message_id;
 
     nfRemember(
       ctx,
-      'assistant',
-      answer
+      text,
+      answer,
+      null,
+      'ai'
+    );
+  } catch (error) {
+    console.error(
+      'NF ERROR:',
+      error
     );
 
-    await nfEditOrSend(
-      ctx,
-      thinking.message_id,
-      answer
-    );
+    let message =
+      '❌ در پردازش درخواست خطایی رخ داد.';
+
+    const status =
+      Number(
+        error?.response?.status
+      );
+
+    if (
+      status === 429
+    ) {
+      message =
+        '⏳ سرویس هوش مصنوعی موقتاً محدود شده است. عملیات‌های مستقیم همچنان قابل استفاده‌اند؛ چند لحظه بعد دوباره امتحان کن.';
+    }
+
+    if (
+      thinking
+    ) {
+      try {
+        await ctx.telegram.editMessageText(
+          ctx.chat.id,
+          thinking.message_id,
+          undefined,
+          nfEscapeHtml(
+            message
+          ),
+          {
+            parse_mode:
+              'HTML'
+          }
+        );
+      } catch {
+        await ctx.reply(
+          message
+        );
+      }
+    } else {
+      await ctx.reply(
+        message
+      );
+    }
   } finally {
-    nfLocks.delete(key);
+    nfLocks.delete(
+      lockKey
+    );
   }
 }
 
 bot.command(
   'nfon',
   async ctx => {
-    if (!nfIsOwner(ctx)) {
+    if (!nfOwner(ctx)) {
       return ctx.reply(
-        '❌ فقط مالک ربات می‌تواند AI را فعال کند.'
+        '❌ این دستور فقط برای مالک ربات است.'
       );
     }
 
-    nfEnabled.set(
-      nfKey(ctx),
-      true
-    );
-
-    await nfResetConversation(
-      ctx
-    );
+    nfEnabled = true;
 
     await ctx.reply(
-      '🟢 AI Agent فعال شد.'
+      '🟢 AI Agent فعال شد.\n\nپیام‌های عادی شما توسط AI پردازش می‌شوند.'
     );
   }
 );
@@ -2995,15 +2794,13 @@ bot.command(
 bot.command(
   'nfoff',
   async ctx => {
-    if (!nfIsOwner(ctx)) {
+    if (!nfOwner(ctx)) {
       return ctx.reply(
-        '❌ فقط مالک ربات می‌تواند AI را خاموش کند.'
+        '❌ این دستور فقط برای مالک ربات است.'
       );
     }
 
-    nfEnabled.delete(
-      nfKey(ctx)
-    );
+    nfEnabled = false;
 
     await ctx.reply(
       '🔴 AI Agent خاموش شد.'
@@ -3014,94 +2811,89 @@ bot.command(
 bot.command(
   'nfstatus',
   async ctx => {
-    if (!nfIsOwner(ctx)) {
+    if (!nfOwner(ctx)) {
       return ctx.reply(
-        '❌ فقط مالک ربات.'
+        '❌ این دستور فقط برای مالک ربات است.'
       );
     }
 
-    const active =
-      nfEnabled.has(
-        nfKey(ctx)
-      );
-
     await ctx.reply(
-      active
-        ? '🟢 AI Agent فعال است.'
-        : '🔴 AI Agent خاموش است.'
+      nfEnabled
+        ? '🟢 AI Agent: ON'
+        : '🔴 AI Agent: OFF'
     );
   }
 );
 
 bot.use(
-  async (ctx, next) => {
+  async (
+    ctx,
+    next
+  ) => {
     try {
+      const callback =
+        String(
+          ctx.callbackQuery?.data ||
+          ''
+        );
+
       if (
-        ctx.callbackQuery?.data?.startsWith(
+        callback.startsWith(
           'nfcopy:'
         )
       ) {
-        const key =
-          `${ctx.chat.id}:${ctx.callbackQuery.message?.message_id}`;
-
-        const code =
-          nfCodeStore.get(key);
-
-        if (!code) {
-          await ctx.answerCbQuery(
-            'کد دیگر در حافظه موجود نیست.',
+        if (!nfOwner(ctx)) {
+          return ctx.answerCbQuery(
+            '❌ دسترسی ندارید.',
             {
-              show_alert: true
+              show_alert:
+                true
             }
           );
+        }
 
-          return;
+        const id =
+          callback.slice(7);
+
+        const code =
+          nfCodeStore.get(id);
+
+        if (!code) {
+          return ctx.answerCbQuery(
+            '❌ کد دیگر در دسترس نیست.',
+            {
+              show_alert:
+                true
+            }
+          );
         }
 
         await ctx.answerCbQuery(
-          '📋 کد آماده کپی است.',
-          {
-            show_alert: true
-          }
+          '📋 کد آماده کپی است.'
         );
 
-        await ctx.reply(
-          `<pre><code>${nfEscapeHtml(
-            code
-          )}</code></pre>`,
+        return ctx.reply(
+          `<pre><code>${nfEscapeHtml(code)}</code></pre>`,
           {
-            parse_mode: 'HTML'
+            parse_mode:
+              'HTML'
           }
         );
-
-        return;
       }
 
-      if (
-        ctx.callbackQuery
-      ) {
-        return next();
-      }
-
-      const key =
-        nfKey(ctx);
-
-      if (
-        !nfEnabled.has(key)
-      ) {
-        return next();
-      }
-
-      if (
-        !ctx.message ||
-        typeof ctx.message.text !==
-          'string'
-      ) {
+      if (!nfEnabled) {
         return next();
       }
 
       const text =
-        ctx.message.text.trim();
+        String(
+          ctx.message?.text ||
+          ''
+        ).trim();
+
+      if (!text) {
+        return next();
+      }
 
       if (
         text.startsWith('/')
@@ -3109,32 +2901,48 @@ bot.use(
         return next();
       }
 
-      if (
-        !nfIsOwner(ctx)
-      ) {
+      if (!nfOwner(ctx)) {
         return next();
       }
 
-      await nfProcess(
+      const key =
+        `${ctx.from.id}:${ctx.chat.id}`;
+
+      const previous =
+        nfLastRequests.get(key);
+
+      if (
+        previous &&
+        previous.text === text &&
+        Date.now() -
+          previous.time <
+          1500
+      ) {
+        return;
+      }
+
+      nfLastRequests.set(
+        key,
+        {
+          text,
+          time: Date.now()
+        }
+      );
+
+      return nfProcess(
         ctx,
         text
       );
     } catch (error) {
       console.error(
-        'NF AGENT ERROR:',
+        'NF MIDDLEWARE ERROR:',
         error
       );
 
-      try {
-        await ctx.reply(
-          '❌ خطایی در AI Agent رخ داد.'
-        );
-      } catch {}
+      return next();
     }
   }
 );
-
-return next();
 
 
 bot.command(
