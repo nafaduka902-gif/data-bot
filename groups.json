@@ -1,0 +1,15 @@
+[
+  {
+    "kind": "group",
+    "chatId": -1004489761102,
+    "welcomeEnabled": true,
+    "welcomeDeleteAfterSeconds": 120,
+    "joinNoticeDeleteAfterSeconds": 0,
+    "captchaEnabled": true,
+    "linkFilterEnabled": true,
+    "warningLimit": 3,
+    "warningAction": "ban",
+    "locked": false,
+    "updatedAt": "2026-09-29T06:40:32.099Z"
+  }
+]
