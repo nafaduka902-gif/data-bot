@@ -16,29 +16,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Read bot.js
-        id: bot_code
-        run: |
-          echo "code<<EOF" >> "$GITHUB_OUTPUT"
-          cat source/bot.js >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-
       - name: Update NxCreator
         env:
           NXCREATE_MCP_URL: ${{ secrets.NXCREATE_MCP_URL }}
           NXCREATE_API_KEY: ${{ secrets.NXCREATE_API_KEY }}
           NXCREATE_BOT_ID: ${{ secrets.NXCREATE_BOT_ID }}
-          BOT_CODE: ${{ steps.bot_code.outputs.code }}
         run: |
           python3 - <<'PY'
           import os
           import json
           import requests
 
+          with open("source/bot.js", "r", encoding="utf-8") as f:
+              code = f.read()
+
           url = os.environ["NXCREATE_MCP_URL"]
           api_key = os.environ["NXCREATE_API_KEY"]
           bot_id = os.environ["NXCREATE_BOT_ID"]
-          code = os.environ["BOT_CODE"]
 
           payload = {
               "apiKey": api_key,
