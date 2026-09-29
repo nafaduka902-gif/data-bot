@@ -7988,7 +7988,7 @@ bot.start(
 
     if (isAdmin(ctx)) {
       await ctx.reply(
-        '<b>Owner Panelll</b>',
+        '<b>Owner Pane</b>',
         {
           parse_mode: 'HTML',
           reply_markup:
@@ -14598,5 +14598,3 @@ bot.catch(
     );
   }
 );
-
-THIS_IS_A_TEST_ERROR
