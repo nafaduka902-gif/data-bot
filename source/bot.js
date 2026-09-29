@@ -2,6 +2,7 @@ const ADMIN_ID = 2048310529;
 const OMDB_API_KEY = 'c984bcec';
 const DEFAULT_DOWNLOAD_URL = 'https://t.me/dubb_anime';
 
+
 const GITHUB_OWNER = 'nafaduka902-gif';
 const GITHUB_REPO = 'data-bot';
 const GITHUB_FILE = 'set.json';
