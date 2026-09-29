@@ -936,6 +936,230 @@ bot.command('import', async (ctx) => {
 
 
 
+function redactAISecrets(source) {
+  return String(source || '')
+    .replace(
+      /const\s+OMDB_API_KEY\s*=\s*(['"`])[\s\S]*?\1\s*;/g,
+      'const OMDB_API_KEY = "[REDACTED]";'
+    )
+    .replace(
+      /const\s+GROQ_API_KEY\s*=\s*(['"`])[\s\S]*?\1\s*;/g,
+      'const GROQ_API_KEY = "[REDACTED]";'
+    )
+    .replace(
+      /const\s+GITHUB_TOKEN\s*=\s*(['"`])[\s\S]*?\1\s*;/g,
+      'const GITHUB_TOKEN = "[REDACTED]";'
+    );
+}
+
+
+function getAIRelevantSource(
+  userRequest,
+  currentSource
+) {
+  const source =
+    String(currentSource || '');
+
+  const request =
+    String(userRequest || '')
+      .toLowerCase();
+
+  // ------------------------------------------
+  // Extract likely command name
+  // ------------------------------------------
+
+  let commandName = '';
+
+  const commandMatch =
+    request.match(
+      /(?:دستور|command|\/)\s*([a-zA-Z][a-zA-Z0-9_]*)/i
+    );
+
+  if (commandMatch) {
+    commandName =
+      commandMatch[1]
+        .toLowerCase();
+  }
+
+  // ------------------------------------------
+  // Find command handler directly
+  // ------------------------------------------
+
+  const candidates = [];
+
+  if (commandName) {
+    const patterns = [
+      `bot.command('${commandName}'`,
+      `bot.command("${commandName}"`,
+      `bot.command(\`${commandName}\``,
+      `bot.hears('${commandName}'`,
+      `bot.hears("${commandName}"`,
+      `/${commandName}`
+    ];
+
+    for (
+      const pattern of patterns
+    ) {
+      let start = 0;
+
+      while (true) {
+        const index =
+          source.indexOf(
+            pattern,
+            start
+          );
+
+        if (index === -1) {
+          break;
+        }
+
+        candidates.push(
+          index
+        );
+
+        start =
+          index +
+          pattern.length;
+      }
+    }
+  }
+
+  // ------------------------------------------
+  // Keyword matching for non-command requests
+  // ------------------------------------------
+
+  const keywords =
+    request
+      .replace(
+        /[^a-zA-Z0-9\u0600-\u06FF_]+/g,
+        ' '
+      )
+      .split(/\s+/)
+      .filter(
+        word =>
+          word.length >= 3
+      );
+
+  for (
+    const keyword of keywords
+  ) {
+    const lowerSource =
+      source.toLowerCase();
+
+    let start = 0;
+
+    while (true) {
+      const index =
+        lowerSource.indexOf(
+          keyword,
+          start
+        );
+
+      if (index === -1) {
+        break;
+      }
+
+      candidates.push(
+        index
+      );
+
+      start =
+        index +
+        keyword.length;
+
+      if (
+        candidates.length > 30
+      ) {
+        break;
+      }
+    }
+
+    if (
+      candidates.length > 30
+    ) {
+      break;
+    }
+  }
+
+  // ------------------------------------------
+  // If nothing specific was found,
+  // send only beginning/end structural chunks
+  // ------------------------------------------
+
+  if (!candidates.length) {
+    const maxSize = 18000;
+
+    if (source.length <= maxSize) {
+      return source;
+    }
+
+    return (
+      source.slice(
+        0,
+        9000
+      ) +
+      '\n\n/* ... SOURCE MIDDLE OMITTED ... */\n\n' +
+      source.slice(
+        -9000
+      )
+    );
+  }
+
+  // ------------------------------------------
+  // Build compact context windows
+  // ------------------------------------------
+
+  const windows = [];
+
+  for (
+    const index of candidates
+  ) {
+    const start =
+      Math.max(
+        0,
+        index - 2500
+      );
+
+    const end =
+      Math.min(
+        source.length,
+        index + 7500
+      );
+
+    windows.push(
+      source.slice(
+        start,
+        end
+      )
+    );
+  }
+
+  // Remove duplicates
+  const unique =
+    [...new Set(windows)];
+
+  let result = '';
+
+  for (
+    const window of unique
+  ) {
+    if (
+      result.length +
+      window.length >
+      18000
+    ) {
+      break;
+    }
+
+    result +=
+      '\n\n/* ===== RELEVANT SOURCE ===== */\n' +
+      window;
+  }
+
+  return result;
+}
+
+
 async function runGroqCodeAI(
   userRequest,
   currentSource
@@ -947,74 +1171,71 @@ async function runGroqCodeAI(
   }
 
   // ------------------------------------------
-  // Remove secrets before sending source to AI
+  // Only send relevant source to Groq
   // ------------------------------------------
 
+  const relevantSource =
+    getAIRelevantSource(
+      userRequest,
+      currentSource
+    );
+
   const safeSource =
-    currentSource
-      .replace(
-        /const\s+OMDB_API_KEY\s*=\s*(['"`])[\s\S]*?\1\s*;/g,
-        'const OMDB_API_KEY = "[REDACTED]";'
-      )
-      .replace(
-        /const\s+GROQ_API_KEY\s*=\s*(['"`])[\s\S]*?\1\s*;/g,
-        'const GROQ_API_KEY = "[REDACTED]";'
-      )
-      .replace(
-        /const\s+GITHUB_TOKEN\s*=\s*(['"`])[\s\S]*?\1\s*;/g,
-        'const GITHUB_TOKEN = "[REDACTED]";'
-      )
-      .replace(
-        /process\.env\.GROQ_API_KEY/g,
-        'process.env.GROQ_API_KEY'
-      )
-      .replace(
-        /process\.env\.GITHUB_TOKEN/g,
-        'process.env.GITHUB_TOKEN'
-      );
+    redactAISecrets(
+      relevantSource
+    );
 
   const systemPrompt = `
 You are the code modification AI for a Telegram bot running on NxCreator.
 
-Your job is to modify the EXISTING bot.js source according to the administrator's request.
+Your job is to modify the EXISTING bot.js according to the administrator's request.
 
 IMPORTANT RULES:
 
-1. Do NOT rewrite the entire bot.
-2. Modify ONLY the code necessary for the request.
+1. Modify ONLY the code necessary for the request.
+2. Do NOT rewrite the entire bot.
 3. Preserve all unrelated functionality.
 4. Never remove unrelated handlers.
-5. NEVER request, reveal, restore, or modify secrets.
-6. Treat [REDACTED] values as protected secrets.
-7. Never replace a protected secret with a real value.
-8. NxCreator restrictions:
-   - Do not use require
-   - Do not use import
-   - Do not create a new Telegraf instance
-   - Do not use bot.launch()
-   - Do not use npm
-   - axios is already available globally
-   - bot is already available globally
-9. Do not create filesystem code.
-10. Do not create process.exit().
-11. Do not use eval().
-12. Do not use Function().
-13. Do not add external package dependencies.
-14. Return JSON ONLY.
-15. The JSON must contain:
-    explanation
-    oldCode
-    newCode
-16. oldCode must be an EXACT unique substring from the supplied source.
-17. newCode must replace oldCode directly.
-18. If the request cannot be safely implemented, return:
+5. The supplied source may be only the relevant section of the full bot.js.
+6. oldCode MUST be an EXACT substring from the supplied source.
+7. The final replacement must therefore work directly on the real bot.js.
+8. Never reveal, request, restore, or modify secrets.
+9. [REDACTED] values are protected secrets.
+10. Never replace [REDACTED] with a real value.
+
+NxCreator restrictions:
+
+- Do not use require
+- Do not use import
+- Do not create a new Telegraf instance
+- Do not use bot.launch()
+- Do not use npm
+- Do not use filesystem APIs
+- Do not use process.exit()
+- Do not use eval()
+- Do not use Function()
+- axios is already globally available
+- bot is already globally available
+
+Return JSON ONLY.
+
+Required JSON:
+
+{
+  "explanation": "short explanation",
+  "oldCode": "exact existing code",
+  "newCode": "replacement code"
+}
+
+If the request cannot be safely implemented:
+
 {
   "explanation": "reason",
   "oldCode": "",
   "newCode": ""
 }
 
-The administrator will manually approve every change before it is applied.
+The administrator must manually approve every change.
 `;
 
   const response =
@@ -1024,7 +1245,8 @@ The administrator will manually approve every change before it is applied.
         model:
           GROQ_MODEL,
 
-        temperature: 0,
+        temperature:
+          0,
 
         messages: [
           {
@@ -1037,7 +1259,8 @@ The administrator will manually approve every change before it is applied.
             content:
               'ADMIN REQUEST:\n' +
               userRequest +
-              '\n\nCURRENT BOT.JS:\n' +
+              '\n\n' +
+              'RELEVANT BOT.JS SOURCE:\n' +
               safeSource
           }
         ]
@@ -1052,7 +1275,8 @@ The administrator will manually approve every change before it is applied.
             'application/json'
         },
 
-        timeout: 120000
+        timeout:
+          120000
       }
     );
 
@@ -1121,7 +1345,7 @@ The administrator will manually approve every change before it is applied.
   }
 
   // ------------------------------------------
-  // Safety validation
+  // Safety checks
   // ------------------------------------------
 
   const forbiddenPatterns = [
@@ -1137,7 +1361,8 @@ The administrator will manually approve every change before it is applied.
   ];
 
   for (
-    const pattern of forbiddenPatterns
+    const pattern of
+      forbiddenPatterns
   ) {
     if (
       pattern.test(
@@ -1145,12 +1370,11 @@ The administrator will manually approve every change before it is applied.
       )
     ) {
       throw new Error(
-        'AI generated code containing a forbidden NxCreator or unsafe construct. Change rejected.'
+        'AI generated unsafe or forbidden code. Change rejected.'
       );
     }
   }
 
-  // Never allow AI to introduce secret-looking assignments
   const secretPatterns = [
     /GROQ_API_KEY\s*=\s*['"`][^'"`]+['"`]/i,
     /GITHUB_TOKEN\s*=\s*['"`][^'"`]+['"`]/i,
@@ -1158,7 +1382,8 @@ The administrator will manually approve every change before it is applied.
   ];
 
   for (
-    const pattern of secretPatterns
+    const pattern of
+      secretPatterns
   ) {
     if (
       pattern.test(
@@ -1172,7 +1397,7 @@ The administrator will manually approve every change before it is applied.
   }
 
   // ------------------------------------------
-  // oldCode must exist exactly once
+  // Exact replacement validation
   // ------------------------------------------
 
   const occurrences =
@@ -1187,10 +1412,6 @@ The administrator will manually approve every change before it is applied.
       'AI selected code that is not uniquely identifiable. Change rejected for safety.'
     );
   }
-
-  // ------------------------------------------
-  // Apply only the approved replacement
-  // ------------------------------------------
 
   const newSource =
     currentSource.replace(
