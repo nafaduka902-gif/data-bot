@@ -11413,6 +11413,350 @@ bot.command('status', async (ctx) => {
   }
 });
 
+// ==========================================
+// /statushd
+// DETAILED HEALTH DIAGNOSTICS
+// ==========================================
+
+bot.command('statuerror', async (ctx) => {
+  try {
+    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
+      return;
+    }
+    const headers = {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+
+    const diagnostics = [];
+
+    // ==========================================
+    // TELEGRAM
+    // ==========================================
+
+    try {
+      const telegram =
+        await ctx.telegram.getMe();
+
+      diagnostics.push(
+        '📡 Telegram: 🟢 OK\n' +
+        '   Username: @' +
+        (telegram.username || 'Unknown') +
+        '\n' +
+        '   ID: ' +
+        (telegram.id || 'Unknown')
+      );
+
+    } catch (error) {
+      diagnostics.push(
+        '📡 Telegram: 🔴 FAILED\n' +
+        '   Error: ' +
+        (error.message || 'Unknown error') +
+        '\n' +
+        '   Code: ' +
+        (error.response?.status || 'N/A')
+      );
+    }
+
+
+    // ==========================================
+    // GITHUB
+    // ==========================================
+
+    try {
+      const github =
+        await axios.get(
+          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}`,
+          { headers }
+        );
+
+      diagnostics.push(
+        '🐙 GitHub: 🟢 OK\n' +
+        '   Repository: ' +
+        GITHUB_OWNER +
+        '/' +
+        GITHUB_REPO +
+        '\n' +
+        '   Branch: ' +
+        GITHUB_BRANCH +
+        '\n' +
+        '   Status: ' +
+        (github.status || 200)
+      );
+
+    } catch (error) {
+      diagnostics.push(
+        '🐙 GitHub: 🔴 FAILED\n' +
+        '   Error: ' +
+        (error.message || 'Unknown error') +
+        '\n' +
+        '   HTTP: ' +
+        (error.response?.status || 'N/A') +
+        '\n' +
+        '   Details: ' +
+        JSON.stringify(
+          error.response?.data || {}
+        )
+      );
+    }
+
+
+    // ==========================================
+    // DATABASE FILES
+    // ==========================================
+
+    for (
+      const fileName of FULL_BACKUP_LOCAL_FILES
+    ) {
+      try {
+        const file =
+          await githubGetFile(fileName);
+
+        diagnostics.push(
+          '🗄️ ' +
+          fileName +
+          ': 🟢 OK\n' +
+          '   SHA: ' +
+          (file.sha || 'Unknown')
+        );
+
+      } catch (error) {
+        diagnostics.push(
+          '🗄️ ' +
+          fileName +
+          ': 🔴 FAILED\n' +
+          '   Error: ' +
+          (error.message || 'Unknown error') +
+          '\n' +
+          '   HTTP: ' +
+          (error.response?.status || 'N/A') +
+          '\n' +
+          '   Details: ' +
+          JSON.stringify(
+            error.response?.data || {}
+          )
+        );
+      }
+    }
+
+
+    // ==========================================
+    // FULL BACKUP
+    // ==========================================
+
+    try {
+      const backup =
+        await githubGetFile(
+          FULL_BACKUP_FILE
+        );
+
+      diagnostics.push(
+        '💾 Full Backup: 🟢 OK\n' +
+        '   File: ' +
+        FULL_BACKUP_FILE +
+        '\n' +
+        '   SHA: ' +
+        (backup.sha || 'Unknown')
+      );
+
+    } catch (error) {
+      diagnostics.push(
+        '💾 Full Backup: 🔴 FAILED\n' +
+        '   Error: ' +
+        (error.message || 'Unknown error') +
+        '\n' +
+        '   HTTP: ' +
+        (error.response?.status || 'N/A') +
+        '\n' +
+        '   Details: ' +
+        JSON.stringify(
+          error.response?.data || {}
+        )
+      );
+    }
+
+
+    // ==========================================
+    // NOW.JSON
+    // ==========================================
+
+    try {
+      const nowFile =
+        await githubGetFile(
+          `${GITHUB_BACKUP_DIR}/now.json`
+        );
+
+      const nowData =
+        JSON.parse(
+          Buffer.from(
+            nowFile.content.replace(/\s/g, ''),
+            'base64'
+          ).toString('utf8')
+        );
+
+      diagnostics.push(
+        '📋 now.json: 🟢 OK\n' +
+        '   Version: ' +
+        (nowData.version || 'Unknown') +
+        '\n' +
+        '   Status: ' +
+        (nowData.status || 'Unknown') +
+        '\n' +
+        '   Updated: ' +
+        (nowData.updatedAt || 'Unknown')
+      );
+
+    } catch (error) {
+      diagnostics.push(
+        '📋 now.json: 🔴 FAILED\n' +
+        '   Error: ' +
+        (error.message || 'Unknown error') +
+        '\n' +
+        '   HTTP: ' +
+        (error.response?.status || 'N/A') +
+        '\n' +
+        '   Details: ' +
+        JSON.stringify(
+          error.response?.data || {}
+        )
+      );
+    }
+
+
+    // ==========================================
+    // OMDB
+    // ==========================================
+
+    try {
+      if (
+        typeof OMDB_API_KEY !== 'string' ||
+        !OMDB_API_KEY
+      ) {
+        throw new Error(
+          'OMDB_API_KEY is empty or not configured.'
+        );
+      }
+
+      const omdb =
+        await axios.get(
+          'https://www.omdbapi.com/',
+          {
+            params: {
+              apikey: OMDB_API_KEY,
+              t: 'Inception'
+            }
+          }
+        );
+
+      diagnostics.push(
+        '🎬 OMDb: 🟢 OK\n' +
+        '   HTTP: ' +
+        (omdb.status || 200) +
+        '\n' +
+        '   Response: ' +
+        (omdb.data?.Response || 'Unknown')
+      );
+
+    } catch (error) {
+      diagnostics.push(
+        '🎬 OMDb: 🔴 FAILED\n' +
+        '   Error: ' +
+        (error.message || 'Unknown error') +
+        '\n' +
+        '   HTTP: ' +
+        (error.response?.status || 'N/A') +
+        '\n' +
+        '   Details: ' +
+        JSON.stringify(
+          error.response?.data || {}
+        )
+      );
+    }
+
+
+    // ==========================================
+    // ENVIRONMENT / CONFIG
+    // ==========================================
+
+    diagnostics.push(
+      '⚙️ Configuration\n' +
+      '   GitHub Owner: ' +
+      (GITHUB_OWNER || 'MISSING') +
+      '\n' +
+      '   GitHub Repo: ' +
+      (GITHUB_REPO || 'MISSING') +
+      '\n' +
+      '   GitHub Branch: ' +
+      (GITHUB_BRANCH || 'MISSING') +
+      '\n' +
+      '   Bot File: ' +
+      (GITHUB_FILE_PATH || 'MISSING') +
+      '\n' +
+      '   Backup Directory: ' +
+      (GITHUB_BACKUP_DIR || 'MISSING') +
+      '\n' +
+      '   GitHub Token: ' +
+      (GITHUB_TOKEN ? '🟢 Configured' : '🔴 Missing') +
+      '\n' +
+      '   OMDb Key: ' +
+      (OMDB_API_KEY ? '🟢 Configured' : '🔴 Missing')
+    );
+
+
+    // ==========================================
+    // FINAL MESSAGE
+    // ==========================================
+
+    const text =
+      '🔎 Detailed Bot Diagnostics\n\n' +
+      diagnostics.join('\n\n') +
+      '\n\n' +
+      '🕐 Checked: ' +
+      new Date().toISOString();
+
+    // Telegram has a message size limit.
+    // Split automatically if needed.
+
+    const chunks = [];
+
+    for (
+      let i = 0;
+      i < text.length;
+      i += 3800
+    ) {
+      chunks.push(
+        text.substring(
+          i,
+          i + 3800
+        )
+      );
+    }
+
+    for (const chunk of chunks) {
+      await ctx.reply(chunk);
+    }
+
+  } catch (error) {
+    console.error(
+      'statushd:',
+      error
+    );
+
+    await ctx.reply(
+      '❌ Status diagnostics failed.\n\n' +
+      'Error: ' +
+      (error.message || 'Unknown error') +
+      '\nHTTP: ' +
+      (error.response?.status || 'N/A') +
+      '\nDetails: ' +
+      JSON.stringify(
+        error.response?.data || {}
+      )
+    );
+  }
+});
+
 bot.command('ping', async (ctx) => {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
