@@ -8,15 +8,21 @@ on:
       - "source/bot.js"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update-bot:
+    # جلوگیری از اجرای دوباره Workflow برای Commit مربوط به Rollback
+    if: ${{ !contains(github.event.head_commit.message, '[auto-rollback]') }}
+
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Update NxCreator
+      - name: Deploy bot to NxCreator
         env:
           NXCREATE_MCP_URL: ${{ secrets.NXCREATE_MCP_URL }}
           NXCREATE_API_KEY: ${{ secrets.NXCREATE_API_KEY }}
@@ -24,15 +30,10 @@ jobs:
         run: |
           python3 - <<'PY'
           import os
-          import json
           import requests
 
           with open("source/bot.js", "r", encoding="utf-8") as f:
               code = f.read()
-
-          url = os.environ["NXCREATE_MCP_URL"]
-          api_key = os.environ["NXCREATE_API_KEY"]
-          bot_id = os.environ["NXCREATE_BOT_ID"]
 
           payload = {
               "jsonrpc": "2.0",
@@ -41,7 +42,7 @@ jobs:
               "params": {
                   "name": "update_bot_code",
                   "arguments": {
-                      "botId": bot_id,
+                      "botId": os.environ["NXCREATE_BOT_ID"],
                       "code": code,
                       "restart": True
                   }
@@ -49,9 +50,9 @@ jobs:
           }
 
           response = requests.post(
-              url,
+              os.environ["NXCREATE_MCP_URL"],
               headers={
-                  "Authorization": f"Bearer {api_key}",
+                  "Authorization": f"Bearer {os.environ['NXCREATE_API_KEY']}",
                   "Content-Type": "application/json"
               },
               json=payload,
@@ -62,5 +63,259 @@ jobs:
           print(response.text)
 
           if response.status_code >= 400:
-              raise SystemExit("NxCreator update failed")
+              raise SystemExit("NxCreator deployment failed")
           PY
+
+      - name: Wait for bot startup
+        run: sleep 15
+
+      - name: Check bot startup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import time
+          import base64
+          import json
+          import requests
+
+          url = (
+              "https://api.github.com/repos/"
+              "nafaduka902-gif/data-bot/"
+              "contents/backups/now.json?ref=main"
+          )
+
+          headers = {
+              "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+              "Accept": "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28"
+          }
+
+          for attempt in range(3):
+              response = requests.get(url, headers=headers)
+
+              if response.status_code == 200:
+                  data = response.json()
+
+                  content = base64.b64decode(
+                      data["content"].replace("\n", "")
+                  ).decode("utf-8")
+
+                  now = json.loads(content)
+
+                  print("Status:", now.get("status"))
+                  print("Version:", now.get("version"))
+
+                  if now.get("status") == "running":
+                      print("✅ Bot started successfully.")
+                      raise SystemExit(0)
+
+              if attempt < 2:
+                  print("Waiting 5 seconds...")
+                  time.sleep(5)
+
+          raise SystemExit("Bot startup failed.")
+
+      - name: Automatic rollback
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import base64
+          import json
+          import requests
+
+          owner = "nafaduka902-gif"
+          repo = "data-bot"
+          branch = "main"
+
+          headers = {
+              "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+              "Accept": "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28"
+          }
+
+          def get_file(path):
+              url = (
+                  f"https://api.github.com/repos/{owner}/{repo}"
+                  f"/contents/{path}?ref={branch}"
+              )
+
+              r = requests.get(url, headers=headers)
+              r.raise_for_status()
+              return r.json()
+
+          # Read now.json
+          now_file = get_file("backups/now.json")
+
+          now_data = json.loads(
+              base64.b64decode(
+                  now_file["content"].replace("\n", "")
+              ).decode("utf-8")
+          )
+
+          bad_version = now_data.get("version")
+          previous_version = now_data.get("previousVersion")
+
+          if not previous_version:
+              raise SystemExit("No previous version available.")
+
+          print("❌ New version failed:", bad_version)
+          print("🔄 Rolling back to:", previous_version)
+
+          # Get previous backup
+          backup_path = (
+              f"backups/bot-{previous_version}.js"
+          )
+
+          backup_file = get_file(backup_path)
+
+          # Decode healthy version
+          healthy_code = base64.b64decode(
+              backup_file["content"].replace("\n", "")
+          ).decode("utf-8")
+
+          # Write healthy version locally
+          with open("source/bot.js", "w", encoding="utf-8") as f:
+              f.write(healthy_code)
+
+          # Get current bot.js
+          current_file = get_file("source/bot.js")
+
+          restore_url = (
+              f"https://api.github.com/repos/{owner}/{repo}"
+              f"/contents/source/bot.js"
+          )
+
+          restore_payload = {
+              "message": (
+                  "Automatic rollback to "
+                  + previous_version[:7]
+                  + " [auto-rollback]"
+              ),
+              "content": base64.b64encode(
+                  healthy_code.encode("utf-8")
+              ).decode("utf-8"),
+              "sha": current_file["sha"],
+              "branch": branch
+          }
+
+          restore_response = requests.put(
+              restore_url,
+              headers=headers,
+              json=restore_payload
+          )
+
+          restore_response.raise_for_status()
+
+          restored_sha = (
+              restore_response.json()
+              .get("content", {})
+              .get("sha")
+          )
+
+          if not restored_sha:
+              raise SystemExit(
+                  "Restored SHA was not returned."
+              )
+
+          # Update now.json
+          new_now = {
+              "version": restored_sha,
+              "previousVersion": bad_version,
+              "file": "source/bot.js",
+              "branch": branch,
+              "source": "github",
+              "updatedAt": now_data.get(
+                  "updatedAt"
+              ),
+              "status": "pending",
+              "action": "automatic-rollback"
+          }
+
+          now_content = base64.b64encode(
+              json.dumps(
+                  new_now,
+                  indent=2
+              ).encode("utf-8")
+          ).decode("utf-8")
+
+          now_update_url = (
+              f"https://api.github.com/repos/{owner}/{repo}"
+              f"/contents/backups/now.json"
+          )
+
+          now_payload = {
+              "message": "Update rollback metadata [auto-rollback]",
+              "content": now_content,
+              "sha": now_file["sha"],
+              "branch": branch
+          }
+
+          r = requests.put(
+              now_update_url,
+              headers=headers,
+              json=now_payload
+          )
+
+          r.raise_for_status()
+
+          print("✅ Previous version restored.")
+          print("Restored SHA:", restored_sha)
+          PY
+
+      - name: Redeploy healthy version
+        if: failure()
+        env:
+          NXCREATE_MCP_URL: ${{ secrets.NXCREATE_MCP_URL }}
+          NXCREATE_API_KEY: ${{ secrets.NXCREATE_API_KEY }}
+          NXCREATE_BOT_ID: ${{ secrets.NXCREATE_BOT_ID }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import requests
+
+          with open("source/bot.js", "r", encoding="utf-8") as f:
+              code = f.read()
+
+          payload = {
+              "jsonrpc": "2.0",
+              "id": 1,
+              "method": "tools/call",
+              "params": {
+                  "name": "update_bot_code",
+                  "arguments": {
+                      "botId": os.environ["NXCREATE_BOT_ID"],
+                      "code": code,
+                      "restart": True
+                  }
+              }
+          }
+
+          response = requests.post(
+              os.environ["NXCREATE_MCP_URL"],
+              headers={
+                  "Authorization": f"Bearer {os.environ['NXCREATE_API_KEY']}",
+                  "Content-Type": "application/json"
+              },
+              json=payload,
+              timeout=120
+          )
+
+          print("HTTP:", response.status_code)
+          print(response.text)
+
+          if response.status_code >= 400:
+              raise SystemExit(
+                  "Rollback deployment failed"
+              )
+          PY
+
+      - name: Rollback result
+        if: failure()
+        run: |
+          echo "🚨 Automatic rollback was triggered."
+          echo "The previous bot.js version was restored."
