@@ -1709,9 +1709,14 @@ function getAIDynamicSource(
 }
 
 
-async function runGroqCodeAI(
+// ============================================================
+// CODE AI
+// ============================================================
+
+async function runAICodeAI(
   userRequest,
-  currentSource
+  currentSource,
+  mode
 ) {
   if (!GROQ_API_KEY) {
     throw new Error(
@@ -1719,94 +1724,79 @@ async function runGroqCodeAI(
     );
   }
 
-  // ------------------------------------------
-  // Remove secrets before sending source to AI
-  // ------------------------------------------
+  const relevantSource =
+    getAIDynamicSource(
+      userRequest,
+      currentSource
+    );
 
   const safeSource =
-    currentSource
-      .replace(
-        /const\s+OMDB_API_KEY\s*=\s*(['"`])[\s\S]*?\1\s*;/g,
-        'const OMDB_API_KEY = "[REDACTED]";'
-      )
-      .replace(
-        /const\s+GROQ_API_KEY\s*=\s*(['"`])[\s\S]*?\1\s*;/g,
-        'const GROQ_API_KEY = "[REDACTED]";'
-      )
-      .replace(
-        /const\s+GITHUB_TOKEN\s*=\s*(['"`])[\s\S]*?\1\s*;/g,
-        'const GITHUB_TOKEN = "[REDACTED]";'
-      );
+    aiRedactSecrets(
+      relevantSource
+    );
 
   const systemPrompt = `
-You are the code modification AI for a Telegram bot running on NxCreator.
+You are the code analysis and modification AI for a Telegram bot running on NxCreator.
 
-You receive the administrator's request and the REAL current bot.js source.
+The administrator gave you a natural-language request.
 
-IMPORTANT:
+You are working with EXISTING bot.js code.
 
-1. Work ONLY with the supplied current bot.js.
-2. Never invent code that is not present in the supplied source.
-3. Never assume a command exists unless you find it in the supplied source.
-4. If the administrator asks about a command, inspect the REAL command implementation.
-5. If the administrator asks to modify something, locate the exact existing code.
-6. Do NOT rewrite the entire bot.
-7. Modify ONLY what is necessary.
-8. Preserve unrelated functionality.
-9. Never remove unrelated handlers.
-10. oldCode MUST be an EXACT substring copied from CURRENT BOT.JS.
-11. oldCode must identify exactly one location.
-12. newCode must directly replace oldCode.
-13. Never modify secrets.
-14. Never reveal secrets.
-15. Treat [REDACTED] as protected.
-16. Never replace [REDACTED] with a real value.
+MODE:
+${mode}
+
+IMPORTANT RULES:
+
+1. Understand the administrator's actual request.
+2. Do not rely on a predefined command list.
+3. Find the relevant existing code yourself.
+4. Preserve unrelated functionality.
+5. For INSPECT requests, do not modify anything.
+6. For EDIT requests, modify ONLY what is necessary.
+7. oldCode MUST be an EXACT substring of the supplied source.
+8. Do not invent oldCode.
+9. If the required code is not present in the supplied source, do not pretend that it is.
+10. Never modify secrets.
+11. Never reveal secrets.
+12. Never rewrite the whole bot.
+13. The final replacement must be directly usable in the existing bot.js.
 
 NxCreator restrictions:
 
-- Do not use require
-- Do not use import
-- Do not create a new Telegraf instance
-- Do not use bot.launch()
-- Do not use npm
-- axios already exists globally
-- bot already exists globally
-- Do not create filesystem code
-- Do not use process.exit()
-- Do not use eval()
-- Do not use Function()
-- Do not add external dependencies
-
-IMPORTANT REQUEST INTERPRETATION:
-
-If the administrator asks to CHECK, EXPLAIN, INSPECT, DEBUG or ANALYZE code:
-
-Return the exact relevant existing code in oldCode.
-
-Return the SAME code in newCode.
-
-Put the explanation/analysis in explanation.
-
-Do NOT invent a modification.
-
-If the administrator asks to CHANGE, FIX, MODIFY, ADD, REMOVE, ENABLE or DISABLE something:
-
-Return the exact existing code section in oldCode and the corrected version in newCode.
+- No require
+- No import
+- No new Telegraf
+- No bot.launch()
+- No npm
+- No filesystem APIs
+- No process.exit()
+- No eval()
+- No Function()
+- axios is globally available
+- bot is globally available
 
 Return JSON ONLY.
 
-Required JSON:
+For EDIT:
 
 {
-  "explanation": "...",
-  "oldCode": "...",
-  "newCode": "..."
+  "explanation": "short explanation",
+  "oldCode": "exact existing code",
+  "newCode": "replacement code"
 }
 
-If the request cannot be safely implemented:
+For INSPECT:
 
 {
-  "explanation": "reason",
+  "explanation": "detailed factual analysis",
+  "oldCode": "",
+  "newCode": ""
+}
+
+If the requested code cannot safely be located:
+
+{
+  "explanation": "clear reason",
   "oldCode": "",
   "newCode": ""
 }
@@ -1824,16 +1814,21 @@ If the request cannot be safely implemented:
 
         messages: [
           {
-            role: 'system',
+            role:
+              'system',
+
             content:
               systemPrompt
           },
           {
-            role: 'user',
+            role:
+              'user',
+
             content:
-              'ADMIN REQUEST:\n' +
+              'ADMINISTRATOR REQUEST:\n' +
               userRequest +
-              '\n\nCURRENT BOT.JS:\n' +
+              '\n\n' +
+              'BOT.JS SOURCE CONTEXT:\n' +
               safeSource
           }
         ]
@@ -1841,8 +1836,7 @@ If the request cannot be safely implemented:
       {
         headers: {
           Authorization:
-            'Bearer ' +
-            GROQ_API_KEY,
+            `Bearer ${GROQ_API_KEY}`,
 
           'Content-Type':
             'application/json'
@@ -1864,35 +1858,16 @@ If the request cannot be safely implemented:
     );
   }
 
-  let cleaned =
-    String(raw).trim();
-
-  cleaned =
-    cleaned
-      .replace(
-        /^```json\s*/i,
-        ''
-      )
-      .replace(
-        /^```\s*/i,
-        ''
-      )
-      .replace(
-        /\s*```$/i,
-        ''
-      )
-      .trim();
-
   let result;
 
   try {
     result =
-      JSON.parse(cleaned);
+      JSON.parse(
+        aiCleanGroqJson(raw)
+      );
   } catch {
     throw new Error(
-      'Groq returned invalid JSON.\n\n' +
-      'Raw response:\n' +
-      cleaned
+      'Groq returned invalid JSON.'
     );
   }
 
@@ -1905,9 +1880,27 @@ If the request cannot be safely implemented:
       'string'
   ) {
     throw new Error(
-      'Invalid AI response format.\n\n' +
-      'Expected explanation, oldCode and newCode.'
+      'Invalid AI response format.'
     );
+  }
+
+  /*
+   * INSPECT mode never creates a pending change.
+   */
+
+  if (
+    mode ===
+    'INSPECT'
+  ) {
+    return {
+      mode,
+      explanation:
+        result.explanation,
+      oldCode:
+        '',
+      newCode:
+        ''
+    };
   }
 
   if (
@@ -1916,13 +1909,9 @@ If the request cannot be safely implemented:
   ) {
     throw new Error(
       result.explanation ||
-      'AI could not safely determine the required code section.'
+      'AI could not safely determine the required code change.'
     );
   }
-
-  // ------------------------------------------
-  // Safety validation
-  // ------------------------------------------
 
   const forbiddenPatterns = [
     /\brequire\s*\(/i,
@@ -1937,7 +1926,8 @@ If the request cannot be safely implemented:
   ];
 
   for (
-    const pattern of forbiddenPatterns
+    const pattern of
+      forbiddenPatterns
   ) {
     if (
       pattern.test(
@@ -1945,14 +1935,10 @@ If the request cannot be safely implemented:
       )
     ) {
       throw new Error(
-        'AI generated forbidden or unsafe NxCreator code. Change rejected.'
+        'AI generated unsafe or forbidden code. Change rejected.'
       );
     }
   }
-
-  // ------------------------------------------
-  // Protect secrets
-  // ------------------------------------------
 
   const secretPatterns = [
     /GROQ_API_KEY\s*=\s*['"`][^'"`]+['"`]/i,
@@ -1961,7 +1947,8 @@ If the request cannot be safely implemented:
   ];
 
   for (
-    const pattern of secretPatterns
+    const pattern of
+      secretPatterns
   ) {
     if (
       pattern.test(
@@ -1974,9 +1961,11 @@ If the request cannot be safely implemented:
     }
   }
 
-  // ------------------------------------------
-  // oldCode MUST exist exactly once
-  // ------------------------------------------
+  /*
+   * Critical:
+   * Validate against the COMPLETE real source,
+   * not only the shortened AI context.
+   */
 
   const occurrences =
     currentSource.split(
@@ -1987,16 +1976,9 @@ If the request cannot be safely implemented:
     occurrences !== 1
   ) {
     throw new Error(
-      'AI selected code that is not uniquely identifiable in the real bot.js. ' +
-      'Found ' +
-      occurrences +
-      ' occurrences instead of exactly 1.'
+      'AI selected code that is not uniquely identifiable in the real bot.js. Change rejected for safety.'
     );
   }
-
-  // ------------------------------------------
-  // Create proposed source
-  // ------------------------------------------
 
   const newSource =
     currentSource.replace(
@@ -2014,76 +1996,21 @@ If the request cannot be safely implemented:
   }
 
   return {
+    mode,
     explanation:
       result.explanation,
-
     oldCode:
       result.oldCode,
-
     newCode:
       result.newCode,
-
     newSource
   };
 }
 
 
-// ==========================================================
-// GITHUB PUT
-// ==========================================================
-
-async function runAIGitHubPut(
-  filePath,
-  content,
-  message,
-  sha
-) {
-  const url =
-    `https://api.github.com/repos/` +
-    `${GITHUB_OWNER}/${GITHUB_REPO}/contents/` +
-    `${filePath}`;
-
-  const body = {
-    message,
-    content:
-      Buffer.from(
-        content,
-        'utf8'
-      ).toString('base64'),
-
-    branch:
-      GITHUB_BRANCH
-  };
-
-  if (sha) {
-    body.sha = sha;
-  }
-
-  const response =
-    await axios.put(
-      url,
-      body,
-      {
-        headers: {
-          Authorization:
-            `Bearer ${GITHUB_TOKEN}`,
-
-          Accept:
-            'application/vnd.github+json',
-
-          'X-GitHub-Api-Version':
-            '2022-11-28'
-        }
-      }
-    );
-
-  return response.data;
-}
-
-
-// ==========================================================
-// AI ON
-// ==========================================================
+// ============================================================
+// /runaiicmd
+// ============================================================
 
 bot.command(
   'runaiicmd',
@@ -2100,13 +2027,16 @@ bot.command(
       runAIStates.set(
         ctx.chat.id,
         {
-          active: true
+          active:
+            true
         }
       );
 
       await ctx.reply(
-        '🤖 گفت‌وگو با عالیجناب سخنگوی هوش مصنوعی شروع شد.\n\n' +
-        'تغییری که می‌خواهید در ربات ایجاد شود را توضیح دهید.'
+        '🤖 The AI assistant is now active.\n\n' +
+        'You can chat normally, ask questions, inspect bot.js, or request code changes.\n\n' +
+        'For code changes, I will show the proposed change before applying it.\n\n' +
+        'Use /runaicmdoff to disable AI mode.'
       );
 
     } catch (error) {
@@ -2120,9 +2050,9 @@ bot.command(
 );
 
 
-// ==========================================================
-// AI OFF
-// ==========================================================
+// ============================================================
+// /runaicmdoff
+// ============================================================
 
 bot.command(
   'runaicmdoff',
@@ -2145,7 +2075,7 @@ bot.command(
       );
 
       await ctx.reply(
-        '🔴 حالت ویرایش هوشمند خاموش شد.'
+        '🔴 AI assistant mode has been disabled.'
       );
 
     } catch (error) {
@@ -2159,36 +2089,37 @@ bot.command(
 );
 
 
-// ==========================================================
+// ============================================================
 // AI MESSAGE HANDLER
-// IMPORTANT: keep this BEFORE the main generic message handler
-// ==========================================================
+// IMPORTANT:
+// This handler MUST be BEFORE your main generic
+// bot.on('message') handler.
+// ============================================================
 
 bot.on(
   'message',
   async (ctx, next) => {
-
     try {
 
-      // ------------------------------------------------------
-      // Commands MUST NEVER be intercepted by AI
-      // ------------------------------------------------------
-
-      const request =
+      const text =
         String(
           ctx.message?.text ||
           ''
         ).trim();
 
+      /*
+       * NEVER intercept commands.
+       */
+
       if (
-        request.startsWith('/')
+        text.startsWith('/')
       ) {
         return next();
       }
 
-      // ------------------------------------------------------
-      // Owner only
-      // ------------------------------------------------------
+      /*
+       * AI is owner-only.
+       */
 
       if (
         Number(ctx.from?.id) !==
@@ -2196,10 +2127,6 @@ bot.on(
       ) {
         return next();
       }
-
-      // ------------------------------------------------------
-      // Check AI state
-      // ------------------------------------------------------
 
       const state =
         runAIStates.get(
@@ -2212,51 +2139,70 @@ bot.on(
         return next();
       }
 
-      if (!request) {
+      if (
+        !text
+      ) {
         return next();
       }
 
-      // ------------------------------------------------------
-      // Start
-      // ------------------------------------------------------
+      /*
+       * ------------------------------------------
+       * CLASSIFY REQUEST
+       *
+       * CHAT
+       * INSPECT
+       * EDIT
+       * ------------------------------------------
+       */
 
-      await ctx.reply(
-        '🧠 درخواست دریافت شد.\n\n' +
-        '⏳ در حال بررسی bot.js و آماده‌سازی تغییر...'
-      );
-
-      // ------------------------------------------------------
-      // Get REAL bot.js from GitHub
-      // ------------------------------------------------------
-
-      const headers = {
-        Authorization:
-          `Bearer ${GITHUB_TOKEN}`,
-
-        Accept:
-          'application/vnd.github+json',
-
-        'X-GitHub-Api-Version':
-          '2022-11-28'
-      };
-
-      const sourceUrl =
-        `https://api.github.com/repos/` +
-        `${GITHUB_OWNER}/${GITHUB_REPO}/contents/` +
-        `${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
-
-      const response =
-        await axios.get(
-          sourceUrl,
-          {
-            headers
-          }
+      const classification =
+        await runAIClassifyRequest(
+          text
         );
 
-      const encoded =
-        response.data?.content;
+      /*
+       * ------------------------------------------
+       * NORMAL AI CHAT
+       * ------------------------------------------
+       */
 
-      if (!encoded) {
+      if (
+        classification.mode ===
+        'CHAT'
+      ) {
+
+        const answer =
+          await runAIChat(
+            text
+          );
+
+        await ctx.reply(
+          answer
+        );
+
+        return;
+      }
+
+      /*
+       * ------------------------------------------
+       * READ REAL bot.js FROM GITHUB
+       * ------------------------------------------
+       */
+
+      await ctx.reply(
+        '🧠 Request received.\n\n' +
+        '⏳ Reading the current bot.js and analyzing it...'
+      );
+
+      const currentFile =
+        await runAIGitHubGet(
+          GITHUB_FILE_PATH
+        );
+
+      if (
+        !currentFile ||
+        !currentFile.content
+      ) {
         throw new Error(
           'bot.js content was not found on GitHub.'
         );
@@ -2264,23 +2210,67 @@ bot.on(
 
       const currentSource =
         Buffer.from(
-          encoded.replace(
-            /\s/g,
-            ''
-          ),
+          currentFile.content,
           'base64'
         ).toString(
           'utf8'
         );
 
-      // ------------------------------------------------------
-      // Ask Groq
-      // ------------------------------------------------------
+      /*
+       * ------------------------------------------
+       * INSPECT MODE
+       * ------------------------------------------
+       */
+
+      if (
+        classification.mode ===
+        'INSPECT'
+      ) {
+
+        const result =
+          await runAICodeAI(
+            text,
+            currentSource,
+            'INSPECT'
+          );
+
+        await ctx.reply(
+          '🔎 <b>bot.js Analysis</b>\n\n' +
+          aiEscapeHtml(
+            result.explanation
+          ),
+          {
+            parse_mode:
+              'HTML'
+          }
+        );
+
+        return;
+      }
+
+      /*
+       * ------------------------------------------
+       * EDIT MODE
+       * ------------------------------------------
+       */
+
+      if (
+        classification.mode !==
+        'EDIT'
+      ) {
+        throw new Error(
+          'AI returned an unsupported request mode: ' +
+          String(
+            classification.mode
+          )
+        );
+      }
 
       const result =
-        await runGroqCodeAI(
-          request,
-          currentSource
+        await runAICodeAI(
+          text,
+          currentSource,
+          'EDIT'
         );
 
       if (
@@ -2290,13 +2280,15 @@ bot.on(
       ) {
         throw new Error(
           result?.explanation ||
-          'AI did not produce a valid code result.'
+          'AI did not produce a valid code change.'
         );
       }
 
-      // ------------------------------------------------------
-      // Final local safety check
-      // ------------------------------------------------------
+      /*
+       * ------------------------------------------
+       * VERIFY OLD CODE AGAIN
+       * ------------------------------------------
+       */
 
       const occurrences =
         currentSource.split(
@@ -2307,87 +2299,54 @@ bot.on(
         occurrences !== 1
       ) {
         throw new Error(
-          'AI selected code that is not uniquely identifiable in the real bot.js. ' +
-          'Found ' +
+          'AI selected code that is not uniquely identifiable in the real bot.js. Found ' +
           occurrences +
-          ' occurrences.'
+          ' occurrences instead of exactly 1.'
         );
       }
 
-      // ------------------------------------------------------
-      // HTML escape
-      // ------------------------------------------------------
-
-      const esc =
-        (value) =>
-          String(
-            value ?? ''
-          )
-            .replace(
-              /&/g,
-              '&amp;'
-            )
-            .replace(
-              /</g,
-              '&lt;'
-            )
-            .replace(
-              />/g,
-              '&gt;'
-            );
-
-      // ------------------------------------------------------
-      // Preview
-      // ------------------------------------------------------
+      /*
+       * ------------------------------------------
+       * PREVIEW
+       * ------------------------------------------
+       */
 
       const preview =
-        '🧠 <b>تغییر پیشنهادی AI</b>\n\n' +
+        '🧠 <b>AI Proposed Change</b>\n\n' +
 
-        '📌 <b>درخواست:</b>\n' +
-        esc(request) +
+        '📌 <b>Request:</b>\n' +
+        aiEscapeHtml(
+          text
+        ) +
 
         '\n\n' +
 
-        '💡 <b>توضیح:</b>\n' +
-        esc(
+        '💡 <b>Explanation:</b>\n' +
+        aiEscapeHtml(
           result.explanation
         ) +
 
         '\n\n' +
 
-        '📝 <b>کد فعلی:</b>\n' +
+        '📝 <b>Current Code:</b>\n' +
         '<pre>' +
-        esc(
+        aiEscapeHtml(
           result.oldCode
         ) +
         '</pre>' +
 
         '\n\n' +
 
-        '✨ <b>کد جدید:</b>\n' +
+        '✨ <b>New Code:</b>\n' +
         '<pre>' +
-        esc(
+        aiEscapeHtml(
           result.newCode
         ) +
         '</pre>' +
 
         '\n\n' +
 
-        '⚠️ <b>هنوز هیچ تغییری اعمال نشده است.</b>';
-
-      // ------------------------------------------------------
-      // Telegram message limit protection
-      // ------------------------------------------------------
-
-      if (
-        preview.length >
-        3900
-      ) {
-        throw new Error(
-          'AI preview is too large for Telegram. ' +
-          'Ask AI to modify a smaller code section.'
-        );
-      }
+        '⚠️ <b>No changes have been applied yet.</b>';
 
       const message =
         await ctx.reply(
@@ -2401,14 +2360,15 @@ bot.on(
                 [
                   {
                     text:
-                      '✅ تأیید و اعمال',
+                      '✅ Confirm & Apply',
 
                     callback_data:
                       'runai_apply'
                   },
+
                   {
                     text:
-                      '❌ لغو',
+                      '❌ Cancel',
 
                     callback_data:
                       'runai_cancel'
@@ -2419,19 +2379,17 @@ bot.on(
           }
         );
 
-      // ------------------------------------------------------
-      // Save pending change
-      // ------------------------------------------------------
+      /*
+       * ------------------------------------------
+       * SAVE PENDING CHANGE
+       * ------------------------------------------
+       */
 
       runAIPendingChanges.set(
         ctx.chat.id,
         {
-          request,
-
-          currentSource,
-
-          newSource:
-            result.newSource,
+          request:
+            text,
 
           oldCode:
             result.oldCode,
@@ -2440,7 +2398,7 @@ bot.on(
             result.newCode,
 
           sourceSha:
-            response.data.sha,
+            currentFile.sha,
 
           previewMessageId:
             message.message_id
@@ -2451,14 +2409,16 @@ bot.on(
 
     } catch (error) {
 
+      /*
+       * ------------------------------------------
+       * COMPLETE AI ERROR REPORT
+       * ------------------------------------------
+       */
+
       console.error(
-        'runai:',
+        'AI message error:',
         error
       );
-
-      // ======================================================
-      // FULL ERROR REPORT
-      // ======================================================
 
       let fullError =
         '';
@@ -2478,7 +2438,7 @@ bot.on(
 
         parts.push(
           '\n📌 <b>Error:</b>\n' +
-          escAIError(
+          aiEscapeHtml(
             error?.message ||
             String(error) ||
             'Unknown error'
@@ -2490,7 +2450,7 @@ bot.on(
         ) {
           parts.push(
             '\n\n🏷 <b>Type:</b>\n' +
-            escAIError(
+            aiEscapeHtml(
               String(
                 error.name
               )
@@ -2503,7 +2463,7 @@ bot.on(
         ) {
           parts.push(
             '\n\n🔢 <b>Code:</b>\n' +
-            escAIError(
+            aiEscapeHtml(
               String(
                 error.code
               )
@@ -2516,7 +2476,7 @@ bot.on(
         ) {
           parts.push(
             '\n\n📡 <b>Status:</b>\n' +
-            escAIError(
+            aiEscapeHtml(
               String(
                 error.status
               )
@@ -2529,7 +2489,7 @@ bot.on(
         ) {
           parts.push(
             '\n\n📡 <b>HTTP Status:</b>\n' +
-            escAIError(
+            aiEscapeHtml(
               String(
                 error.response.status
               )
@@ -2542,7 +2502,7 @@ bot.on(
         ) {
           parts.push(
             '\n\n📡 <b>Status Text:</b>\n' +
-            escAIError(
+            aiEscapeHtml(
               String(
                 error.response.statusText
               )
@@ -2578,7 +2538,7 @@ bot.on(
           parts.push(
             '\n\n📦 <b>Response Data:</b>\n' +
             '<pre>' +
-            escAIError(
+            aiEscapeHtml(
               responseData
             ) +
             '</pre>'
@@ -2613,7 +2573,7 @@ bot.on(
           parts.push(
             '\n\n🔗 <b>Cause:</b>\n' +
             '<pre>' +
-            escAIError(
+            aiEscapeHtml(
               causeText
             ) +
             '</pre>'
@@ -2626,7 +2586,7 @@ bot.on(
           parts.push(
             '\n\n🧩 <b>Stack:</b>\n' +
             '<pre>' +
-            escAIError(
+            aiEscapeHtml(
               String(
                 error.stack
               )
@@ -2649,21 +2609,25 @@ bot.on(
         fullError =
           '❌ <b>AI request failed.</b>\n\n' +
           '📌 <b>Error:</b>\n' +
-          escAIError(
+          aiEscapeHtml(
             String(error)
           ) +
           '\n\n' +
           '⚠️ <b>Error formatter failed:</b>\n' +
-          escAIError(
+          aiEscapeHtml(
             String(
               formatError
             )
           );
       }
 
-      // ------------------------------------------------------
-      // Telegram safe length
-      // ------------------------------------------------------
+      /*
+       * Telegram message length protection.
+       *
+       * If stack is extremely large, keep the beginning
+       * and end instead of failing again while sending
+       * the error message.
+       */
 
       const MAX_ERROR_LENGTH =
         3800;
@@ -2673,17 +2637,21 @@ bot.on(
         MAX_ERROR_LENGTH
       ) {
 
-        fullError =
+        const beginning =
           fullError.slice(
             0,
-            2700
-          ) +
-
-          '\n\n⚠️ <b>Error output truncated for Telegram.</b>\n\n' +
-
-          fullError.slice(
-            -900
+            2600
           );
+
+        const ending =
+          fullError.slice(
+            -1000
+          );
+
+        fullError =
+          beginning +
+          '\n\n⚠️ <b>Error output truncated for Telegram.</b>\n\n' +
+          ending;
       }
 
       try {
@@ -2699,6 +2667,11 @@ bot.on(
       } catch (
         telegramError
       ) {
+
+        /*
+         * If HTML itself causes an error,
+         * send a plain-text fallback.
+         */
 
         console.error(
           'AI error report send failed:',
@@ -2729,14 +2702,13 @@ bot.on(
 );
 
 
-// ==========================================================
-// AI CANCEL
-// ==========================================================
+// ============================================================
+// CANCEL
+// ============================================================
 
 bot.action(
   'runai_cancel',
   async (ctx) => {
-
     try {
 
       if (
@@ -2754,7 +2726,7 @@ bot.action(
       if (!pending) {
 
         await ctx.answerCbQuery(
-          'این تغییر دیگر وجود ندارد.'
+          'This change no longer exists.'
         );
 
         return;
@@ -2765,20 +2737,21 @@ bot.action(
       );
 
       await ctx.answerCbQuery(
-        'تغییر لغو شد.'
+        'Change cancelled.'
       );
 
       try {
 
         await ctx.editMessageReplyMarkup({
-          inline_keyboard: []
+          inline_keyboard:
+            []
         });
 
       } catch {}
 
       await ctx.reply(
-        '❌ تغییر لغو شد.\n\n' +
-        '📦 bot.js بدون تغییر باقی ماند.'
+        '❌ Change cancelled.\n\n' +
+        '📦 bot.js remains unchanged.'
       );
 
     } catch (error) {
@@ -2792,136 +2765,100 @@ bot.action(
 );
 
 
-// ==========================================================
-// AI APPLY
-// ==========================================================
+// ============================================================
+// APPLY
+// ============================================================
 
 bot.action(
   'runai_apply',
   async (ctx) => {
 
-    try {
+    if (
+      Number(ctx.from?.id) !==
+      UPDATE_ADMIN_ID
+    ) {
+      return;
+    }
 
-      if (
-        Number(ctx.from?.id) !==
-        UPDATE_ADMIN_ID
-      ) {
-        return;
-      }
-
-      const pending =
-        runAIPendingChanges.get(
-          ctx.chat.id
-        );
-
-      if (!pending) {
-
-        await ctx.answerCbQuery(
-          'تغییر منقضی شده است.'
-        );
-
-        return;
-      }
-
-      await ctx.answerCbQuery(
-        'در حال آماده‌سازی Backup...'
+    const pending =
+      runAIPendingChanges.get(
+        ctx.chat.id
       );
 
-      const progress =
-        await ctx.reply(
-          '⏳ در حال اعمال تغییر AI...\n\n' +
-          '1️⃣ بررسی نسخه فعلی\n' +
-          '2️⃣ ساخت Backup\n' +
-          '3️⃣ اعمال تغییر در GitHub'
-        );
+    if (!pending) {
 
-      // ======================================================
-      // 1. Get latest bot.js
-      // ======================================================
+      await ctx.answerCbQuery(
+        '❌ No pending change exists.',
+        {
+          show_alert:
+            true
+        }
+      );
 
-      const current =
+      return;
+    }
+
+    await ctx.answerCbQuery(
+      '⏳ Applying change...'
+    );
+
+    try {
+
+      await ctx.telegram.editMessageText(
+        ctx.chat.id,
+        pending.previewMessageId,
+        undefined,
+        '⏳ Applying AI change...\n\n' +
+        '1️⃣ Checking current version\n' +
+        '2️⃣ Creating backup\n' +
+        '3️⃣ Validating change\n' +
+        '4️⃣ Applying change to GitHub'
+      );
+
+      /*
+       * Get the REAL current GitHub version again.
+       */
+
+      const currentFile =
         await runAIGitHubGet(
           GITHUB_FILE_PATH
         );
 
       const currentSha =
-        current.sha;
+        currentFile.sha;
 
-      if (
-        !currentSha ||
-        currentSha !==
-          pending.sourceSha
-      ) {
-
-        throw new Error(
-          'bot.js has changed since the AI proposal was created. ' +
-          'The change was rejected to prevent overwriting newer changes.'
-        );
-      }
-
-      if (
-        !current.content
-      ) {
-        throw new Error(
-          'Current bot.js content was not found.'
-        );
-      }
-
-      const actualCurrentSource =
+      const currentSource =
         Buffer.from(
-          current.content.replace(
-            /\s/g,
-            ''
-          ),
+          currentFile.content,
           'base64'
         ).toString(
           'utf8'
         );
 
-      // ======================================================
-      // 2. Validate original code
-      // ======================================================
-
-      const occurrences =
-        actualCurrentSource.split(
-          pending.oldCode
-        ).length - 1;
+      /*
+       * Never apply a stale proposal.
+       */
 
       if (
-        occurrences !== 1
+        currentSha !==
+        pending.sourceSha
       ) {
-
         throw new Error(
-          'The original code section is no longer unique. ' +
-          'Change rejected for safety.'
+          'The current GitHub version changed after the AI proposal. Generate a new proposal.'
         );
       }
 
-      const finalSource =
-        actualCurrentSource.replace(
-          pending.oldCode,
-          pending.newCode
-        );
-
-      if (
-        finalSource ===
-        actualCurrentSource
-      ) {
-
-        throw new Error(
-          'No actual source change detected.'
-        );
-      }
-
-      // ======================================================
-      // 3. Backup
-      // ======================================================
+      /*
+       * ------------------------------------------
+       * BACKUP
+       * ------------------------------------------
+       */
 
       const backupPath =
         `${GITHUB_BACKUP_DIR}/bot-${currentSha}.js`;
 
-      let backupAlreadyExists =
-        true;
+      let backupExists =
+        false;
 
       try {
 
@@ -2929,29 +2866,109 @@ bot.action(
           backupPath
         );
 
-      } catch {
+        backupExists =
+          true;
 
-        backupAlreadyExists =
+      } catch {
+        backupExists =
           false;
       }
 
       if (
-        !backupAlreadyExists
+        !backupExists
       ) {
 
         await runAIGitHubPut(
           backupPath,
-          actualCurrentSource,
-          `[AI] Backup bot.js ${currentSha}`,
-          undefined
+          currentSource,
+          `[backup] bot.js ${currentSha}`,
+          null
         );
       }
 
-      // ======================================================
-      // 4. Upload new bot.js
-      // ======================================================
+      /*
+       * ------------------------------------------
+       * EXACT REPLACEMENT
+       * ------------------------------------------
+       */
 
-      const uploaded =
+      const oldCode =
+        pending.oldCode;
+
+      const newCode =
+        pending.newCode;
+
+      if (
+        !oldCode ||
+        !newCode
+      ) {
+        throw new Error(
+          'AI change data is incomplete.'
+        );
+      }
+
+      const occurrences =
+        currentSource.split(
+          oldCode
+        ).length - 1;
+
+      if (
+        occurrences !== 1
+      ) {
+        throw new Error(
+          `Expected oldCode exactly once, found ${occurrences} times.`
+        );
+      }
+
+      const finalSource =
+        currentSource.replace(
+          oldCode,
+          newCode
+        );
+
+      /*
+       * ------------------------------------------
+       * FINAL SAFETY CHECK
+       * ------------------------------------------
+       */
+
+      const unsafePatterns = [
+        /\brequire\s*\(/i,
+        /^\s*import\s+/im,
+        /\bimport\s*\(/i,
+        /\bnew\s+Telegraf\b/i,
+        /\bbot\.launch\s*\(/i,
+        /\bprocess\.exit\s*\(/i,
+        /\beval\s*\(/i,
+        /\bnew\s+Function\s*\(/i,
+        /\bFunction\s*\(/i,
+        /GITHUB_TOKEN\s*=\s*['"`]/i,
+        /GROQ_API_KEY\s*=\s*['"`]/i,
+        /OMDB_API_KEY\s*=\s*['"`]/i
+      ];
+
+      for (
+        const pattern of
+          unsafePatterns
+      ) {
+        if (
+          pattern.test(
+            newCode
+          )
+        ) {
+          throw new Error(
+            'Unsafe code detected in AI change.'
+          );
+        }
+      }
+
+      /*
+       * ------------------------------------------
+       * UPLOAD
+       * ------------------------------------------
+       */
+
+      const updateResult =
         await runAIGitHubPut(
           GITHUB_FILE_PATH,
           finalSource,
@@ -2959,34 +2976,16 @@ bot.action(
           currentSha
         );
 
-      // ======================================================
-      // 5. Update now.json
-      // ======================================================
+      const newSha =
+        updateResult?.commit?.sha ||
+        updateResult?.content?.sha ||
+        '';
 
-      let nowData = {
-        version:
-          null,
-
-        previousVersion:
-          currentSha,
-
-        file:
-          GITHUB_FILE_PATH,
-
-        branch:
-          GITHUB_BRANCH,
-
-        source:
-          'github',
-
-        updatedAt:
-          new Date().toISOString(),
-
-        status:
-          'pending'
-      };
-
-      let nowSha;
+      /*
+       * ------------------------------------------
+       * NOW.JSON
+       * ------------------------------------------
+       */
 
       try {
 
@@ -2995,169 +2994,95 @@ bot.action(
             GITHUB_NOW_FILE
           );
 
-        nowSha =
-          nowFile.sha;
+        const nowData =
+          JSON.parse(
+            Buffer.from(
+              nowFile.content,
+              'base64'
+            ).toString(
+              'utf8'
+            )
+          );
 
-        if (
-          nowFile.content
-        ) {
+        nowData.status =
+          'pending';
 
-          try {
+        nowData.previousVersion =
+          currentSha;
 
-            nowData =
-              JSON.parse(
-                Buffer.from(
-                  nowFile.content.replace(
-                    /\s/g,
-                    ''
-                  ),
-                  'base64'
-                ).toString(
-                  'utf8'
-                )
-              );
+        nowData.version =
+          newSha ||
+          'pending';
 
-          } catch {}
-        }
+        nowData.source =
+          'github';
 
-      } catch {}
+        nowData.action =
+          'ai-update';
 
-      nowData.version =
-        uploaded?.commit?.sha ||
-        'pending';
+        nowData.updatedAt =
+          new Date().toISOString();
 
-      nowData.previousVersion =
-        currentSha;
+        await runAIGitHubPut(
+          GITHUB_NOW_FILE,
 
-      nowData.file =
-        GITHUB_FILE_PATH;
+          JSON.stringify(
+            nowData,
+            null,
+            2
+          ),
 
-      nowData.branch =
-        GITHUB_BRANCH;
+          '[AI] update now.json',
 
-      nowData.source =
-        'github';
+          nowFile.sha
+        );
 
-      nowData.updatedAt =
-        new Date().toISOString();
+      } catch (error) {
 
-      nowData.status =
-        'pending';
-
-      nowData.action =
-        'ai-update';
-
-      await runAIGitHubPut(
-        GITHUB_NOW_FILE,
-
-        JSON.stringify(
-          nowData,
-          null,
-          2
-        ),
-
-        '[AI] Update now.json',
-
-        nowSha
-      );
-
-      // ======================================================
-      // Done
-      // ======================================================
+        console.error(
+          'AI now.json update:',
+          error
+        );
+      }
 
       runAIPendingChanges.delete(
         ctx.chat.id
       );
 
-      try {
-
-        await ctx.editMessageReplyMarkup({
-          inline_keyboard: []
-        });
-
-      } catch {}
-
-      try {
-
-        await ctx.telegram.editMessageText(
-          ctx.chat.id,
-          progress.message_id,
-          undefined,
-
-          '✅ <b>تغییر AI اعمال شد.</b>\n\n' +
-
-          '🗄 <b>Backup:</b>\n' +
-          escAIError(
-            backupPath
-          ) +
-
-          '\n\n' +
-
-          '🚀 <b>bot.js در GitHub به‌روزرسانی شد.</b>\n\n' +
-
-          '⏳ NxCreator در حال دریافت نسخه جدید است.\n' +
-          '🔄 سیستم Auto-Rollback فعال است.',
-
-          {
-            parse_mode:
-              'HTML'
-          }
-        );
-
-      } catch {}
+      await ctx.telegram.editMessageText(
+        ctx.chat.id,
+        pending.previewMessageId,
+        undefined,
+        '✅ AI change applied successfully.\n\n' +
+        '🗄 Backup:\n' +
+        backupPath +
+        '\n\n' +
+        '📦 bot.js uploaded to GitHub.\n' +
+        '⏳ NxCreator is updating...\n\n' +
+        '🔄 Auto-Rollback remains active if the new version fails to start.'
+      );
 
     } catch (error) {
 
       console.error(
-        'runai apply:',
+        'runai_apply:',
         error
       );
 
-      runAIPendingChanges.delete(
-        ctx.chat.id
+      await ctx.telegram.editMessageText(
+        ctx.chat.id,
+        pending.previewMessageId,
+        undefined,
+        '❌ AI update failed.\n\n' +
+        'Error: ' +
+        (
+          error?.message ||
+          String(error)
+        )
       );
-
-      try {
-
-        await ctx.reply(
-          '❌ AI update failed.\n\n' +
-          'Error:\n' +
-          String(
-            error?.message ||
-            error ||
-            'Unknown error'
-          )
-        );
-
-      } catch {}
     }
   }
 );
-
-
-// ==========================================================
-// AI ERROR ESCAPER
-// ==========================================================
-
-function escAIError(
-  value
-) {
-  return String(
-    value ?? ''
-  )
-    .replace(
-      /&/g,
-      '&amp;'
-    )
-    .replace(
-      /</g,
-      '&lt;'
-    )
-    .replace(
-      />/g,
-      '&gt;'
-    );
-}
 
 
 bot.command(
