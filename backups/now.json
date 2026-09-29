@@ -5,6 +5,7 @@
   "branch": "main",
   "source": "github",
   "updatedAt": "2026-09-29T09:18:21.312Z",
-  "status": "pending",
-  "action": "automatic-rollback"
+  "status": "running",
+  "action": "automatic-rollback",
+  "startedAt": "2026-09-29T09:19:02.052Z"
 }
