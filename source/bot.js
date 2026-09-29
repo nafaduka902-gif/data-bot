@@ -49,6 +49,9 @@ const GROQ_API_URL =
 const GROQ_MODEL =
   'openai/gpt-oss-120b';
 
+const GROQ_API_KEY =
+  process.env.GROQ_API_KEY;
+
 let githubQueueV1 = Promise.resolve();
 let githubChannelQueueV1 = Promise.resolve();
 let githubWelcomeQueueV1 = Promise.resolve();
