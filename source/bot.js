@@ -1135,6 +1135,152 @@ bot.command('runaicmdoff', async (ctx) => {
 
 
 
+bot.on('text', async (ctx, next) => {
+  try {
+    if (
+      Number(ctx.from?.id) !== UPDATE_ADMIN_ID
+    ) {
+      return next();
+    }
+
+    const state =
+      runAIStates.get(ctx.chat.id);
+
+    if (!state?.active) {
+      return next();
+    }
+
+    const request =
+      (ctx.message?.text || '').trim();
+
+    if (
+      !request ||
+      request.startsWith('/')
+    ) {
+      return next();
+    }
+
+    await ctx.reply(
+      '🧠 درخواست دریافت شد.\n\n' +
+      '⏳ در حال بررسی bot.js و آماده‌سازی تغییر...'
+    );
+
+    const headers = {
+      Authorization:
+        `Bearer ${GITHUB_TOKEN}`,
+      Accept:
+        'application/vnd.github+json',
+      'X-GitHub-Api-Version':
+        '2022-11-28'
+    };
+
+    const sourceUrl =
+      `https://api.github.com/repos/` +
+      `${GITHUB_OWNER}/${GITHUB_REPO}/contents/` +
+      `${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
+
+    const response =
+      await axios.get(
+        sourceUrl,
+        { headers }
+      );
+
+    const encoded =
+      response.data?.content;
+
+    if (!encoded) {
+      throw new Error(
+        'bot.js content was not found on GitHub.'
+      );
+    }
+
+    const currentSource =
+      Buffer.from(
+        encoded.replace(/\s/g, ''),
+        'base64'
+      ).toString('utf8');
+
+    const result =
+      await runGroqCodeAI(
+        request,
+        currentSource
+      );
+
+    const esc = (value) =>
+      String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    const preview =
+      '🧠 <b>تغییر پیشنهادی AI</b>\n\n' +
+      '📌 <b>درخواست:</b>\n' +
+      esc(request) +
+      '\n\n' +
+      '💡 <b>توضیح:</b>\n' +
+      esc(result.explanation) +
+      '\n\n' +
+      '📝 <b>کد فعلی:</b>\n' +
+      '<pre>' +
+      esc(result.oldCode) +
+      '</pre>\n\n' +
+      '✨ <b>کد جدید:</b>\n' +
+      '<pre>' +
+      esc(result.newCode) +
+      '</pre>\n\n' +
+      '⚠️ <b>هنوز هیچ تغییری اعمال نشده است.</b>';
+
+    const message =
+      await ctx.reply(
+        preview,
+        {
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: '✅ تأیید و اعمال',
+                  callback_data: 'runai_apply'
+                },
+                {
+                  text: '❌ لغو',
+                  callback_data: 'runai_cancel'
+                }
+              ]
+            ]
+          }
+        }
+      );
+
+    runAIPendingChanges.set(
+      ctx.chat.id,
+      {
+        request,
+        currentSource,
+        newSource: result.newSource,
+        oldCode: result.oldCode,
+        newCode: result.newCode,
+        sourceSha: response.data.sha,
+        previewMessageId: message.message_id
+      }
+    );
+
+  } catch (error) {
+    console.error(
+      'runai:',
+      error
+    );
+
+    await ctx.reply(
+      '❌ AI change preparation failed.\n\n' +
+      'Error: ' +
+      (
+        error.message ||
+        'Unknown error'
+      )
+    );
+  }
+});
 
 
 bot.command(
