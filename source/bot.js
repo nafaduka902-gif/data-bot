@@ -17,6 +17,7 @@ const GITHUB_BRANCH = 'main';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_BACKUP_DIR = process.env.GITHUB_BACKUP_DIR || 'backups';
 const updateBotStates = new Map();
+const GITHUB_NOW_FILE = `${GITHUB_BACKUP_DIR}/now.json`;
 
 const UPDATE_ADMIN_ID = 2048310529;
 
@@ -8370,7 +8371,9 @@ bot.command('updatebot', async (ctx) => {
       return ctx.reply('❌ Only the main owner can use this command.');
     }
 
-    updateBotStates.set(ctx.from.id, { waitingForFile: true });
+    updateBotStates.set(ctx.from.id, {
+      waitingForFile: true
+    });
 
     await ctx.reply(
       '📦 Send the new bot.js file.\n\n' +
@@ -8401,34 +8404,39 @@ bot.on('document', async (ctx) => {
 
     updateBotStates.delete(ctx.from.id);
 
+    const progress = await ctx.reply('⏳ Updating bot.js...');
+
     const headers = {
       Authorization: `Bearer ${GITHUB_TOKEN}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28'
     };
 
-    await ctx.reply('⏳ Updating bot.js...');
-
-    // Current GitHub version
+    // Get current bot.js
     const currentUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
 
-    const currentResponse = await axios.get(currentUrl, { headers });
+    const currentResponse = await axios.get(
+      currentUrl,
+      { headers }
+    );
+
     const currentFile = currentResponse.data;
 
-    if (!currentFile || !currentFile.sha || !currentFile.content) {
+    if (!currentFile?.sha || !currentFile?.content) {
       throw new Error('Current bot.js not found.');
     }
 
-    const currentSha = currentFile.sha;
+    const oldSha = currentFile.sha;
 
-    // Backup name based on GitHub SHA
+    // Backup uses the real GitHub SHA
     const backupPath =
-      `${GITHUB_BACKUP_DIR}/bot-${currentSha}.js`;
+      `${GITHUB_BACKUP_DIR}/bot-${oldSha}.js`;
 
     const backupUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${backupPath}`;
 
+    // Check if this exact version already has a backup
     let backupExists = false;
 
     try {
@@ -8440,11 +8448,12 @@ bot.on('document', async (ctx) => {
       }
     }
 
+    // Create backup only if it does not exist
     if (!backupExists) {
       await axios.put(
         backupUrl,
         {
-          message: `Backup bot.js ${currentSha.substring(0, 7)}`,
+          message: `Backup bot.js ${oldSha.substring(0, 7)}`,
           content: currentFile.content.replace(/\s/g, ''),
           branch: GITHUB_BRANCH
         },
@@ -8471,27 +8480,95 @@ bot.on('document', async (ctx) => {
     const newContent =
       Buffer.from(newCode, 'utf8').toString('base64');
 
-    // Update GitHub
-    await axios.put(
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`,
+    // Update bot.js
+    const updateUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+
+    const updateResponse = await axios.put(
+      updateUrl,
       {
-        message: `Update bot.js`,
+        message: 'Update bot.js',
         content: newContent,
-        sha: currentSha,
+        sha: oldSha,
         branch: GITHUB_BRANCH
       },
+      { headers }
+    );
+
+    const newSha =
+      updateResponse.data?.content?.sha;
+
+    if (!newSha) {
+      throw new Error('GitHub did not return the new SHA.');
+    }
+
+    // Update now.json
+    const nowPath =
+      `${GITHUB_BACKUP_DIR}/now.json`;
+
+    const nowUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${nowPath}`;
+
+    let nowSha = null;
+
+    try {
+      const nowResponse = await axios.get(
+        `${nowUrl}?ref=${GITHUB_BRANCH}`,
+        { headers }
+      );
+
+      nowSha = nowResponse.data?.sha || null;
+
+    } catch (error) {
+      if (!error.response || error.response.status !== 404) {
+        throw error;
+      }
+    }
+
+    const nowData = {
+      version: newSha,
+      previousVersion: oldSha,
+      file: GITHUB_FILE_PATH,
+      branch: GITHUB_BRANCH,
+      source: 'github',
+      updatedAt: new Date().toISOString(),
+      status: 'pending'
+    };
+
+    const nowContent =
+      Buffer.from(
+        JSON.stringify(nowData, null, 2),
+        'utf8'
+      ).toString('base64');
+
+    const nowPayload = {
+      message: 'Update bot version metadata',
+      content: nowContent,
+      branch: GITHUB_BRANCH
+    };
+
+    if (nowSha) {
+      nowPayload.sha = nowSha;
+    }
+
+    await axios.put(
+      nowUrl,
+      nowPayload,
       { headers }
     );
 
     const backupRawUrl =
       `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${backupPath}`;
 
-    await ctx.reply(
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      progress.message_id,
+      undefined,
       '✅ Update uploaded successfully.\n\n' +
       '🗄 Previous version:\n' +
       backupRawUrl +
       '\n\n' +
-      '⏳ NxCreator is updating...'
+      '⏳ Bot is updating...'
     );
 
   } catch (error) {
@@ -8519,6 +8596,7 @@ bot.command('backupfile', async (ctx) => {
       'X-GitHub-Api-Version': '2022-11-28'
     };
 
+    // Current bot.js
     const currentUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
 
@@ -8529,13 +8607,14 @@ bot.command('backupfile', async (ctx) => {
 
     const currentFile = currentResponse.data;
 
-    if (!currentFile || !currentFile.sha) {
+    if (!currentFile?.sha) {
       throw new Error('Current bot.js not found.');
     }
 
     const currentRawUrl =
       `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE_PATH}`;
 
+    // Find backups
     const treeUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`;
 
@@ -8550,13 +8629,15 @@ bot.command('backupfile', async (ctx) => {
         file.path.startsWith(`${GITHUB_BACKUP_DIR}/bot-`) &&
         file.path.endsWith('.js')
       )
-      .sort((a, b) => b.path.localeCompare(a.path));
+      .sort((a, b) =>
+        b.path.localeCompare(a.path)
+      );
 
     let message =
       '📦 Current bot.js:\n' +
       currentRawUrl;
 
-    if (backups.length) {
+    if (backups.length > 0) {
       const latest = backups[0];
 
       const backupRawUrl =
@@ -8566,7 +8647,9 @@ bot.command('backupfile', async (ctx) => {
         '\n\n🗄 Previous version:\n' +
         backupRawUrl;
     } else {
-      message += '\n\n🗄 No previous version found.';
+      message +=
+        '\n\n🗄 Previous version:\n' +
+        'No backup found.';
     }
 
     await ctx.reply(message);
@@ -14422,6 +14505,53 @@ bot.on(
     return next();
   }
 );
+
+// ==========================================
+// BOT STARTUP VERSION CHECK
+// ==========================================
+
+(async () => {
+  try {
+    const headers = {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+
+    const nowUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_BACKUP_DIR}/now.json?ref=${GITHUB_BRANCH}`;
+
+    const response = await axios.get(
+      nowUrl,
+      { headers }
+    );
+
+    const encoded = response.data?.content;
+
+    if (!encoded) return;
+
+    const nowData = JSON.parse(
+      Buffer.from(
+        encoded.replace(/\s/g, ''),
+        'base64'
+      ).toString('utf8')
+    );
+
+    if (!nowData.version) return;
+
+    await bot.telegram.sendMessage(
+      UPDATE_ADMIN_ID,
+      '🚀 Bot started successfully.\n\n' +
+      '🔖 Version: ' + nowData.version.substring(0, 7) + '\n' +
+      '📦 Source: ' + (nowData.source || 'github') + '\n' +
+      '🕐 Updated: ' + (nowData.updatedAt || 'unknown')
+    );
+
+  } catch (error) {
+    console.error('startup version check:', error);
+  }
+})();
+
 
 bot.catch(
   (err, ctx) => {
