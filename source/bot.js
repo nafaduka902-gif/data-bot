@@ -11418,7 +11418,7 @@ bot.command('status', async (ctx) => {
 // DETAILED HEALTH DIAGNOSTICS
 // ==========================================
 
-bot.command('statuerror', async (ctx) => {
+bot.command('statuserror', async (ctx) => {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
       return;
