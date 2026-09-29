@@ -27,24 +27,5 @@
     "updatedAt": "2026-09-25T02:05:53.864Z",
     "sentAt": "2026-09-25T02:05:34.427Z",
     "error": ""
-  },
-  {
-    "id": "1790662549348-2048310529",
-    "ownerId": 2048310529,
-    "chatId": 2048310529,
-    "text": "",
-    "entities": [],
-    "parseMode": "",
-    "sourceChatId": "@Anime_Faarsi",
-    "sourceMessageId": 370,
-    "sourceLink": "https://t.me/Anime_Faarsi/370",
-    "title": "",
-    "destinationId": -1004371575314,
-    "destinationName": "تیم دوبلاژ لاروا | Larva Team",
-    "sendAt": 1790680546162,
-    "status": "pending",
-    "createdAt": "2026-09-29T06:15:49.348Z",
-    "kind": "scheduled:1790662549348-2048310529",
-    "updatedAt": "2026-09-29T06:15:49.348Z"
   }
 ]
