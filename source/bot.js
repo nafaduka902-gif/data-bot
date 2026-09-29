@@ -1,5 +1,5 @@
 const ADMIN_ID = 2048310529;
-const OMDB_API_KEY = 'c984bcec';
+const OMDB_API_KEY = process.env.OMDB_API_KEY;
 let DEFAULT_DOWNLOAD_URL = 'https://t.me/dubb_anime';
 
 const GITHUB_OWNER = 'nafaduka902-gif';
@@ -3353,7 +3353,17 @@ function escapeHtml(text = '') {
     .replace(/"/g, '&quot;');
 }
 
-function mainKeyboard(){return{keyboard:[['Tools','Manage Admin']],resize_keyboard:true};}
+// #update
+function mainKeyboard() {
+  return {
+    keyboard: [
+      ['Tools', 'Manage Admin'],
+      ['Group'],
+      ['Backend']
+    ],
+    resize_keyboard: true
+  };
+}
 
 function toolsKeyboard() {
   return {
@@ -3500,6 +3510,24 @@ function setKeyboard() {
     ],
     resize_keyboard: true
   };
+}
+
+// #new
+async function backendMenu(ctx) {
+  if (!isAdmin(ctx)) {
+    return;
+  }
+
+  await ctx.reply(
+    '<b>Backend</b>\n\n' +
+      'GitHub: ' + (GITHUB_TOKEN ? '🟢 configured' : '🔴 missing') + '\n' +
+      'Groq: ' + (GROQ_API_KEY ? '🟢 configured' : '🔴 missing') + '\n' +
+      'Database: ' + (typeof db !== 'undefined' ? '🟢 available' : '⚪ NxCreator storage'),
+    {
+      parse_mode: 'HTML',
+      reply_markup: mainKeyboard()
+    }
+  );
 }
 
 async function mainMenu(ctx) {
@@ -7192,6 +7220,7 @@ function getSequenceFile(message) {
     return {
       type: 'document',
       fileId: message.document.file_id,
+      fileUniqueId: message.document.file_unique_id,
       name:
         message.document.file_name ||
         'document',
@@ -7210,6 +7239,7 @@ function getSequenceFile(message) {
     return {
       type: 'video',
       fileId: message.video.file_id,
+      fileUniqueId: message.video.file_unique_id,
       name:
         message.video.file_name ||
         'video',
@@ -7228,6 +7258,7 @@ function getSequenceFile(message) {
     return {
       type: 'audio',
       fileId: message.audio.file_id,
+      fileUniqueId: message.audio.file_unique_id,
       name:
         message.audio.file_name ||
         message.audio.title ||
@@ -7247,6 +7278,7 @@ function getSequenceFile(message) {
     return {
       type: 'animation',
       fileId: message.animation.file_id,
+      fileUniqueId: message.animation.file_unique_id,
       name:
         message.animation.file_name ||
         'animation',
@@ -7270,7 +7302,7 @@ function getSequenceEpisodeInfo(name) {
 
   const match =
     value.match(
-      /S(\d{1,2})E(\d{1,4})/i
+      /\bS(?:eason)?\s*(\d{1,2})\s*[._ -]*E(?:pisode)?\s*(\d{1,4})\b/i
     );
 
   if (!match) {
@@ -7438,10 +7470,13 @@ async function updateSequenceStatus(
   }
 }
 
+// #new
+function sequenceStateKey(ctx) {
+  return String(ctx.chat?.id || 'no-chat') + ':' + String(ctx.from?.id || 'no-user');
+}
+
 async function startSequence(ctx) {
-  sequenceStates.delete(
-    ctx.chat.id
-  );
+  sequenceStates.delete(sequenceStateKey(ctx));
 
   const message =
     await ctx.reply(
@@ -7473,9 +7508,7 @@ async function handleSequenceFile(
   ctx
 ) {
   const state =
-    sequenceStates.get(
-      ctx.chat.id
-    );
+    sequenceStates.get(sequenceStateKey(ctx));
 
   if (!state) {
     return false;
@@ -7488,6 +7521,20 @@ async function handleSequenceFile(
 
   if (!file) {
     return false;
+  }
+
+  file.messageId = ctx.message.message_id;
+  file.receivedAt = new Date().toISOString();
+  file.receiveNumber = state.files.length + 1;
+
+  const duplicate = state.files.some(existing =>
+    (file.fileUniqueId && existing.fileUniqueId === file.fileUniqueId) ||
+    (!file.fileUniqueId && existing.fileId === file.fileId && existing.name === file.name)
+  );
+
+  if (duplicate) {
+    await ctx.reply('⚠️ Duplicate File');
+    return true;
   }
 
   state.files.push(
@@ -7619,18 +7666,14 @@ async function sendSequenceFile(
 
 async function finishSequence(ctx) {
   const state =
-    sequenceStates.get(
-      ctx.chat.id
-    );
+    sequenceStates.get(sequenceStateKey(ctx));
 
   if (!state) {
     await mainMenu(ctx);
     return;
   }
 
-  sequenceStates.delete(
-    ctx.chat.id
-  );
+  sequenceStates.delete(sequenceStateKey(ctx));
 
   const files =
     [...state.files].sort(
@@ -8097,6 +8140,79 @@ ${statusLine}🍿 بازیگران: ${actors}
 ✅ @FaarsiMovie</b>`;
 }
 
+// #new
+const POST_CHANNEL_TARGETS = {
+  anime: '@Anime_Faarsi',
+  movie: '@FaarsiMovie',
+  series: '@FaarsiMovie',
+  animation: '@AnimationFaarsi'
+};
+
+const postChannelSuggestions = new Map();
+
+function postChannelSuggestionKey(ownerId, sourceMessageId) {
+  return String(ownerId) + ':' + String(sourceMessageId);
+}
+
+async function checkPostChannelAccess(ctx, target) {
+  try {
+    const botUser = await ctx.telegram.getMe();
+    const botMember = await ctx.telegram.getChatMember(target, botUser.id);
+    if (!['creator', 'administrator'].includes(botMember.status) || botMember.can_post_messages === false) {
+      await ctx.reply('ربات در این کانال دسترسی لازم برای ارسال پست را ندارد.');
+      return false;
+    }
+
+    if (Number(ctx.from?.id) === ADMIN_ID) {
+      return true;
+    }
+
+    const userMember = await ctx.telegram.getChatMember(target, ctx.from.id);
+    if (!['creator', 'administrator'].includes(userMember.status) || userMember.can_post_messages === false) {
+      await ctx.reply('شما ادمین این کانال نیستید و اجازه ارسال پست در این کانال را ندارید.');
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('POST CHANNEL ACCESS ERROR:', error?.response?.data || error?.message || error);
+    await ctx.reply('❌ دسترسی کانال بررسی نشد.');
+    return false;
+  }
+}
+
+async function offerPostChannel(ctx, sentMessage, type) {
+  const target = POST_CHANNEL_TARGETS[type];
+  if (!target || !sentMessage?.message_id) {
+    return;
+  }
+
+  const key = postChannelSuggestionKey(ctx.from.id, sentMessage.message_id);
+  const suggestion = await ctx.reply(
+    'راستی، می‌تونم اینو تو کانال مربوطه هم بزارم؟',
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '✅ ارسال به کانال', callback_data: 'postchannel:send:' + key },
+            { text: '❌ حذف پیام', callback_data: 'postchannel:delete:' + key }
+          ]
+        ]
+      }
+    }
+  );
+
+  postChannelSuggestions.set(key, {
+    ownerId: Number(ctx.from.id),
+    sourceChatId: ctx.chat.id,
+    sourceMessageId: sentMessage.message_id,
+    suggestionMessageId: suggestion.message_id,
+    target,
+    used: false,
+    processing: false
+  });
+}
+
 async function handleSetLink(
   ctx,
   url
@@ -8188,12 +8304,14 @@ async function handleSetLink(
       ctx.chat.id
     );
 
+    let sentPost;
+
     if (
       data.Poster &&
       data.Poster !== 'N/A'
     ) {
       try {
-        await ctx.replyWithPhoto(
+        sentPost = await ctx.replyWithPhoto(
           data.Poster,
           {
             caption: post,
@@ -8203,7 +8321,7 @@ async function handleSetLink(
           }
         );
       } catch {
-        await ctx.reply(
+        sentPost = await ctx.reply(
           post,
           {
             parse_mode: 'HTML',
@@ -8213,7 +8331,7 @@ async function handleSetLink(
         );
       }
     } else {
-      await ctx.reply(
+      sentPost = await ctx.reply(
         post,
         {
           parse_mode: 'HTML',
@@ -8222,6 +8340,9 @@ async function handleSetLink(
         }
       );
     }
+
+    await offerPostChannel(ctx, sentPost, type);
+
   } catch (error) {
     console.error(
       'SET ERROR:',
@@ -10613,6 +10734,87 @@ bot.action(
       ctx.match[1],
       ctx.match[2]
     );
+  }
+);
+
+// #new
+bot.hears(
+  'Backend',
+  async ctx => {
+    await backendMenu(ctx);
+  }
+);
+
+// #new
+bot.action(
+  /^postchannel:(send|delete):(.+)$/,
+  async ctx => {
+    const action = ctx.match[1];
+    const key = ctx.match[2];
+    const state = postChannelSuggestions.get(key);
+
+    if (!state) {
+      await ctx.answerCbQuery('این عملیات منقضی شده است.', { show_alert: true });
+      return;
+    }
+
+    if (Number(ctx.from?.id) !== Number(state.ownerId)) {
+      await ctx.answerCbQuery('این عملیات متعلق به کاربر دیگری است.', { show_alert: true });
+      return;
+    }
+
+    if (action === 'delete') {
+      state.used = true;
+      postChannelSuggestions.set(key, state);
+      await ctx.answerCbQuery();
+      try {
+        await ctx.deleteMessage();
+      } catch (error) {
+        console.error('POST CHANNEL SUGGESTION DELETE ERROR:', error?.message || error);
+      }
+      return;
+    }
+
+    if (state.used || state.processing) {
+      await ctx.answerCbQuery('این پست قبلاً ارسال شده است.', { show_alert: true });
+      return;
+    }
+
+    state.processing = true;
+    postChannelSuggestions.set(key, state);
+
+    try {
+      if (!(await checkPostChannelAccess(ctx, state.target))) {
+        state.processing = false;
+        postChannelSuggestions.set(key, state);
+        return;
+      }
+
+      await ctx.telegram.copyMessage(
+        state.target,
+        state.sourceChatId,
+        state.sourceMessageId
+      );
+
+      state.processing = false;
+      state.used = true;
+      postChannelSuggestions.set(key, state);
+      await ctx.answerCbQuery('ارسال شد.');
+      try {
+        await ctx.deleteMessage();
+      } catch (error) {
+        console.error('POST CHANNEL SUGGESTION CLEANUP ERROR:', error?.message || error);
+      }
+      await ctx.reply('✅ پست با موفقیت در کانال ارسال شد.');
+    } catch (error) {
+      state.processing = false;
+      postChannelSuggestions.set(key, state);
+      console.error('POST CHANNEL SEND ERROR:', error?.response?.data || error?.message || error);
+      try {
+        await ctx.answerCbQuery('ارسال انجام نشد.', { show_alert: true });
+      } catch {}
+      await ctx.reply('❌ ارسال به کانال انجام نشد.');
+    }
   }
 );
 
@@ -13256,7 +13458,7 @@ bot.command(
     fixPostStates.delete(ctx.chat.id);
     managerStates.delete(ctx.chat.id);
     setStates.delete(ctx.chat.id);
-    sequenceStates.delete(ctx.chat.id);
+    sequenceStates.delete(sequenceStateKey(ctx));
     await ctx.reply(
       '✅ عملیات جاری لغو شد.',
       { reply_markup: mainKeyboard() }
@@ -14153,7 +14355,7 @@ bot.hears(
 );
 
 bot.hears(
-  '👥 Group',
+  /^(?:👥\s*)?Group$/i,
   async ctx => {
     if (!isAdmin(ctx)) {
       return;
@@ -14725,9 +14927,7 @@ bot.hears(
       ctx.chat.id
     );
 
-    sequenceStates.delete(
-      ctx.chat.id
-    );
+    sequenceStates.delete(sequenceStateKey(ctx));
 
     channelSearchStates.delete(
       ctx.chat.id
@@ -14768,9 +14968,7 @@ bot.hears(
     );
 
     if (
-      sequenceStates.has(
-        ctx.chat.id
-      )
+      sequenceStates.has(sequenceStateKey(ctx))
     ) {
       await finishSequence(ctx);
       return;
@@ -14847,9 +15045,7 @@ bot.hears(
     managerStates.delete(
       ctx.chat.id
     );
-    sequenceStates.delete(
-      ctx.chat.id
-    );
+    sequenceStates.delete(sequenceStateKey(ctx));
 
     await safeDelete(
       ctx,
@@ -15125,7 +15321,8 @@ bot.on(
         text === 'Skip' ||
         text === '👤 User' ||
         text === '👤 UserInfo' ||
-        text === '👥 Group' ||
+        (text === '👥 Group' || text === 'Group') ||
+        text === 'Backend' ||
         text === '👋 Welcome' ||
         text === '✏️ ویرایش Welcome' ||
         text === '📜 ویرایش قوانین' ||
@@ -15362,9 +15559,7 @@ if (
 }
     
     const state =
-      sequenceStates.get(
-        ctx.chat.id
-      );
+      sequenceStates.get(sequenceStateKey(ctx));
 
     if (!state) {
       return next();
@@ -17128,18 +17323,6 @@ bot.hears(
   }
 );
 
-
-bot.hears(
-  'Manage Admin',
-  async ctx => {
-    if (
-      !(await requireManageAdminV2(ctx))
-    ) {
-      return;
-    }
-    await manageAdminMenuV2(ctx);
-  }
-);
 
 bot.command(
   'adminpanel',
