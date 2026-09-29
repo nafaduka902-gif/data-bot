@@ -1711,7 +1711,7 @@ function getAIDynamicSource(
 
 
 const NF_API_KEY = process.env.GROQ_API_KEY;
-let nfEnabled = true;
+let nfEnabled = false;
 const nfCodeStore = new Map();
 
 function nfEscapeHtml(text) {
@@ -1725,16 +1725,19 @@ function nfFormatText(text) {
   let source = String(text || '').replace(/\r\n/g, '\n');
   const codeBlocks = [];
 
-  source = source.replace(/```(?:[a-zA-Z0-9_+-]+)?\n?([\s\S]*?)```/g, (match, code) => {
-    const id = String(Date.now()) + '_' + String(codeBlocks.length);
+  source = source.replace(
+    /```(?:[a-zA-Z0-9_+-]+)?\n?([\s\S]*?)```/g,
+    (match, code) => {
+      const id = String(Date.now()) + '_' + String(codeBlocks.length);
 
-    codeBlocks.push({
-      id,
-      code: String(code || '').trim()
-    });
+      codeBlocks.push({
+        id,
+        code: String(code || '').trim()
+      });
 
-    return `\n___NF_CODE_${id}___\n`;
-  });
+      return `\n___NF_CODE_${id}___\n`;
+    }
+  );
 
   source = nfEscapeHtml(source);
 
@@ -1756,6 +1759,10 @@ function nfFormatText(text) {
 }
 
 async function nfAI(message) {
+  if (!NF_API_KEY) {
+    throw new Error('GROQ_API_KEY is not configured.');
+  }
+
   const response = await axios.post(
     'https://api.groq.com/openai/v1/chat/completions',
     {
@@ -1765,7 +1772,7 @@ async function nfAI(message) {
         {
           role: 'system',
           content:
-            'You are a programming assistant. Respond in English. Keep responses clean, organized, and natural. Use **text** only when emphasis is actually needed. Always put code inside ``` code blocks. For simple messages such as greetings, respond naturally without unnecessary formatting. Do not add unnecessary explanations about formatting.'
+            'You are a helpful AI assistant. Respond in the same language as the user. Keep responses clean, organized, natural, and useful. Use bold only when actually useful. Put all code inside fenced code blocks. Do not add unnecessary explanations about formatting.'
         },
         {
           role: 'user',
@@ -1782,95 +1789,161 @@ async function nfAI(message) {
     }
   );
 
-  return response.data?.choices?.[0]?.message?.content || 'No response received.';
+  return (
+    response.data?.choices?.[0]?.message?.content ||
+    'No response received.'
+  );
 }
 
 bot.command('nfon', async (ctx) => {
   if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply('❌ This command is only available to the bot owner.');
+    return ctx.reply(
+      '❌ This command is only available to the bot owner.'
+    );
   }
 
   nfEnabled = true;
-  return ctx.reply('🟢 /nf has been enabled.');
+
+  return ctx.reply(
+    '🟢 /nf AI mode enabled.\n\nEvery message will now be sent to AI until /nfoff.'
+  );
 });
 
 bot.command('nfoff', async (ctx) => {
   if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply('❌ This command is only available to the bot owner.');
+    return ctx.reply(
+      '❌ This command is only available to the bot owner.'
+    );
   }
 
   nfEnabled = false;
-  return ctx.reply('🔴 /nf has been disabled.');
+
+  return ctx.reply(
+    '🔴 /nf AI mode disabled.'
+  );
 });
 
 bot.command('nfstatus', async (ctx) => {
   if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply('❌ This command is only available to the bot owner.');
+    return ctx.reply(
+      '❌ This command is only available to the bot owner.'
+    );
   }
 
   return ctx.reply(
     nfEnabled
-      ? '🟢 /nf status: ON'
-      : '🔴 /nf status: OFF'
+      ? '🟢 /nf AI mode: ON'
+      : '🔴 /nf AI mode: OFF'
   );
 });
 
 bot.command('nf', async (ctx) => {
   if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply('❌ This command is only available to the bot owner.');
+    return ctx.reply(
+      '❌ This command is only available to the bot owner.'
+    );
   }
 
   if (!nfEnabled) {
-    return ctx.reply('🔴 /nf is currently disabled.\n\nTo enable it:\n/nfon');
+    return ctx.reply(
+      '🔴 /nf AI mode is disabled.\n\nUse /nfon to enable it.'
+    );
   }
 
+  const text = String(ctx.message?.text || '')
+    .replace(/^\/nf(?:@\w+)?\s*/i, '')
+    .trim();
+
+  if (!text) {
+    return ctx.reply(
+      'Example:\n\n/nf Hello\n/nf Create a JavaScript ping command'
+    );
+  }
+
+  return nfProcessMessage(ctx, text);
+});
+
+async function nfProcessMessage(ctx, userText) {
+  let thinkingMessage;
+
   try {
-    const text = String(ctx.message?.text || '')
-      .replace(/^\/nf(?:@\w+)?\s*/i, '')
-      .trim();
+    thinkingMessage = await ctx.reply('🤖 Thinking...');
 
-    if (!text) {
-      return ctx.reply(
-        'Example:\n\n/nf Hello\n/nf Create a JavaScript ping command'
-      );
-    }
-
-    await ctx.reply('🤖 Thinking...');
-
-    const answer = await nfAI(text);
+    const answer = await nfAI(userText);
     const formatted = nfFormatText(answer);
 
     if (!formatted.codeBlocks.length) {
-      return ctx.reply(formatted.html, {
-        parse_mode: 'HTML'
-      });
+      await ctx.telegram.editMessageText(
+        ctx.chat.id,
+        thinkingMessage.message_id,
+        undefined,
+        formatted.html || 'No response received.',
+        {
+          parse_mode: 'HTML'
+        }
+      );
+
+      return;
     }
 
-    const buttons = formatted.codeBlocks.map((item, index) => [
-      {
-        text: `📋 Copy Code ${formatted.codeBlocks.length > 1 ? index + 1 : ''}`.trim(),
-        callback_data: `nfcopy:${item.id}`
-      }
-    ]);
+    const buttons = [];
 
-    for (const item of formatted.codeBlocks) {
+    for (let index = 0; index < formatted.codeBlocks.length; index++) {
+      const item = formatted.codeBlocks[index];
+
       nfCodeStore.set(item.id, item.code);
+
+      buttons.push([
+        {
+          text:
+            `📋 Copy Code${
+              formatted.codeBlocks.length > 1
+                ? ` ${index + 1}`
+                : ''
+            }`,
+          callback_data: `nfcopy:${item.id}`
+        }
+      ]);
     }
 
-    return ctx.reply(formatted.html, {
-      parse_mode: 'HTML',
-      reply_markup: {
-        inline_keyboard: buttons
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      thinkingMessage.message_id,
+      undefined,
+      formatted.html || 'No response received.',
+      {
+        parse_mode: 'HTML',
+        reply_markup: {
+          inline_keyboard: buttons
+        }
       }
-    });
+    );
   } catch (error) {
     console.error('NF AI ERROR:', error);
 
-    return ctx.reply(
+    if (thinkingMessage) {
+      try {
+        await ctx.telegram.editMessageText(
+          ctx.chat.id,
+          thinkingMessage.message_id,
+          undefined,
+          '❌ Error:\n' + nfEscapeHtml(String(error?.message || error)),
+          {
+            parse_mode: 'HTML'
+          }
+        );
+
+        return;
+      } catch (editError) {
+        console.error('NF EDIT ERROR:', editError);
+      }
+    }
+
+    await ctx.reply(
       '❌ Error:\n' + String(error?.message || error)
     );
   }
-});
+}
 
 bot.on('callback_query', async (ctx) => {
   const data = String(ctx.callbackQuery?.data || '');
@@ -1900,7 +1973,7 @@ bot.on('callback_query', async (ctx) => {
     );
   }
 
-  await ctx.answerCbQuery('📋 The code is ready to copy.');
+  await ctx.answerCbQuery('📋 Code is ready to copy.');
 
   return ctx.reply(
     `<pre><code>${nfEscapeHtml(code)}</code></pre>`,
@@ -1908,6 +1981,44 @@ bot.on('callback_query', async (ctx) => {
       parse_mode: 'HTML'
     }
   );
+});
+
+bot.on('message', async (ctx) => {
+  if (!nfEnabled) {
+    return;
+  }
+
+  if (ctx.from?.id !== ADMIN_ID) {
+    return;
+  }
+
+  const messageText = String(ctx.message?.text || '').trim();
+
+  if (!messageText) {
+    return;
+  }
+
+  if (/^\/nfoff(?:@\w+)?(?:\s|$)/i.test(messageText)) {
+    return;
+  }
+
+  if (/^\/nfon(?:@\w+)?(?:\s|$)/i.test(messageText)) {
+    return;
+  }
+
+  if (/^\/nfstatus(?:@\w+)?(?:\s|$)/i.test(messageText)) {
+    return;
+  }
+
+  if (/^\/nf(?:@\w+)?(?:\s|$)/i.test(messageText)) {
+    return;
+  }
+
+  if (messageText.startsWith('/')) {
+    return;
+  }
+
+  return nfProcessMessage(ctx, messageText);
 });
 
 
