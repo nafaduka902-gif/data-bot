@@ -1487,6 +1487,37 @@ async function runAIGitHubPut(
 }
 
 
+async function runAIGitHubGet(filePath) {
+  if (!GITHUB_TOKEN) {
+    throw new Error('GITHUB_TOKEN is not configured.');
+  }
+
+  const url =
+    `https://api.github.com/repos/` +
+    `${GITHUB_OWNER}/${GITHUB_REPO}/contents/` +
+    `${filePath}?ref=${GITHUB_BRANCH}`;
+
+  const response = await axios.get(
+    url,
+    {
+      headers: {
+        Authorization:
+          `Bearer ${GITHUB_TOKEN}`,
+        Accept:
+          'application/vnd.github+json',
+        'X-GitHub-Api-Version':
+          '2022-11-28'
+      }
+    }
+  );
+
+  return response.data;
+}
+
+
+
+
+
 
 bot.command('runaiicmd', async (ctx) => {
   try {
@@ -1504,8 +1535,9 @@ bot.command('runaiicmd', async (ctx) => {
     );
 
     await ctx.reply(
-      '🤖 گفت‌وگو با عالیجناب سخنگوی هوش مصنوعی شروع شد.\n\n' +
-      'تغییری که می‌خواهید در ربات ایجاد شود را توضیح دهید.'
+      '🤖 The AI code editor is now active.\n\n' +
+      'Describe the change you want to make to the bot.\n\n' +
+      'You can use /runaicmdoff to turn off AI code editor mode.'
     );
 
   } catch (error) {
@@ -1515,7 +1547,6 @@ bot.command('runaiicmd', async (ctx) => {
     );
   }
 });
-
 
 
 bot.command('runaicmdoff', async (ctx) => {
@@ -1531,7 +1562,7 @@ bot.command('runaicmdoff', async (ctx) => {
     );
 
     await ctx.reply(
-      '🔴 حالت ویرایش هوشمند خاموش شد.'
+      '🔴 AI code editor mode has been disabled.'
     );
 
   } catch (error) {
@@ -1570,8 +1601,8 @@ bot.on('message', async (ctx, next) => {
     }
 
     await ctx.reply(
-      '🧠 درخواست دریافت شد.\n\n' +
-      '⏳ در حال بررسی bot.js و آماده‌سازی تغییر...'
+      '🧠 Request received.\n\n' +
+      '⏳ Checking bot.js and preparing the change...'
     );
 
     const headers = {
@@ -1622,22 +1653,22 @@ bot.on('message', async (ctx, next) => {
         .replace(/>/g, '&gt;');
 
     const preview =
-      '🧠 <b>تغییر پیشنهادی AI</b>\n\n' +
-      '📌 <b>درخواست:</b>\n' +
+      '🧠 <b>AI Proposed Change</b>\n\n' +
+      '📌 <b>Request:</b>\n' +
       esc(request) +
       '\n\n' +
-      '💡 <b>توضیح:</b>\n' +
+      '💡 <b>Explanation:</b>\n' +
       esc(result.explanation) +
       '\n\n' +
-      '📝 <b>کد فعلی:</b>\n' +
+      '📝 <b>Current Code:</b>\n' +
       '<pre>' +
       esc(result.oldCode) +
       '</pre>\n\n' +
-      '✨ <b>کد جدید:</b>\n' +
+      '✨ <b>New Code:</b>\n' +
       '<pre>' +
       esc(result.newCode) +
       '</pre>\n\n' +
-      '⚠️ <b>هنوز هیچ تغییری اعمال نشده است.</b>';
+      '⚠️ <b>No changes have been applied yet.</b>';
 
     const message =
       await ctx.reply(
@@ -1648,11 +1679,11 @@ bot.on('message', async (ctx, next) => {
             inline_keyboard: [
               [
                 {
-                  text: '✅ تأیید و اعمال',
+                  text: '✅ Confirm & Apply',
                   callback_data: 'runai_apply'
                 },
                 {
-                  text: '❌ لغو',
+                  text: '❌ Cancel',
                   callback_data: 'runai_cancel'
                 }
               ]
@@ -1720,7 +1751,7 @@ bot.action(
 
       if (!pending) {
         await ctx.answerCbQuery(
-          'این تغییر دیگر وجود ندارد.'
+          'This change no longer exists.'
         );
         return;
       }
@@ -1730,7 +1761,7 @@ bot.action(
       );
 
       await ctx.answerCbQuery(
-        'تغییر لغو شد.'
+        'Change cancelled.'
       );
 
       try {
@@ -1740,8 +1771,8 @@ bot.action(
       } catch {}
 
       await ctx.reply(
-        '❌ تغییر لغو شد.\n\n' +
-        '📦 bot.js بدون تغییر باقی ماند.'
+        '❌ Change cancelled.\n\n' +
+        '📦 bot.js remains unchanged.'
       );
 
     } catch (error) {
@@ -1754,139 +1785,143 @@ bot.action(
 );
 
 
-bot.action(
-  'runai_apply',
-  async (ctx) => {
-    try {
-      if (
-        Number(ctx.from?.id) !==
-        UPDATE_ADMIN_ID
-      ) {
-        return;
-      }
+bot.action('runai_apply', async (ctx) => {
+  if (
+    Number(ctx.from.id) !== UPDATE_ADMIN_ID
+  ) {
+    return;
+  }
 
-      const pending =
-        runAIPendingChanges.get(
-          ctx.chat.id
-        );
+  const pending =
+    runAIPendingChanges.get(
+      ctx.chat.id
+    );
 
-      if (!pending) {
-        await ctx.answerCbQuery(
-          'تغییر منقضی شده است.'
-        );
-        return;
-      }
+  if (!pending) {
+    await ctx.answerCbQuery(
+      '❌ No pending change exists.',
+      { show_alert: true }
+    );
+    return;
+  }
 
-      await ctx.answerCbQuery(
-        'در حال آماده‌سازی Backup...'
+  await ctx.answerCbQuery(
+    '⏳ Applying change...'
+  );
+
+  try {
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      pending.previewMessageId,
+      undefined,
+      '⏳ Applying AI change...\n\n' +
+      '1️⃣ Checking current version\n' +
+      '2️⃣ Creating backup\n' +
+      '3️⃣ Applying change to GitHub'
+    );
+
+    const currentFile =
+      await runAIGitHubGet(
+        GITHUB_FILE_PATH
       );
 
-      const progress =
-        await ctx.reply(
-          '⏳ در حال اعمال تغییر AI...\n\n' +
-          '1️⃣ بررسی نسخه فعلی\n' +
-          '2️⃣ ساخت Backup\n' +
-          '3️⃣ اعمال تغییر در GitHub'
-        );
+    const currentSha =
+      currentFile.sha;
 
-      // ==========================================
-      // 1. دریافت نسخه فعلی GitHub
-      // ==========================================
+    const currentSource =
+      Buffer.from(
+        currentFile.content,
+        'base64'
+      ).toString('utf8');
 
-      const current =
-        await runAIGitHubGet(
-          GITHUB_FILE_PATH
-        );
+    if (
+      currentSha !==
+      pending.sourceSha
+    ) {
+      throw new Error(
+        'The current GitHub version changed after the AI proposal. Please generate a new proposal.'
+      );
+    }
 
-      const currentSha =
-        current.sha;
+    const backupPath =
+      `${GITHUB_BACKUP_DIR}/bot-${currentSha}.js`;
 
+    let backupExists = false;
+
+    try {
+      await runAIGitHubGet(
+        backupPath
+      );
+
+      backupExists = true;
+    } catch (error) {
+      backupExists = false;
+    }
+
+    if (!backupExists) {
+      await runAIGitHubPut(
+        backupPath,
+        currentSource,
+        `[backup] bot.js ${currentSha}`,
+        null
+      );
+    }
+
+    const oldCode =
+      pending.oldCode;
+
+    const newCode =
+      pending.newCode;
+
+    if (!oldCode || !newCode) {
+      throw new Error(
+        'AI change data is incomplete.'
+      );
+    }
+
+    const occurrences =
+      currentSource.split(
+        oldCode
+      ).length - 1;
+
+    if (occurrences !== 1) {
+      throw new Error(
+        `Expected oldCode exactly once, found ${occurrences} times.`
+      );
+    }
+
+    const finalSource =
+      currentSource.replace(
+        oldCode,
+        newCode
+      );
+
+    const unsafePatterns = [
+      /\brequire\s*\(/,
+      /\bimport\s+/,
+      /new\s+Telegraf\s*\(/,
+      /\bbot\.launch\s*\(/,
+      /\bprocess\.exit\s*\(/,
+      /\beval\s*\(/,
+      /\bnew\s+Function\s*\(/,
+      /GITHUB_TOKEN\s*=\s*['"`]/,
+      /GROQ_API_KEY\s*=\s*['"`]/,
+      /OMDB_API_KEY\s*=\s*['"`]/
+    ];
+
+    for (
+      const pattern of unsafePatterns
+    ) {
       if (
-        !currentSha ||
-        currentSha !== pending.sourceSha
+        pattern.test(newCode)
       ) {
         throw new Error(
-          'bot.js has changed since the AI proposal was created. ' +
-          'The change was rejected to prevent overwriting newer changes.'
+          'Unsafe code detected in AI change.'
         );
       }
+    }
 
-      const encoded =
-        current.content;
-
-      if (!encoded) {
-        throw new Error(
-          'Current bot.js content was not found.'
-        );
-      }
-
-      const actualCurrentSource =
-        Buffer.from(
-          encoded.replace(/\s/g, ''),
-          'base64'
-        ).toString('utf8');
-
-      // ==========================================
-      // 2. اطمینان از اینکه همان تغییر هنوز معتبر است
-      // ==========================================
-
-      const occurrences =
-        actualCurrentSource.split(
-          pending.oldCode
-        ).length - 1;
-
-      if (occurrences !== 1) {
-        throw new Error(
-          'The original code section is no longer unique. ' +
-          'Change rejected for safety.'
-        );
-      }
-
-      const finalSource =
-        actualCurrentSource.replace(
-          pending.oldCode,
-          pending.newCode
-        );
-
-      if (
-        finalSource ===
-        actualCurrentSource
-      ) {
-        throw new Error(
-          'No actual source change detected.'
-        );
-      }
-
-      // ==========================================
-      // 3. Backup نسخه فعلی
-      // ==========================================
-
-      const backupPath =
-        `${GITHUB_BACKUP_DIR}/bot-${currentSha}.js`;
-
-      let backupAlreadyExists = true;
-
-      try {
-        await runAIGitHubGet(
-          backupPath
-        );
-      } catch {
-        backupAlreadyExists = false;
-      }
-
-      if (!backupAlreadyExists) {
-        await runAIGitHubPut(
-          backupPath,
-          actualCurrentSource,
-          `[AI] Backup bot.js ${currentSha}`,
-          undefined
-        );
-      }
-
-      // ==========================================
-      // 4. جایگزینی bot.js
-      // ==========================================
-
+    const updateResult =
       await runAIGitHubPut(
         GITHUB_FILE_PATH,
         finalSource,
@@ -1894,68 +1929,42 @@ bot.action(
         currentSha
       );
 
-      // ==========================================
-      // 5. به‌روزرسانی now.json
-      // ==========================================
+    const newSha =
+      updateResult?.commit?.sha ||
+      updateResult?.content?.sha ||
+      '';
 
-      let nowData = {
-        version: null,
-        previousVersion:
-          currentSha,
-        file:
-          GITHUB_FILE_PATH,
-        branch:
-          GITHUB_BRANCH,
-        source:
-          'github',
-        updatedAt:
-          new Date().toISOString(),
-        status:
-          'pending'
-      };
+    try {
+      const nowFile =
+        await runAIGitHubGet(
+          GITHUB_NOW_FILE
+        );
 
-      let nowSha;
+      const nowData =
+        JSON.parse(
+          Buffer.from(
+            nowFile.content,
+            'base64'
+          ).toString('utf8')
+        );
 
-      try {
-        const nowFile =
-          await runAIGitHubGet(
-            GITHUB_NOW_FILE
-          );
-
-        nowSha =
-          nowFile.sha;
-
-        if (nowFile.content) {
-          try {
-            nowData =
-              JSON.parse(
-                Buffer.from(
-                  nowFile.content.replace(
-                    /\s/g,
-                    ''
-                  ),
-                  'base64'
-                ).toString('utf8')
-              );
-          } catch {}
-        }
-      } catch {}
-
-      nowData.version = 'pending';
-      nowData.previousVersion =
-        currentSha;
-      nowData.file =
-        GITHUB_FILE_PATH;
-      nowData.branch =
-        GITHUB_BRANCH;
-      nowData.source =
-        'github';
-      nowData.updatedAt =
-        new Date().toISOString();
       nowData.status =
         'pending';
+
+      nowData.previousVersion =
+        currentSha;
+
+      nowData.version =
+        newSha || 'pending';
+
+      nowData.source =
+        'github';
+
       nowData.action =
         'ai-update';
+
+      nowData.updatedAt =
+        new Date().toISOString();
 
       await runAIGitHubPut(
         GITHUB_NOW_FILE,
@@ -1964,62 +1973,54 @@ bot.action(
           null,
           2
         ),
-        `[AI] Update now.json`,
-        nowSha
+        '[AI] update now.json',
+        nowFile.sha
       );
-
-      runAIPendingChanges.delete(
-        ctx.chat.id
-      );
-
-      try {
-        await ctx.editMessageReplyMarkup({
-          inline_keyboard: []
-        });
-      } catch {}
-
-      try {
-        await ctx.telegram.editMessageText(
-          ctx.chat.id,
-          progress.message_id,
-          undefined,
-          '✅ <b>تغییر AI اعمال شد.</b>\n\n' +
-          '🗄 <b>Backup:</b>\n' +
-          backupPath +
-          '\n\n' +
-          '🚀 <b>bot.js در GitHub به‌روزرسانی شد.</b>\n\n' +
-          '⏳ NxCreator در حال دریافت نسخه جدید است.\n' +
-          '🔄 سیستم Auto-Rollback فعال است.',
-          {
-            parse_mode: 'HTML'
-          }
-        );
-      } catch {}
 
     } catch (error) {
-
       console.error(
-        'runai apply:',
+        'AI now.json update:',
         error
       );
-
-      runAIPendingChanges.delete(
-        ctx.chat.id
-      );
-
-      try {
-        await ctx.reply(
-          '❌ AI update failed.\n\n' +
-          'Error: ' +
-          (
-            error.message ||
-            'Unknown error'
-          )
-        );
-      } catch {}
     }
+
+    runAIPendingChanges.delete(
+      ctx.chat.id
+    );
+
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      pending.previewMessageId,
+      undefined,
+      '✅ AI change applied successfully.\n\n' +
+      '🗄 Backup created:\n' +
+      backupPath + '\n\n' +
+      '📦 New bot.js version uploaded to GitHub.\n' +
+      '⏳ NxCreator is updating...\n\n' +
+      '🔄 If the new version fails to start, ' +
+      'the previous version will be restored automatically.'
+    );
+
+  } catch (error) {
+
+    console.error(
+      'runai_apply:',
+      error
+    );
+
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      pending.previewMessageId,
+      undefined,
+      '❌ AI update failed.\n\n' +
+      'Error: ' +
+      (
+        error?.message ||
+        String(error)
+      )
+    );
   }
-);
+});
 
 
 bot.command(
