@@ -1711,6 +1711,49 @@ function getAIDynamicSource(
 
 
 const NF_API_KEY = process.env.GROQ_API_KEY;
+let nfEnabled = true;
+const nfCodeStore = new Map();
+
+function nfEscapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function nfFormatText(text) {
+  let source = String(text || '').replace(/\r\n/g, '\n');
+  const codeBlocks = [];
+
+  source = source.replace(/```(?:[a-zA-Z0-9_+-]+)?\n?([\s\S]*?)```/g, (match, code) => {
+    const id = String(Date.now()) + '_' + String(codeBlocks.length);
+
+    codeBlocks.push({
+      id,
+      code: String(code || '').trim()
+    });
+
+    return `\n___NF_CODE_${id}___\n`;
+  });
+
+  source = nfEscapeHtml(source);
+
+  source = source.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>');
+  source = source.replace(/__([^_\n]+)__/g, '<b>$1</b>');
+  source = source.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+  for (const item of codeBlocks) {
+    source = source.replace(
+      `___NF_CODE_${item.id}___`,
+      `<pre><code>${nfEscapeHtml(item.code)}</code></pre>`
+    );
+  }
+
+  return {
+    html: source.trim(),
+    codeBlocks
+  };
+}
 
 async function nfAI(message) {
   const response = await axios.post(
@@ -1722,7 +1765,7 @@ async function nfAI(message) {
         {
           role: 'system',
           content:
-            'You are a simple coding assistant. Answer in Persian. If the user asks for code, provide working JavaScript code.'
+            'You are a programming assistant. Respond in English. Keep responses clean, organized, and natural. Use **text** only when emphasis is actually needed. Always put code inside ``` code blocks. For simple messages such as greetings, respond naturally without unnecessary formatting. Do not add unnecessary explanations about formatting.'
         },
         {
           role: 'user',
@@ -1739,34 +1782,132 @@ async function nfAI(message) {
     }
   );
 
-  return response.data?.choices?.[0]?.message?.content || 'پاسخی دریافت نشد.';
+  return response.data?.choices?.[0]?.message?.content || 'No response received.';
 }
 
+bot.command('nfon', async (ctx) => {
+  if (ctx.from?.id !== ADMIN_ID) {
+    return ctx.reply('❌ This command is only available to the bot owner.');
+  }
+
+  nfEnabled = true;
+  return ctx.reply('🟢 /nf has been enabled.');
+});
+
+bot.command('nfoff', async (ctx) => {
+  if (ctx.from?.id !== ADMIN_ID) {
+    return ctx.reply('❌ This command is only available to the bot owner.');
+  }
+
+  nfEnabled = false;
+  return ctx.reply('🔴 /nf has been disabled.');
+});
+
+bot.command('nfstatus', async (ctx) => {
+  if (ctx.from?.id !== ADMIN_ID) {
+    return ctx.reply('❌ This command is only available to the bot owner.');
+  }
+
+  return ctx.reply(
+    nfEnabled
+      ? '🟢 /nf status: ON'
+      : '🔴 /nf status: OFF'
+  );
+});
+
 bot.command('nf', async (ctx) => {
+  if (ctx.from?.id !== ADMIN_ID) {
+    return ctx.reply('❌ This command is only available to the bot owner.');
+  }
+
+  if (!nfEnabled) {
+    return ctx.reply('🔴 /nf is currently disabled.\n\nTo enable it:\n/nfon');
+  }
+
   try {
     const text = String(ctx.message?.text || '')
-      .replace(/^\/nf\s*/i, '')
+      .replace(/^\/nf(?:@\w+)?\s*/i, '')
       .trim();
 
     if (!text) {
       return ctx.reply(
-        'مثال:\n\n/nf یک کد جاوااسکریپت برای جمع دو عدد بساز'
+        'Example:\n\n/nf Hello\n/nf Create a JavaScript ping command'
       );
     }
 
-    await ctx.reply('🤖 در حال فکر کردن...');
+    await ctx.reply('🤖 Thinking...');
 
     const answer = await nfAI(text);
+    const formatted = nfFormatText(answer);
 
-    await ctx.reply(answer);
+    if (!formatted.codeBlocks.length) {
+      return ctx.reply(formatted.html, {
+        parse_mode: 'HTML'
+      });
+    }
+
+    const buttons = formatted.codeBlocks.map((item, index) => [
+      {
+        text: `📋 Copy Code ${formatted.codeBlocks.length > 1 ? index + 1 : ''}`.trim(),
+        callback_data: `nfcopy:${item.id}`
+      }
+    ]);
+
+    for (const item of formatted.codeBlocks) {
+      nfCodeStore.set(item.id, item.code);
+    }
+
+    return ctx.reply(formatted.html, {
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: buttons
+      }
+    });
   } catch (error) {
     console.error('NF AI ERROR:', error);
 
-    await ctx.reply(
-      '❌ خطا:\n' +
-      String(error?.message || error)
+    return ctx.reply(
+      '❌ Error:\n' + String(error?.message || error)
     );
   }
+});
+
+bot.on('callback_query', async (ctx) => {
+  const data = String(ctx.callbackQuery?.data || '');
+
+  if (!data.startsWith('nfcopy:')) {
+    return;
+  }
+
+  if (ctx.from?.id !== ADMIN_ID) {
+    return ctx.answerCbQuery(
+      '❌ Only the bot owner can use this button.',
+      {
+        show_alert: true
+      }
+    );
+  }
+
+  const id = data.slice('nfcopy:'.length);
+  const code = nfCodeStore.get(id);
+
+  if (!code) {
+    return ctx.answerCbQuery(
+      '❌ This code is no longer available.',
+      {
+        show_alert: true
+      }
+    );
+  }
+
+  await ctx.answerCbQuery('📋 The code is ready to copy.');
+
+  return ctx.reply(
+    `<pre><code>${nfEscapeHtml(code)}</code></pre>`,
+    {
+      parse_mode: 'HTML'
+    }
+  );
 });
 
 
