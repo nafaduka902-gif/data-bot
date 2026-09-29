@@ -11338,6 +11338,54 @@ ${progress} ${percent}%
 
 
 
+const MAX_UPDATE_SOURCE_BYTES = 2 * 1024 * 1024;
+
+// #new
+function validateIncomingBotSource(source) {
+  const code = String(source ?? '');
+  const bytes = Buffer.byteLength(code, 'utf8');
+
+  if (!code.trim()) {
+    return { valid: false, reason: 'New bot.js is empty.' };
+  }
+
+  if (bytes > MAX_UPDATE_SOURCE_BYTES) {
+    return { valid: false, reason: 'New bot.js exceeds the 2 MB safety limit.' };
+  }
+
+  if (/\0/.test(code)) {
+    return { valid: false, reason: 'New bot.js contains a null byte.' };
+  }
+
+  if (!/\b(?:const|let|var)\s+ADMIN_ID\s*=/.test(code)) {
+    return { valid: false, reason: 'New bot.js is missing the required ADMIN_ID configuration.' };
+  }
+
+  if (!/\bbot\.(?:command|hears|action|on|use|start)\s*\(/.test(code)) {
+    return { valid: false, reason: 'New bot.js does not contain a recognizable bot handler.' };
+  }
+
+  const forbiddenPatterns = [
+    /\brequire\s*\(/i,
+    /^\s*import\s+/im,
+    /\bimport\s*\(/i,
+    /\bnew\s+Telegraf\b/i,
+    /\bbot\.launch\s*\(/i,
+    /\beval\s*\(/i,
+    /\bnew\s+Function\s*\(/i,
+    /\bFunction\s*\(/i,
+    /\bprocess\.exit\s*\(/i
+  ];
+
+  for (const pattern of forbiddenPatterns) {
+    if (pattern.test(code)) {
+      return { valid: false, reason: 'New bot.js contains an API forbidden by the NxCreator project rules.' };
+    }
+  }
+
+  return { valid: true, bytes };
+}
+
 async function backendBeginUpdate(ctx) {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
@@ -11406,39 +11454,13 @@ bot.on('document', async (ctx) => {
 
     const oldSha = currentFile.sha;
 
-    // Backup uses the real GitHub SHA
-    const backupPath =
-      `${GITHUB_BACKUP_DIR}/bot-${oldSha}.js`;
+    const incomingSize = Number(document.file_size || 0);
 
-    const backupUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${backupPath}`;
-
-    // Check if this exact version already has a backup
-    let backupExists = false;
-
-    try {
-      await axios.get(backupUrl, { headers });
-      backupExists = true;
-    } catch (error) {
-      if (!error.response || error.response.status !== 404) {
-        throw error;
-      }
+    if (incomingSize > MAX_UPDATE_SOURCE_BYTES) {
+      throw new Error('New bot.js exceeds the 2 MB safety limit.');
     }
 
-    // Create backup only if it does not exist
-    if (!backupExists) {
-      await axios.put(
-        backupUrl,
-        {
-          message: `Backup bot.js ${oldSha.substring(0, 7)}`,
-          content: currentFile.content.replace(/\s/g, ''),
-          branch: GITHUB_BRANCH
-        },
-        { headers }
-      );
-    }
-
-    // Download new bot.js
+    // Validate the uploaded source before creating a backup or replacing GitHub.
     const fileUrl =
       await ctx.telegram.getFileLink(document.file_id);
 
@@ -11450,8 +11472,43 @@ bot.on('document', async (ctx) => {
     const newCode =
       Buffer.from(fileResponse.data).toString('utf8');
 
-    if (!newCode.trim()) {
-      throw new Error('New bot.js is empty.');
+    const validation =
+      validateIncomingBotSource(newCode);
+
+    if (!validation.valid) {
+      throw new Error(validation.reason);
+    }
+
+    // Backup uses the real GitHub SHA and runs only after validation succeeds.
+    const backupPath =
+      `${GITHUB_BACKUP_DIR}/bot-${oldSha}.js`;
+
+    const backupUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${backupPath}`;
+
+    // Check if this exact version already has a backup.
+    let backupExists = false;
+
+    try {
+      await axios.get(backupUrl, { headers });
+      backupExists = true;
+    } catch (error) {
+      if (!error.response || error.response.status !== 404) {
+        throw error;
+      }
+    }
+
+    // Create backup only if it does not exist.
+    if (!backupExists) {
+      await axios.put(
+        backupUrl,
+        {
+          message: `Backup bot.js ${oldSha.substring(0, 7)}`,
+          content: currentFile.content.replace(/\s/g, ''),
+          branch: GITHUB_BRANCH
+        },
+        { headers }
+      );
     }
 
     const newContent =
