@@ -42,9 +42,11 @@
     "destinationId": -1004371575314,
     "destinationName": "تیم دوبلاژ لاروا | Larva Team",
     "sendAt": 1790680546162,
-    "status": "pending",
+    "status": "sent",
     "createdAt": "2026-09-29T06:15:49.348Z",
     "kind": "scheduled:1790662549348-2048310529",
-    "updatedAt": "2026-09-29T06:15:49.348Z"
+    "updatedAt": "2026-09-29T11:16:02.018Z",
+    "sentAt": "2026-09-29T11:16:02.018Z",
+    "error": ""
   }
 ]
