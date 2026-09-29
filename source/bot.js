@@ -497,7 +497,7 @@ async function githubPutFile(
 // /export
 // ==========================================
 
-bot.command('export', async (ctx) => {
+async function backendExport(ctx) {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
       return ctx.reply(
@@ -685,14 +685,18 @@ bot.command('export', async (ctx) => {
         'Please try again.')
     );
   }
-});
 
+}
+
+bot.command('export', async ctx => {
+  await backendExport(ctx);
+});
 
 // ==========================================
 // /import
 // ==========================================
 
-bot.command('import', async (ctx) => {
+async function backendImport(ctx) {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
       return ctx.reply(
@@ -931,10 +935,12 @@ bot.command('import', async (ctx) => {
         'Please try again.')
     );
   }
+
+}
+
+bot.command('import', async ctx => {
+  await backendImport(ctx);
 });
-
-
-
 
 function redactAISecrets(source) {
   return String(source || '')
@@ -3358,8 +3364,7 @@ function mainKeyboard() {
   return {
     keyboard: [
       ['Tools', 'Manage Admin'],
-      ['Group'],
-      ['Backend']
+      ['Group', 'Backend']
     ],
     resize_keyboard: true
   };
@@ -3368,9 +3373,9 @@ function mainKeyboard() {
 function toolsKeyboard() {
   return {
     keyboard: [
-      ['Search Tools', 'File Tools'],
-      ['Post Tools', 'Post News'],
-      ['👤User', '👥 Group'],
+      ['Search Tools', 'Post Tools'],
+      ['File Tools', 'Post News'],
+      ['👤User'],
       ['🔙 Back To Menu']
     ],
     resize_keyboard: true
@@ -3513,8 +3518,30 @@ function setKeyboard() {
 }
 
 // #new
+function backendKeyboard() {
+  return {
+    inline_keyboard: [
+      [
+        { text: '🔄 Update bot.js', callback_data: 'backend:update' },
+        { text: '🗄 Backup', callback_data: 'backend:backup' }
+      ],
+      [
+        { text: '📦 Full Export', callback_data: 'backend:export' },
+        { text: '♻️ Full Import', callback_data: 'backend:import' }
+      ],
+      [
+        { text: '📊 Status', callback_data: 'backend:status' },
+        { text: '🩺 Diagnostics', callback_data: 'backend:statuserror' }
+      ],
+      [
+        { text: '🔙 Main Menu', callback_data: 'backend:back' }
+      ]
+    ]
+  };
+}
+
 async function backendMenu(ctx) {
-  if (!isAdmin(ctx)) {
+  if (Number(ctx.from?.id) !== UPDATE_ADMIN_ID) {
     return;
   }
 
@@ -3525,7 +3552,7 @@ async function backendMenu(ctx) {
       'Database: ' + (typeof db !== 'undefined' ? '🟢 available' : '⚪ NxCreator storage'),
     {
       parse_mode: 'HTML',
-      reply_markup: mainKeyboard()
+      reply_markup: { inline_keyboard: backendKeyboard().inline_keyboard }
     }
   );
 }
@@ -10746,6 +10773,60 @@ bot.hears(
 );
 
 // #new
+bot.command(
+  'backend',
+  async ctx => {
+    await backendMenu(ctx);
+  }
+);
+
+// #new
+bot.action(
+  /^backend:(update|backup|export|import|status|statuserror|back)$/ ,
+  async ctx => {
+    if (Number(ctx.from?.id) !== UPDATE_ADMIN_ID) {
+      await ctx.answerCbQuery('فقط Owner اجازه استفاده دارد.', { show_alert: true });
+      return;
+    }
+
+    const action = ctx.match[1];
+    await ctx.answerCbQuery();
+
+    if (action === 'back') {
+      await ctx.reply('<b>Owner Panel</b>', { parse_mode: 'HTML', reply_markup: mainKeyboard() });
+      return;
+    }
+
+    if (action === 'update') {
+      await backendBeginUpdate(ctx);
+      return;
+    }
+
+    if (action === 'backup') {
+      await backendBackupFile(ctx);
+      return;
+    }
+
+    if (action === 'export') {
+      await backendExport(ctx);
+      return;
+    }
+
+    if (action === 'import') {
+      await backendImport(ctx);
+      return;
+    }
+
+    if (action === 'status') {
+      await backendStatus(ctx);
+      return;
+    }
+
+    await backendStatusError(ctx);
+  }
+);
+
+// #new
 bot.action(
   /^postchannel:(send|delete):(.+)$/,
   async ctx => {
@@ -11257,7 +11338,7 @@ ${progress} ${percent}%
 
 
 
-bot.command('updatebot', async (ctx) => {
+async function backendBeginUpdate(ctx) {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
       return ctx.reply('❌ Only the main owner can use this command.');
@@ -11276,8 +11357,12 @@ bot.command('updatebot', async (ctx) => {
     console.error('updatebot start:', error);
     await ctx.reply('❌ Failed to start update.');
   }
-});
 
+}
+
+bot.command('updatebot', async ctx => {
+  await backendBeginUpdate(ctx);
+});
 
 bot.on('document', async (ctx) => {
   try {
@@ -11476,7 +11561,7 @@ bot.on('document', async (ctx) => {
 });
 
 
-bot.command('backupfile', async (ctx) => {
+async function backendBackupFile(ctx) {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
       return ctx.reply('❌ Only the main owner can use this command.');
@@ -11554,8 +11639,12 @@ bot.command('backupfile', async (ctx) => {
       (error.message || 'Please try again.')
     );
   }
-});
 
+}
+
+bot.command('backupfile', async ctx => {
+  await backendBackupFile(ctx);
+});
 
 bot.command(
   'testch',
@@ -13511,7 +13600,7 @@ bot.command(
   }
 );
 
-bot.command('status', async (ctx) => {
+async function backendStatus(ctx) {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
       return;
@@ -13776,6 +13865,11 @@ bot.command('status', async (ctx) => {
         'Please try again.')
     );
   }
+
+}
+
+bot.command('status', async ctx => {
+  await backendStatus(ctx);
 });
 
 // ==========================================
@@ -13783,7 +13877,7 @@ bot.command('status', async (ctx) => {
 // DETAILED HEALTH DIAGNOSTICS
 // ==========================================
 
-bot.command('statuserror', async (ctx) => {
+async function backendStatusError(ctx) {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
       return;
@@ -14120,6 +14214,11 @@ bot.command('statuserror', async (ctx) => {
       )
     );
   }
+
+}
+
+bot.command('statuserror', async ctx => {
+  await backendStatusError(ctx);
 });
 
 bot.command('ping', async (ctx) => {
