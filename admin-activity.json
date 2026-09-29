@@ -1,5 +1,14 @@
 [
   {
+    "kind": "activity:1790662387722",
+    "userId": 1790662387722,
+    "action": "admin removed",
+    "actorId": 2048310529,
+    "targetId": 8351620456,
+    "details": "",
+    "createdAt": "2026-09-29T06:13:07.722Z"
+  },
+  {
     "kind": "activity:1790522265329",
     "userId": 1790522265329,
     "action": "admin notification sent",
