@@ -813,7 +813,7 @@ function setKeyboard() {
 
 async function mainMenu(ctx) {
   await ctx.reply(
-    '<b>Owner Panel</b>',
+    '<b>Owner Panell</b>',
     {
       parse_mode: 'HTML',
       reply_markup: mainKeyboard()
