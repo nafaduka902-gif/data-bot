@@ -40,6 +40,15 @@ const managerStates = new Map();
 const groupSettingsCacheV1 = new Map();
 const jsonStoreCacheV1 = new Map();
 
+const runAIStates = new Map();
+const runAIPendingChanges = new Map();
+
+const GROQ_API_URL =
+  'https://api.groq.com/openai/v1/chat/completions';
+
+const GROQ_MODEL =
+  'openai/gpt-oss-120b';
+
 let githubQueueV1 = Promise.resolve();
 let githubChannelQueueV1 = Promise.resolve();
 let githubWelcomeQueueV1 = Promise.resolve();
@@ -920,6 +929,212 @@ bot.command('import', async (ctx) => {
     );
   }
 });
+
+
+
+
+async function runGroqCodeAI(userRequest, currentSource) {
+  if (!GROQ_API_KEY) {
+    throw new Error(
+      'GROQ_API_KEY is not configured.'
+    );
+  }
+
+  const systemPrompt = `
+You are the code modification AI for a Telegram bot running on NxCreator.
+
+Your job is to modify the EXISTING bot.js source according to the administrator's request.
+
+IMPORTANT RULES:
+
+1. Do NOT rewrite the entire bot.
+2. Modify only the code necessary for the requested change.
+3. Preserve all existing functionality.
+4. Never remove unrelated handlers.
+5. Never expose secrets, API keys, tokens or environment values.
+6. NxCreator restrictions:
+   - Do not use require
+   - Do not use import
+   - Do not create a new Telegraf instance
+   - Do not use bot.launch()
+   - Do not use npm
+   - axios is already available globally
+   - bot is already available globally
+7. Return JSON ONLY.
+8. The JSON must contain:
+   explanation
+   oldCode
+   newCode
+9. oldCode must be an EXACT unique substring from the supplied source.
+10. newCode must replace oldCode directly.
+11. If the request cannot be safely implemented, return:
+{
+  "explanation": "reason",
+  "oldCode": "",
+  "newCode": ""
+}
+
+The administrator will manually approve the change before it is applied.
+`;
+
+  const response =
+    await axios.post(
+      GROQ_API_URL,
+      {
+        model: GROQ_MODEL,
+        temperature: 0,
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
+          },
+          {
+            role: 'user',
+            content:
+              'ADMIN REQUEST:\\n' +
+              userRequest +
+              '\\n\\nCURRENT BOT.JS:\\n' +
+              currentSource
+          }
+        ]
+      },
+      {
+        headers: {
+          Authorization:
+            'Bearer ' + GROQ_API_KEY,
+          'Content-Type':
+            'application/json'
+        },
+        timeout: 120000
+      }
+    );
+
+  const raw =
+    response.data?.choices?.[0]?.message?.content;
+
+  if (!raw) {
+    throw new Error(
+      'Groq returned an empty response.'
+    );
+  }
+
+  let cleaned = raw.trim();
+
+  cleaned = cleaned
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+
+  const result =
+    JSON.parse(cleaned);
+
+  if (
+    typeof result.explanation !== 'string' ||
+    typeof result.oldCode !== 'string' ||
+    typeof result.newCode !== 'string'
+  ) {
+    throw new Error(
+      'Invalid AI response format.'
+    );
+  }
+
+  if (
+    !result.oldCode ||
+    !result.newCode
+  ) {
+    throw new Error(
+      result.explanation ||
+      'AI could not safely determine the required code change.'
+    );
+  }
+
+  const occurrences =
+    currentSource.split(
+      result.oldCode
+    ).length - 1;
+
+  if (occurrences !== 1) {
+    throw new Error(
+      'AI selected code that is not uniquely identifiable. ' +
+      'Change was rejected for safety.'
+    );
+  }
+
+  const newSource =
+    currentSource.replace(
+      result.oldCode,
+      result.newCode
+    );
+
+  return {
+    explanation:
+      result.explanation,
+    oldCode:
+      result.oldCode,
+    newCode:
+      result.newCode,
+    newSource
+  };
+}
+
+
+bot.command('runaiicmd', async (ctx) => {
+  try {
+    if (
+      Number(ctx.from.id) !== UPDATE_ADMIN_ID
+    ) {
+      return;
+    }
+
+    runAIStates.set(
+      ctx.chat.id,
+      {
+        active: true
+      }
+    );
+
+    await ctx.reply(
+      '🤖 گفت‌وگو با عالیجناب سخنگوی هوش مصنوعی شروع شد.\n\n' +
+      'تغییری که می‌خواهید در ربات ایجاد شود را توضیح دهید.'
+    );
+
+  } catch (error) {
+    console.error(
+      'runaiicmd:',
+      error
+    );
+  }
+});
+
+
+
+bot.command('runaicmdoff', async (ctx) => {
+  try {
+    if (
+      Number(ctx.from.id) !== UPDATE_ADMIN_ID
+    ) {
+      return;
+    }
+
+    runAIStates.delete(
+      ctx.chat.id
+    );
+
+    await ctx.reply(
+      '🔴 حالت ویرایش هوشمند خاموش شد.'
+    );
+
+  } catch (error) {
+    console.error(
+      'runaicmdoff:',
+      error
+    );
+  }
+});
+
+
+
 
 
 bot.command(
