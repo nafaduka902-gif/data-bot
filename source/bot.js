@@ -8398,39 +8398,30 @@ bot.command('backupfile', async (ctx) => {
     await ctx.reply('⏳ در حال دریافت نسخه فعلی bot.js...');
 
     const githubUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}` +
-      `?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
 
-    const response = await axios.get(githubUrl, {
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        Accept: 'application/vnd.github+json'
-      }
-    });
-
-    if (!response.data || !response.data.content) {
-      return ctx.reply('❌ فایل bot.js از GitHub دریافت نشد.');
-    }
-
-    const code = Buffer.from(
-      response.data.content.replace(/\n/g, ''),
-      'base64'
-    ).toString('utf8');
-
-    const file = Buffer.from(code, 'utf8');
-
-    await ctx.replyWithDocument(
+    const response = await axios.get(
+      githubUrl + `?ref=${encodeURIComponent(GITHUB_BRANCH)}`,
       {
-        source: file,
-        filename: 'bot.js'
-      },
-      {
-        caption:
-          '📦 Backup فعلی bot.js\n' +
-          '🌿 Branch: ' + GITHUB_BRANCH + '\n' +
-          '📁 Path: ' + GITHUB_FILE_PATH
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github+json'
+        }
       }
     );
+
+    const downloadUrl = response.data.download_url;
+
+    if (!downloadUrl) {
+      return ctx.reply('❌ لینک دانلود bot.js پیدا نشد.');
+    }
+
+    await ctx.replyWithDocument(downloadUrl, {
+      caption:
+        '📦 Backup فعلی bot.js\n' +
+        '🌿 Branch: ' + GITHUB_BRANCH + '\n' +
+        '📁 Path: ' + GITHUB_FILE_PATH
+    });
 
   } catch (error) {
     console.error(
@@ -8441,15 +8432,16 @@ bot.command('backupfile', async (ctx) => {
     await ctx.reply(
       '❌ دریافت Backup انجام نشد.\n\n' +
       'خطا: ' +
-      (error.response?.data?.message || error.message)
+      (
+        error.response?.data?.description ||
+        error.response?.data?.message ||
+        error.message
+      )
     );
   }
 });
 
 
-// ==============================
-// دریافت فایل bot.js برای /updatebot
-// ==============================
 
 bot.on('document', async (ctx, next) => {
   try {
