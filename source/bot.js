@@ -15,7 +15,7 @@ const GITHUB_GROUPS_FILE = 'groups.json';
 const GITHUB_SCHEDULE_FILE = 'settimep.json';
 const GITHUB_BRANCH = 'main';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-
+const GITHUB_BACKUP_DIR = process.env.GITHUB_BACKUP_DIR || 'backups';
 const updateBotStates = new Map();
 
 const UPDATE_ADMIN_ID = 2048310529;
@@ -8367,22 +8367,183 @@ ${progress} ${percent}%
 bot.command('updatebot', async (ctx) => {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
-      return ctx.reply('❌ مالک اصلی انجام این دستور دارد.');
+      return ctx.reply('❌ Only the main owner can use this command.');
     }
 
-    updateBotStates.set(ctx.from.id, true);
+    updateBotStates.set(ctx.from.id, {
+      waitingForFile: true
+    });
 
     await ctx.reply(
-      '📦 فایل جدید bot.js را ارسال کنید.\n\n' +
-      '⚠️ فقط فایل bot.js پذیرفته می‌شود.'
+      '📦 Please send the new bot.js file.\n\n' +
+      '⚠️ Only bot.js files are accepted.'
     );
 
   } catch (error) {
-    console.error('updatebot command error:', error);
-    await ctx.reply('❌ خطا در اجرای دستور.');
+    console.error('updatebot start error:', error);
+
+    await ctx.reply(
+      '❌ Failed to start the update process.\n\n' +
+      'Please try again.'
+    );
   }
 });
 
+
+bot.on('document', async (ctx) => {
+  try {
+    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
+      return;
+    }
+
+    const state = updateBotStates.get(ctx.from.id);
+
+    if (!state || !state.waitingForFile) {
+      return;
+    }
+
+    const document = ctx.message.document;
+
+    if (!document || document.file_name !== 'bot.js') {
+      return ctx.reply(
+        '❌ Invalid file.\n\n' +
+        'Please send a file named exactly:\n' +
+        'bot.js'
+      );
+    }
+
+    updateBotStates.delete(ctx.from.id);
+
+    await ctx.reply(
+      '⏳ File received.\n' +
+      'Creating a backup of the current bot.js...'
+    );
+
+    const githubHeaders = {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+
+    // Get current bot.js
+    const currentUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
+
+    const currentResponse = await axios.get(
+      currentUrl,
+      {
+        headers: githubHeaders
+      }
+    );
+
+    const currentFile = currentResponse.data;
+
+    if (
+      !currentFile ||
+      !currentFile.content ||
+      !currentFile.sha
+    ) {
+      throw new Error('Current bot.js could not be read.');
+    }
+
+    // Create unique backup name
+    const now = new Date();
+
+    const timestamp =
+      now.getUTCFullYear() +
+      '-' +
+      String(now.getUTCMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(now.getUTCDate()).padStart(2, '0') +
+      '_' +
+      String(now.getUTCHours()).padStart(2, '0') +
+      '-' +
+      String(now.getUTCMinutes()).padStart(2, '0') +
+      '-' +
+      String(now.getUTCSeconds()).padStart(2, '0');
+
+    const backupPath =
+      `${GITHUB_BACKUP_DIR}/bot-${timestamp}.js`;
+
+    // Save previous version
+    const backupUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${backupPath}`;
+
+    await axios.put(
+      backupUrl,
+      {
+        message: `Backup bot.js before update ${timestamp}`,
+        content: currentFile.content.replace(/\s/g, ''),
+        branch: GITHUB_BRANCH
+      },
+      {
+        headers: githubHeaders
+      }
+    );
+
+    await ctx.reply(
+      '✅ Previous version backed up successfully.\n\n' +
+      '📁 ' + backupPath + '\n\n' +
+      '⏳ Uploading the new bot.js to GitHub...'
+    );
+
+    // Download new bot.js from Telegram
+    const fileUrl =
+      await ctx.telegram.getFileLink(document.file_id);
+
+    const fileResponse = await axios.get(
+      fileUrl,
+      {
+        responseType: 'arraybuffer'
+      }
+    );
+
+    const newCode =
+      Buffer.from(fileResponse.data).toString('utf8');
+
+    if (!newCode.trim()) {
+      throw new Error('The new bot.js file is empty.');
+    }
+
+    const newContent =
+      Buffer.from(newCode, 'utf8').toString('base64');
+
+    // Replace current bot.js
+    const updateUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+
+    await axios.put(
+      updateUrl,
+      {
+        message: `Update bot.js ${timestamp}`,
+        content: newContent,
+        sha: currentFile.sha,
+        branch: GITHUB_BRANCH
+      },
+      {
+        headers: githubHeaders
+      }
+    );
+
+    await ctx.reply(
+      '✅ bot.js has been successfully updated on GitHub.\n\n' +
+      '📦 Path: ' + GITHUB_FILE_PATH + '\n' +
+      '🌿 Branch: ' + GITHUB_BRANCH + '\n' +
+      '🗄 Backup: ' + backupPath + '\n\n' +
+      '⏳ GitHub Actions is updating NxCreator...'
+    );
+
+  } catch (error) {
+    console.error('updatebot error:', error);
+
+    updateBotStates.delete(ctx.from.id);
+
+    await ctx.reply(
+      '❌ Update failed.\n\n' +
+      'The previous version was not removed.'
+    );
+  }
+});
 
 
 bot.command('backupfile', async (ctx) => {
@@ -8391,111 +8552,60 @@ bot.command('backupfile', async (ctx) => {
       return ctx.reply('❌ Only the main owner can use this command.');
     }
 
-    if (!GITHUB_TOKEN) {
-      return ctx.reply('❌ GITHUB_TOKEN is not configured.');
-    }
+    const currentRawUrl =
+      `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE_PATH}`;
 
-    await ctx.reply('⏳ Preparing bot.js backup...');
+    const backupApiUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_BACKUP_DIR}?ref=${GITHUB_BRANCH}`;
 
-    // Get bot.js from GitHub
-    const githubUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+    const githubHeaders = {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
 
-    const githubResponse = await axios.get(
-      githubUrl + `?ref=${encodeURIComponent(GITHUB_BRANCH)}`,
+    const response = await axios.get(
+      backupApiUrl,
       {
-        headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-          Accept: 'application/vnd.github+json'
-        }
+        headers: githubHeaders
       }
     );
 
-    const githubContent = githubResponse.data?.content;
+    const backups = Array.isArray(response.data)
+      ? response.data
+          .filter(file =>
+            file.type === 'file' &&
+            file.name.startsWith('bot-') &&
+            file.name.endsWith('.js')
+          )
+          .sort((a, b) =>
+            b.name.localeCompare(a.name)
+          )
+      : [];
 
-    if (!githubContent) {
-      throw new Error('bot.js content was not found on GitHub.');
+    let message =
+      '✅ Current bot.js backup is ready.\n\n' +
+      '📦 Current bot.js:\n' +
+      currentRawUrl;
+
+    if (backups.length > 0) {
+      message +=
+        '\n\n🗄 Previous bot.js:\n' +
+        backups[0].download_url;
+    } else {
+      message +=
+        '\n\n🗄 Previous bot.js:\n' +
+        'No backup exists yet.';
     }
 
-    const fileBuffer = Buffer.from(
-      githubContent.replace(/\s/g, ''),
-      'base64'
-    );
-
-    await ctx.reply('⏳ Uploading bot.js to file hosting...');
-
-    // Build multipart/form-data manually
-    const boundary =
-      '----NxCreatorBackup' +
-      Date.now().toString(16);
-
-    const header = Buffer.from(
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="file"; filename="bot.js"\r\n` +
-      `Content-Type: application/javascript\r\n\r\n`,
-      'utf8'
-    );
-
-    const footer = Buffer.from(
-      `\r\n--${boundary}--\r\n`,
-      'utf8'
-    );
-
-    const multipartBody = Buffer.concat([
-      header,
-      fileBuffer,
-      footer
-    ]);
-
-    const uploadResponse = await axios.post(
-      'https://0x0.st',
-      multipartBody,
-      {
-        headers: {
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          'Content-Length': multipartBody.length
-        },
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity,
-        timeout: 120000
-      }
-    );
-
-    const fileUrl = String(uploadResponse.data || '').trim();
-
-    if (!/^https:\/\/0x0\.st\/\S+$/i.test(fileUrl)) {
-      throw new Error(
-        'File hosting returned an invalid URL: ' + fileUrl
-      );
-    }
-
-    await ctx.reply(
-      '✅ Backup uploaded successfully.\n\n' +
-      '🔗 ' + fileUrl
-    );
-
-    // Send the direct URL as Telegram document
-    await ctx.replyWithDocument(fileUrl, {
-      caption:
-        '📦 bot.js Backup\n' +
-        '🌿 Branch: ' + GITHUB_BRANCH + '\n' +
-        '📁 Path: ' + GITHUB_FILE_PATH
-    });
+    await ctx.reply(message);
 
   } catch (error) {
-    console.error(
-      'backupfile error:',
-      error.response?.data || error.message
-    );
+    console.error('backupfile error:', error);
 
     await ctx.reply(
       '❌ Backup failed.\n\n' +
-      'Error: ' +
-      (
-        error.response?.data?.description ||
-        error.response?.data?.message ||
-        error.message
-      )
+      'Please try again.'
     );
   }
 });
