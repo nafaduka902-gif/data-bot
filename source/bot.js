@@ -7988,7 +7988,7 @@ bot.start(
 
     if (isAdmin(ctx)) {
       await ctx.reply(
-        '<b>Owner Pane</b>',
+        '<b>Owner Panel</b>',
         {
           parse_mode: 'HTML',
           reply_markup:
@@ -14567,26 +14567,39 @@ bot.on(
         { headers }
       );
 
-      await bot.telegram.sendMessage(
-        UPDATE_ADMIN_ID,
-        '🚀 Bot started successfully.\n\n' +
-        '🔖 Version: ' +
-        nowData.version.substring(0, 7) +
-        '\n' +
-        '📦 Source: ' +
-        (nowData.source || 'github') +
-        '\n' +
-        '🕐 Updated: ' +
-        (nowData.updatedAt || 'unknown')
-      );
+      if (nowData.action === 'automatic-rollback') {
+
+        await bot.telegram.sendMessage(
+          UPDATE_ADMIN_ID,
+          '⚠️ The new version failed to start.\n\n' +
+          '🔄 The previous version was automatically restored.\n\n' +
+          '🔖 Restored version: ' +
+          nowData.version.substring(0, 7) +
+          '\n' +
+          '✅ Bot is running again.'
+        );
+
+      } else {
+
+        await bot.telegram.sendMessage(
+          UPDATE_ADMIN_ID,
+          '🚀 Bot started successfully.\n\n' +
+          '🔖 Version: ' +
+          nowData.version.substring(0, 7) +
+          '\n' +
+          '📦 Source: ' +
+          (nowData.source || 'github') +
+          '\n' +
+          '🕐 Updated: ' +
+          (nowData.updatedAt || 'unknown')
+        );
+      }
     }
 
   } catch (error) {
     console.error('startup version check:', error);
   }
 })();
-
-
 
 
 
