@@ -16,6 +16,14 @@ const GITHUB_SCHEDULE_FILE = 'settimep.json';
 const GITHUB_BRANCH = 'main';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
+const updateBotStates = new Map();
+
+const UPDATE_ADMIN_ID = 2048310529;
+
+
+
+const GITHUB_FILE_PATH = process.env.GITHUB_FILE_PATH || 'source/bot.js';
+
 const BOT_USERNAME = 'AnimeFaarsibot';
 
 const setStates = new Map();
@@ -8348,6 +8356,236 @@ ${progress} ${percent}%
     );
   } catch {}
 }
+
+
+
+
+
+
+
+
+bot.command('updatebot', async (ctx) => {
+  try {
+    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
+      return ctx.reply('❌ مالک اصلی انجام این دستور دارد.');
+    }
+
+    updateBotStates.set(ctx.from.id, true);
+
+    await ctx.reply(
+      '📦 فایل جدید bot.js را ارسال کنید.\n\n' +
+      '⚠️ فقط فایل bot.js پذیرفته می‌شود.'
+    );
+
+  } catch (error) {
+    console.error('updatebot command error:', error);
+    await ctx.reply('❌ خطا در اجرای دستور.');
+  }
+});
+
+
+
+bot.command('backupfile', async (ctx) => {
+  try {
+    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
+      return ctx.reply('❌ مالک اصلی انجام این دستور دارد.');
+    }
+
+    if (!GITHUB_TOKEN) {
+      return ctx.reply('❌ GITHUB_TOKEN تنظیم نشده است.');
+    }
+
+    await ctx.reply('⏳ در حال دریافت نسخه فعلی bot.js...');
+
+    const githubUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}` +
+      `?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
+
+    const response = await axios.get(githubUrl, {
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json'
+      }
+    });
+
+    if (!response.data || !response.data.content) {
+      return ctx.reply('❌ فایل bot.js از GitHub دریافت نشد.');
+    }
+
+    const code = Buffer.from(
+      response.data.content.replace(/\n/g, ''),
+      'base64'
+    ).toString('utf8');
+
+    const file = Buffer.from(code, 'utf8');
+
+    await ctx.replyWithDocument(
+      {
+        source: file,
+        filename: 'bot.js'
+      },
+      {
+        caption:
+          '📦 Backup فعلی bot.js\n' +
+          '🌿 Branch: ' + GITHUB_BRANCH + '\n' +
+          '📁 Path: ' + GITHUB_FILE_PATH
+      }
+    );
+
+  } catch (error) {
+    console.error(
+      'backupfile error:',
+      error.response?.data || error.message
+    );
+
+    await ctx.reply(
+      '❌ دریافت Backup انجام نشد.\n\n' +
+      'خطا: ' +
+      (error.response?.data?.message || error.message)
+    );
+  }
+});
+
+
+// ==============================
+// دریافت فایل bot.js برای /updatebot
+// ==============================
+
+bot.on('document', async (ctx, next) => {
+  try {
+    const userId = Number(ctx.from.id);
+
+    if (userId !== UPDATE_ADMIN_ID) {
+      return next();
+    }
+
+    if (!updateBotStates.get(userId)) {
+      return next();
+    }
+
+    const document = ctx.message.document;
+
+    if (!document) {
+      return next();
+    }
+
+    const fileName = document.file_name || '';
+
+    if (fileName.toLowerCase() !== 'bot.js') {
+      return ctx.reply(
+        '❌ فقط فایل با نام دقیق bot.js پذیرفته می‌شود.'
+      );
+    }
+
+    updateBotStates.delete(userId);
+
+    await ctx.reply(
+      '⏳ فایل دریافت شد.\n' +
+      'در حال انتقال به GitHub...'
+    );
+
+    if (!GITHUB_TOKEN) {
+      return ctx.reply(
+        '❌ GITHUB_TOKEN در محیط ربات تنظیم نشده است.'
+      );
+    }
+
+    // دریافت لینک فایل تلگرام
+    const telegramFile = await ctx.telegram.getFileLink(
+      document.file_id
+    );
+
+    // دریافت محتوای bot.js
+    const fileResponse = await axios.get(
+      telegramFile.toString(),
+      {
+        responseType: 'arraybuffer'
+      }
+    );
+
+    const code = Buffer.from(
+      fileResponse.data
+    ).toString('utf8');
+
+    if (!code.trim()) {
+      return ctx.reply('❌ فایل bot.js خالی است.');
+    }
+
+    // گرفتن اطلاعات فایل فعلی GitHub
+    const githubUrl =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+
+    let sha = null;
+
+    try {
+      const currentFile = await axios.get(
+        githubUrl +
+        `?ref=${encodeURIComponent(GITHUB_BRANCH)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${GITHUB_TOKEN}`,
+            Accept: 'application/vnd.github+json'
+          }
+        }
+      );
+
+      sha = currentFile.data.sha;
+
+    } catch (error) {
+      if (error.response?.status !== 404) {
+        throw error;
+      }
+    }
+
+    // آپلود نسخه جدید
+    const payload = {
+      message: 'Update bot.js',
+      content: Buffer.from(code, 'utf8').toString('base64'),
+      branch: GITHUB_BRANCH
+    };
+
+    if (sha) {
+      payload.sha = sha;
+    }
+
+    await axios.put(
+      githubUrl,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    await ctx.reply(
+      '✅ bot.js با موفقیت در GitHub بروزرسانی شد.\n\n' +
+      '📦 مسیر: ' + GITHUB_FILE_PATH + '\n' +
+      '🌿 Branch: ' + GITHUB_BRANCH + '\n\n' +
+      '⏳ GitHub Actions در حال بروزرسانی NxCreator است...'
+    );
+
+  } catch (error) {
+    updateBotStates.delete(Number(ctx.from.id));
+
+    console.error(
+      'updatebot file error:',
+      error.response?.data || error.message
+    );
+
+    await ctx.reply(
+      '❌ بروزرسانی انجام نشد.\n\n' +
+      'خطا: ' +
+      (
+        error.response?.data?.message ||
+        error.message ||
+        'Unknown error'
+      )
+    );
+  }
+});
 
 bot.command(
   'testch',
