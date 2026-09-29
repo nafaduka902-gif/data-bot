@@ -11149,7 +11149,7 @@ bot.command(
 bot.command('status', async (ctx) => {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
-      return ctx.reply('❌ Only the main owner can use this command.');
+      return;
     }
 
     const headers = {
@@ -11157,6 +11157,10 @@ bot.command('status', async (ctx) => {
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28'
     };
+
+    // ==========================================
+    // BOT VERSION / UPTIME
+    // ==========================================
 
     const nowPath =
       `${GITHUB_BACKUP_DIR}/now.json`;
@@ -11169,34 +11173,41 @@ bot.command('status', async (ctx) => {
       { headers }
     );
 
-    const encoded = response.data?.content;
+    const encoded =
+      response.data?.content;
 
     if (!encoded) {
-      return ctx.reply('❌ Version information not found.');
+      return ctx.reply(
+        '❌ Version information not found.'
+      );
     }
 
-    const nowData = JSON.parse(
-      Buffer.from(
-        encoded.replace(/\s/g, ''),
-        'base64'
-      ).toString('utf8')
-    );
+    const nowData =
+      JSON.parse(
+        Buffer.from(
+          encoded.replace(/\s/g, ''),
+          'base64'
+        ).toString('utf8')
+      );
 
     const version =
       nowData.version
         ? nowData.version.substring(0, 7)
         : 'Unknown';
 
-    const status =
+    const botStatus =
       nowData.status === 'running'
         ? '🟢 Running'
-        : '🟡 ' + (nowData.status || 'Unknown');
+        : '🟡 ' +
+          (nowData.status || 'Unknown');
 
     let uptime = 'Unknown';
 
     if (nowData.startedAt) {
       const started =
-        new Date(nowData.startedAt).getTime();
+        new Date(
+          nowData.startedAt
+        ).getTime();
 
       const seconds =
         Math.max(
@@ -11207,13 +11218,19 @@ bot.command('status', async (ctx) => {
         );
 
       const days =
-        Math.floor(seconds / 86400);
+        Math.floor(
+          seconds / 86400
+        );
 
       const hours =
-        Math.floor((seconds % 86400) / 3600);
+        Math.floor(
+          (seconds % 86400) / 3600
+        );
 
       const minutes =
-        Math.floor((seconds % 3600) / 60);
+        Math.floor(
+          (seconds % 3600) / 60
+        );
 
       const secs =
         seconds % 60;
@@ -11222,32 +11239,185 @@ bot.command('status', async (ctx) => {
         (days ? days + 'd ' : '') +
         (hours ? hours + 'h ' : '') +
         (minutes ? minutes + 'm ' : '') +
-        secs + 's';
+        (secs + 's');
     }
+
+
+    // ==========================================
+    // HEALTH CHECK
+    // ==========================================
+
+    let telegramHealth = '🔴 Offline';
+    let githubHealth = '🔴 Offline';
+    let databaseHealth = '🟢 OK';
+    let backupHealth = '🔴 Not Found';
+    let omdbHealth = '⚪ Not Checked';
+
+
+    // ==========================================
+    // TELEGRAM
+    // ==========================================
+
+    try {
+      await ctx.telegram.getMe();
+      telegramHealth = '🟢 OK';
+    } catch (error) {
+      telegramHealth = '🔴 Failed';
+    }
+
+
+    // ==========================================
+    // GITHUB
+    // ==========================================
+
+    try {
+      await axios.get(
+        `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}`,
+        { headers }
+      );
+
+      githubHealth = '🟢 OK';
+    } catch (error) {
+      githubHealth = '🔴 Failed';
+    }
+
+
+    // ==========================================
+    // DATABASES
+    // ==========================================
+
+    try {
+      for (
+        const fileName of FULL_BACKUP_LOCAL_FILES
+      ) {
+        await githubGetFile(fileName);
+      }
+
+      databaseHealth = '🟢 OK';
+
+    } catch (error) {
+      databaseHealth = '🔴 Failed';
+    }
+
+
+    // ==========================================
+    // BACKUP
+    // ==========================================
+
+    try {
+      await githubGetFile(
+        FULL_BACKUP_FILE
+      );
+
+      backupHealth = '🟢 Ready';
+
+    } catch (error) {
+      backupHealth = '🔴 Not Found';
+    }
+
+
+    // ==========================================
+    // OMDB
+    // ==========================================
+
+    if (
+      typeof OMDB_API_KEY === 'string' &&
+      OMDB_API_KEY
+    ) {
+      try {
+        const omdbResponse =
+          await axios.get(
+            'https://www.omdbapi.com/',
+            {
+              params: {
+                apikey: OMDB_API_KEY,
+                t: 'Inception'
+              }
+            }
+          );
+
+        if (
+          omdbResponse.data &&
+          omdbResponse.data.Response === 'True'
+        ) {
+          omdbHealth = '🟢 OK';
+        } else {
+          omdbHealth = '🟡 Failed';
+        }
+
+      } catch (error) {
+        omdbHealth = '🔴 Failed';
+      }
+    }
+
+
+    // ==========================================
+    // FINAL STATUS
+    // ==========================================
 
     await ctx.reply(
       '📊 Bot Status\n\n' +
-      '🤖 Status: ' + status + '\n' +
-      '🔖 Version: ' + version + '\n' +
-      '📦 Source: ' + (nowData.source || 'github') + '\n' +
-      '🌿 Branch: ' + (nowData.branch || GITHUB_BRANCH) + '\n' +
-      '⏱️ Uptime: ' + uptime + '\n' +
-      '🕐 Started: ' + (nowData.startedAt || 'Unknown') + '\n' +
-      '🔄 Updated: ' + (nowData.updatedAt || 'Unknown')
+
+      '🤖 Status: ' +
+      botStatus + '\n' +
+
+      '🔖 Version: ' +
+      version + '\n' +
+
+      '📦 Source: ' +
+      (nowData.source || 'github') + '\n' +
+
+      '🌿 Branch: ' +
+      (nowData.branch || GITHUB_BRANCH) + '\n' +
+
+      '⏱️ Uptime: ' +
+      uptime + '\n' +
+
+      '🕐 Started: ' +
+      (nowData.startedAt || 'Unknown') + '\n' +
+
+      '🔄 Updated: ' +
+      (nowData.updatedAt || 'Unknown') +
+
+      '\n\n' +
+
+      '🏥 Health Check\n\n' +
+
+      '📡 Telegram: ' +
+      telegramHealth + '\n' +
+
+      '🐙 GitHub: ' +
+      githubHealth + '\n' +
+
+      '🗄️ Database: ' +
+      databaseHealth + '\n' +
+
+      '💾 Backup: ' +
+      backupHealth + '\n' +
+
+      '🎬 OMDb: ' +
+      omdbHealth
     );
 
   } catch (error) {
-    console.error('status:', error);
+    console.error(
+      'status:',
+      error
+    );
 
     await ctx.reply(
       '❌ Failed to get bot status.\n\n' +
-      (error.message || 'Please try again.')
+      (error.message ||
+        'Please try again.')
     );
   }
 });
 
 bot.command('ping', async (ctx) => {
   try {
+    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
+      return;
+    }
     const start = Date.now();
 
     const message = await ctx.reply('🏓 Pinging...');
