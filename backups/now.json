@@ -1,9 +1,10 @@
 {
-  "version": "4f48228de3df5e662f3d71b820d52a0721491b06",
-  "previousVersion": "c9faaa1049140b6cae6b694fa4e14a849b5dfa68",
+  "version": "c9faaa1049140b6cae6b694fa4e14a849b5dfa68",
+  "previousVersion": "4f48228de3df5e662f3d71b820d52a0721491b06",
   "file": "source/bot.js",
   "branch": "main",
   "source": "github",
   "updatedAt": "2026-09-29T07:57:01.357Z",
-  "status": "pending"
+  "status": "pending",
+  "action": "automatic-rollback"
 }
