@@ -1710,6 +1710,65 @@ function getAIDynamicSource(
 
 
 
+const NF_API_KEY = process.env.GROQ_API_KEY;
+
+async function nfAI(message) {
+  const response = await axios.post(
+    'https://api.groq.com/openai/v1/chat/completions',
+    {
+      model: 'openai/gpt-oss-120b',
+      temperature: 0.2,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a simple coding assistant. Answer in Persian. If the user asks for code, provide working JavaScript code.'
+        },
+        {
+          role: 'user',
+          content: message
+        }
+      ]
+    },
+    {
+      headers: {
+        Authorization: 'Bearer ' + NF_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      timeout: 120000
+    }
+  );
+
+  return response.data?.choices?.[0]?.message?.content || 'پاسخی دریافت نشد.';
+}
+
+bot.command('nf', async (ctx) => {
+  try {
+    const text = String(ctx.message?.text || '')
+      .replace(/^\/nf\s*/i, '')
+      .trim();
+
+    if (!text) {
+      return ctx.reply(
+        'مثال:\n\n/nf یک کد جاوااسکریپت برای جمع دو عدد بساز'
+      );
+    }
+
+    await ctx.reply('🤖 در حال فکر کردن...');
+
+    const answer = await nfAI(text);
+
+    await ctx.reply(answer);
+  } catch (error) {
+    console.error('NF AI ERROR:', error);
+
+    await ctx.reply(
+      '❌ خطا:\n' +
+      String(error?.message || error)
+    );
+  }
+});
+
 
 bot.command(
   'info',
