@@ -8397,6 +8397,7 @@ bot.command('backupfile', async (ctx) => {
 
     await ctx.reply('⏳ Preparing bot.js backup...');
 
+    // Get bot.js from GitHub
     const githubUrl =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
 
@@ -8410,47 +8411,70 @@ bot.command('backupfile', async (ctx) => {
       }
     );
 
-    if (!githubResponse.data.content) {
-      return ctx.reply('❌ bot.js content was not found on GitHub.');
+    const githubContent = githubResponse.data?.content;
+
+    if (!githubContent) {
+      throw new Error('bot.js content was not found on GitHub.');
     }
 
     const fileBuffer = Buffer.from(
-      githubResponse.data.content.replace(/\s/g, ''),
+      githubContent.replace(/\s/g, ''),
       'base64'
     );
 
-    await ctx.reply('⏳ Uploading bot.js to Catbox...');
+    await ctx.reply('⏳ Uploading bot.js to file hosting...');
 
-    const form = new FormData();
+    // Build multipart/form-data manually
+    const boundary =
+      '----NxCreatorBackup' +
+      Date.now().toString(16);
 
-    form.append('reqtype', 'fileupload');
-    form.append(
-      'fileToUpload',
-      new Blob([fileBuffer], {
-        type: 'application/javascript'
-      }),
-      'bot.js'
+    const header = Buffer.from(
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="file"; filename="bot.js"\r\n` +
+      `Content-Type: application/javascript\r\n\r\n`,
+      'utf8'
     );
 
-    const catboxResponse = await axios.post(
-      'https://catbox.moe/user/api.php',
-      form
+    const footer = Buffer.from(
+      `\r\n--${boundary}--\r\n`,
+      'utf8'
     );
 
-    const fileUrl = String(catboxResponse.data || '').trim();
+    const multipartBody = Buffer.concat([
+      header,
+      fileBuffer,
+      footer
+    ]);
 
-    if (!fileUrl.startsWith('https://files.catbox.moe/')) {
+    const uploadResponse = await axios.post(
+      'https://0x0.st',
+      multipartBody,
+      {
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          'Content-Length': multipartBody.length
+        },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        timeout: 120000
+      }
+    );
+
+    const fileUrl = String(uploadResponse.data || '').trim();
+
+    if (!/^https:\/\/0x0\.st\/\S+$/i.test(fileUrl)) {
       throw new Error(
-        'Catbox returned an invalid file URL: ' + fileUrl
+        'File hosting returned an invalid URL: ' + fileUrl
       );
     }
 
     await ctx.reply(
       '✅ Backup uploaded successfully.\n\n' +
-      '🔗 Download URL:\n' +
-      fileUrl
+      '🔗 ' + fileUrl
     );
 
+    // Send the direct URL as Telegram document
     await ctx.replyWithDocument(fileUrl, {
       caption:
         '📦 bot.js Backup\n' +
