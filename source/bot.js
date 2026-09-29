@@ -2109,15 +2109,6 @@ bot.on(
 
       /*
        * NEVER intercept commands.
-       *
-       * This is what prevents:
-       * /start
-       * /ping
-       * /updatebot
-       * /runaicmdoff
-       * etc.
-       *
-       * from being swallowed by AI.
        */
 
       if (
@@ -2125,6 +2116,10 @@ bot.on(
       ) {
         return next();
       }
+
+      /*
+       * AI is owner-only.
+       */
 
       if (
         Number(ctx.from?.id) !==
@@ -2151,8 +2146,13 @@ bot.on(
       }
 
       /*
-       * First AI decides whether this is:
-       * CHAT / INSPECT / EDIT
+       * ------------------------------------------
+       * CLASSIFY REQUEST
+       *
+       * CHAT
+       * INSPECT
+       * EDIT
+       * ------------------------------------------
        */
 
       const classification =
@@ -2162,7 +2162,7 @@ bot.on(
 
       /*
        * ------------------------------------------
-       * NORMAL CONVERSATION
+       * NORMAL AI CHAT
        * ------------------------------------------
        */
 
@@ -2185,7 +2185,7 @@ bot.on(
 
       /*
        * ------------------------------------------
-       * READ REAL bot.js
+       * READ REAL bot.js FROM GITHUB
        * ------------------------------------------
        */
 
@@ -2200,7 +2200,8 @@ bot.on(
         );
 
       if (
-        !currentFile?.content
+        !currentFile ||
+        !currentFile.content
       ) {
         throw new Error(
           'bot.js content was not found on GitHub.'
@@ -2217,7 +2218,7 @@ bot.on(
 
       /*
        * ------------------------------------------
-       * INSPECT
+       * INSPECT MODE
        * ------------------------------------------
        */
 
@@ -2249,9 +2250,21 @@ bot.on(
 
       /*
        * ------------------------------------------
-       * EDIT
+       * EDIT MODE
        * ------------------------------------------
        */
+
+      if (
+        classification.mode !==
+        'EDIT'
+      ) {
+        throw new Error(
+          'AI returned an unsupported request mode: ' +
+          String(
+            classification.mode
+          )
+        );
+      }
 
       const result =
         await runAICodeAI(
@@ -2260,28 +2273,79 @@ bot.on(
           'EDIT'
         );
 
+      if (
+        !result ||
+        !result.oldCode ||
+        !result.newCode
+      ) {
+        throw new Error(
+          result?.explanation ||
+          'AI did not produce a valid code change.'
+        );
+      }
+
+      /*
+       * ------------------------------------------
+       * VERIFY OLD CODE AGAIN
+       * ------------------------------------------
+       */
+
+      const occurrences =
+        currentSource.split(
+          result.oldCode
+        ).length - 1;
+
+      if (
+        occurrences !== 1
+      ) {
+        throw new Error(
+          'AI selected code that is not uniquely identifiable in the real bot.js. Found ' +
+          occurrences +
+          ' occurrences instead of exactly 1.'
+        );
+      }
+
+      /*
+       * ------------------------------------------
+       * PREVIEW
+       * ------------------------------------------
+       */
+
       const preview =
         '🧠 <b>AI Proposed Change</b>\n\n' +
+
         '📌 <b>Request:</b>\n' +
-        aiEscapeHtml(text) +
+        aiEscapeHtml(
+          text
+        ) +
+
         '\n\n' +
+
         '💡 <b>Explanation:</b>\n' +
         aiEscapeHtml(
           result.explanation
         ) +
+
         '\n\n' +
+
         '📝 <b>Current Code:</b>\n' +
         '<pre>' +
         aiEscapeHtml(
           result.oldCode
         ) +
-        '</pre>\n\n' +
+        '</pre>' +
+
+        '\n\n' +
+
         '✨ <b>New Code:</b>\n' +
         '<pre>' +
         aiEscapeHtml(
           result.newCode
         ) +
-        '</pre>\n\n' +
+        '</pre>' +
+
+        '\n\n' +
+
         '⚠️ <b>No changes have been applied yet.</b>';
 
       const message =
@@ -2315,6 +2379,12 @@ bot.on(
           }
         );
 
+      /*
+       * ------------------------------------------
+       * SAVE PENDING CHANGE
+       * ------------------------------------------
+       */
+
       runAIPendingChanges.set(
         ctx.chat.id,
         {
@@ -2335,21 +2405,298 @@ bot.on(
         }
       );
 
+      return;
+
     } catch (error) {
 
+      /*
+       * ------------------------------------------
+       * COMPLETE AI ERROR REPORT
+       * ------------------------------------------
+       */
+
       console.error(
-        'AI message:',
+        'AI message error:',
         error
       );
 
-      await ctx.reply(
-        '❌ AI request failed.\n\n' +
-        'Error: ' +
-        (
-          error?.message ||
-          'Unknown error'
-        )
-      );
+      let fullError =
+        '';
+
+      try {
+
+        const parts =
+          [];
+
+        parts.push(
+          '❌ <b>AI request failed.</b>'
+        );
+
+        parts.push(
+          '\n━━━━━━━━━━━━━━━━━━━━'
+        );
+
+        parts.push(
+          '\n📌 <b>Error:</b>\n' +
+          aiEscapeHtml(
+            error?.message ||
+            String(error) ||
+            'Unknown error'
+          )
+        );
+
+        if (
+          error?.name
+        ) {
+          parts.push(
+            '\n\n🏷 <b>Type:</b>\n' +
+            aiEscapeHtml(
+              String(
+                error.name
+              )
+            )
+          );
+        }
+
+        if (
+          error?.code
+        ) {
+          parts.push(
+            '\n\n🔢 <b>Code:</b>\n' +
+            aiEscapeHtml(
+              String(
+                error.code
+              )
+            )
+          );
+        }
+
+        if (
+          error?.status
+        ) {
+          parts.push(
+            '\n\n📡 <b>Status:</b>\n' +
+            aiEscapeHtml(
+              String(
+                error.status
+              )
+            )
+          );
+        }
+
+        if (
+          error?.response?.status
+        ) {
+          parts.push(
+            '\n\n📡 <b>HTTP Status:</b>\n' +
+            aiEscapeHtml(
+              String(
+                error.response.status
+              )
+            )
+          );
+        }
+
+        if (
+          error?.response?.statusText
+        ) {
+          parts.push(
+            '\n\n📡 <b>Status Text:</b>\n' +
+            aiEscapeHtml(
+              String(
+                error.response.statusText
+              )
+            )
+          );
+        }
+
+        if (
+          error?.response?.data !==
+          undefined
+        ) {
+
+          let responseData =
+            '';
+
+          try {
+
+            responseData =
+              JSON.stringify(
+                error.response.data,
+                null,
+                2
+              );
+
+          } catch {
+
+            responseData =
+              String(
+                error.response.data
+              );
+          }
+
+          parts.push(
+            '\n\n📦 <b>Response Data:</b>\n' +
+            '<pre>' +
+            aiEscapeHtml(
+              responseData
+            ) +
+            '</pre>'
+          );
+        }
+
+        if (
+          error?.cause
+        ) {
+
+          let causeText =
+            '';
+
+          try {
+
+            causeText =
+              error.cause?.message ||
+              JSON.stringify(
+                error.cause,
+                null,
+                2
+              );
+
+          } catch {
+
+            causeText =
+              String(
+                error.cause
+              );
+          }
+
+          parts.push(
+            '\n\n🔗 <b>Cause:</b>\n' +
+            '<pre>' +
+            aiEscapeHtml(
+              causeText
+            ) +
+            '</pre>'
+          );
+        }
+
+        if (
+          error?.stack
+        ) {
+          parts.push(
+            '\n\n🧩 <b>Stack:</b>\n' +
+            '<pre>' +
+            aiEscapeHtml(
+              String(
+                error.stack
+              )
+            ) +
+            '</pre>'
+          );
+        }
+
+        parts.push(
+          '\n\n━━━━━━━━━━━━━━━━━━━━'
+        );
+
+        fullError =
+          parts.join('');
+
+      } catch (
+        formatError
+      ) {
+
+        fullError =
+          '❌ <b>AI request failed.</b>\n\n' +
+          '📌 <b>Error:</b>\n' +
+          aiEscapeHtml(
+            String(error)
+          ) +
+          '\n\n' +
+          '⚠️ <b>Error formatter failed:</b>\n' +
+          aiEscapeHtml(
+            String(
+              formatError
+            )
+          );
+      }
+
+      /*
+       * Telegram message length protection.
+       *
+       * If stack is extremely large, keep the beginning
+       * and end instead of failing again while sending
+       * the error message.
+       */
+
+      const MAX_ERROR_LENGTH =
+        3800;
+
+      if (
+        fullError.length >
+        MAX_ERROR_LENGTH
+      ) {
+
+        const beginning =
+          fullError.slice(
+            0,
+            2600
+          );
+
+        const ending =
+          fullError.slice(
+            -1000
+          );
+
+        fullError =
+          beginning +
+          '\n\n⚠️ <b>Error output truncated for Telegram.</b>\n\n' +
+          ending;
+      }
+
+      try {
+
+        await ctx.reply(
+          fullError,
+          {
+            parse_mode:
+              'HTML'
+          }
+        );
+
+      } catch (
+        telegramError
+      ) {
+
+        /*
+         * If HTML itself causes an error,
+         * send a plain-text fallback.
+         */
+
+        console.error(
+          'AI error report send failed:',
+          telegramError
+        );
+
+        try {
+
+          await ctx.reply(
+            '❌ AI request failed.\n\n' +
+            'Full Error:\n\n' +
+            String(
+              error?.stack ||
+              error?.message ||
+              error
+            ).slice(
+              0,
+              3800
+            )
+          );
+
+        } catch {}
+      }
+
+      return;
     }
   }
 );
