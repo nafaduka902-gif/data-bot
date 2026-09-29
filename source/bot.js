@@ -1712,7 +1712,12 @@ function getAIDynamicSource(
 
 const NF_API_KEY = process.env.GROQ_API_KEY;
 let nfEnabled = false;
+
 const nfCodeStore = new Map();
+const nfPendingActions = new Map();
+
+const NF_MODEL = 'openai/gpt-oss-120b';
+const NF_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 function nfEscapeHtml(text) {
   return String(text || '')
@@ -1728,7 +1733,12 @@ function nfFormatText(text) {
   source = source.replace(
     /```(?:[a-zA-Z0-9_+-]+)?\n?([\s\S]*?)```/g,
     (match, code) => {
-      const id = String(Date.now()) + '_' + String(codeBlocks.length);
+      const id =
+        String(Date.now()) +
+        '_' +
+        String(codeBlocks.length) +
+        '_' +
+        String(Math.floor(Math.random() * 100000));
 
       codeBlocks.push({
         id,
@@ -1741,9 +1751,20 @@ function nfFormatText(text) {
 
   source = nfEscapeHtml(source);
 
-  source = source.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>');
-  source = source.replace(/__([^_\n]+)__/g, '<b>$1</b>');
-  source = source.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  source = source.replace(
+    /\*\*([^*\n]+)\*\*/g,
+    '<b>$1</b>'
+  );
+
+  source = source.replace(
+    /__([^_\n]+)__/g,
+    '<b>$1</b>'
+  );
+
+  source = source.replace(
+    /`([^`\n]+)`/g,
+    '<code>$1</code>'
+  );
 
   for (const item of codeBlocks) {
     source = source.replace(
@@ -1758,27 +1779,34 @@ function nfFormatText(text) {
   };
 }
 
-async function nfAI(message) {
+function nfSafeJsonParse(text) {
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    const raw = String(text || '')
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim();
+
+    try {
+      return JSON.parse(raw);
+    } catch (error2) {
+      return null;
+    }
+  }
+}
+
+async function nfAgent(messages) {
   if (!NF_API_KEY) {
     throw new Error('GROQ_API_KEY is not configured.');
   }
 
   const response = await axios.post(
-    'https://api.groq.com/openai/v1/chat/completions',
+    NF_API_URL,
     {
-      model: 'openai/gpt-oss-120b',
-      temperature: 0.2,
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are a helpful AI assistant. Respond in the same language as the user. Keep responses clean, organized, natural, and useful. Use bold only when actually useful. Put all code inside fenced code blocks. Do not add unnecessary explanations about formatting.'
-        },
-        {
-          role: 'user',
-          content: message
-        }
-      ]
+      model: NF_MODEL,
+      temperature: 0.1,
+      messages
     },
     {
       headers: {
@@ -1791,59 +1819,452 @@ async function nfAI(message) {
 
   return (
     response.data?.choices?.[0]?.message?.content ||
-    'No response received.'
+    ''
   );
 }
 
-bot.command('nfon', async (ctx) => {
-  if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply('❌ This command is only available to the bot owner.');
-  }
+async function nfGetChatInfo(ctx, chatId) {
+  return await ctx.telegram.getChat(chatId);
+}
 
-  nfEnabled = true;
+async function nfGetMemberCount(ctx, chatId) {
+  return await ctx.telegram.getChatMemberCount(chatId);
+}
 
-  return ctx.reply(
-    '🟢 /nf has been enabled.\n\nEvery normal message will now be sent to AI until /nfoff.'
+async function nfGetBotInfo(ctx) {
+  return await ctx.telegram.getMe();
+}
+
+async function nfGetMember(ctx, chatId, userId) {
+  return await ctx.telegram.getChatMember(
+    chatId,
+    userId
   );
-});
+}
 
-bot.command('nfoff', async (ctx) => {
-  if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply('❌ This command is only available to the bot owner.');
-  }
-
-  nfEnabled = false;
-
-  return ctx.reply('🔴 /nf has been disabled.');
-});
-
-bot.command('nfstatus', async (ctx) => {
-  if (ctx.from?.id !== ADMIN_ID) {
-    return ctx.reply('❌ This command is only available to the bot owner.');
-  }
-
-  return ctx.reply(
-    nfEnabled
-      ? '🟢 /nf status: ON'
-      : '🔴 /nf status: OFF'
+async function nfSendMessage(ctx, chatId, text) {
+  return await ctx.telegram.sendMessage(
+    chatId,
+    text
   );
-});
+}
+
+async function nfDeleteMessage(ctx, chatId, messageId) {
+  return await ctx.telegram.deleteMessage(
+    chatId,
+    messageId
+  );
+}
+
+async function nfEditMessage(ctx, chatId, messageId, text) {
+  return await ctx.telegram.editMessageText(
+    chatId,
+    messageId,
+    undefined,
+    text
+  );
+}
+
+async function nfExecuteTool(ctx, action) {
+  const name = String(action?.tool || '');
+  const args = action?.args || {};
+
+  if (name === 'get_chat') {
+    const chatId = args.chat_id || args.username;
+
+    if (!chatId) {
+      return {
+        ok: false,
+        error: 'chat_id or username is required'
+      };
+    }
+
+    const chat = await nfGetChatInfo(ctx, chatId);
+
+    return {
+      ok: true,
+      tool: name,
+      data: {
+        id: chat.id,
+        type: chat.type,
+        title: chat.title || null,
+        username: chat.username || null,
+        description: chat.description || null,
+        members_count: chat.members_count || null
+      }
+    };
+  }
+
+  if (name === 'get_member_count') {
+    const chatId = args.chat_id || args.username;
+
+    if (!chatId) {
+      return {
+        ok: false,
+        error: 'chat_id or username is required'
+      };
+    }
+
+    const count = await nfGetMemberCount(
+      ctx,
+      chatId
+    );
+
+    return {
+      ok: true,
+      tool: name,
+      data: {
+        chat_id: chatId,
+        member_count: count
+      }
+    };
+  }
+
+  if (name === 'get_bot_info') {
+    const bot = await nfGetBotInfo(ctx);
+
+    return {
+      ok: true,
+      tool: name,
+      data: {
+        id: bot.id,
+        is_bot: bot.is_bot,
+        first_name: bot.first_name,
+        username: bot.username
+      }
+    };
+  }
+
+  if (name === 'get_member') {
+    const chatId = args.chat_id || args.username;
+    const userId = args.user_id;
+
+    if (!chatId || !userId) {
+      return {
+        ok: false,
+        error: 'chat_id and user_id are required'
+      };
+    }
+
+    const member = await nfGetMember(
+      ctx,
+      chatId,
+      userId
+    );
+
+    return {
+      ok: true,
+      tool: name,
+      data: member
+    };
+  }
+
+  if (name === 'send_message') {
+    const chatId = args.chat_id;
+    const text = args.text;
+
+    if (!chatId || !text) {
+      return {
+        ok: false,
+        error: 'chat_id and text are required'
+      };
+    }
+
+    const sent = await nfSendMessage(
+      ctx,
+      chatId,
+      text
+    );
+
+    return {
+      ok: true,
+      tool: name,
+      data: {
+        message_id: sent.message_id,
+        chat_id: sent.chat?.id
+      }
+    };
+  }
+
+  if (name === 'delete_message') {
+    const chatId =
+      args.chat_id ||
+      ctx.chat?.id;
+
+    const messageId =
+      args.message_id ||
+      ctx.message?.message_id;
+
+    if (!chatId || !messageId) {
+      return {
+        ok: false,
+        error: 'chat_id and message_id are required'
+      };
+    }
+
+    await nfDeleteMessage(
+      ctx,
+      chatId,
+      messageId
+    );
+
+    return {
+      ok: true,
+      tool: name,
+      data: {
+        deleted: true,
+        chat_id: chatId,
+        message_id: messageId
+      }
+    };
+  }
+
+  if (name === 'edit_message') {
+    const chatId =
+      args.chat_id ||
+      ctx.chat?.id;
+
+    const messageId =
+      args.message_id ||
+      ctx.message?.message_id;
+
+    const text = args.text;
+
+    if (!chatId || !messageId || !text) {
+      return {
+        ok: false,
+        error: 'chat_id, message_id and text are required'
+      };
+    }
+
+    await nfEditMessage(
+      ctx,
+      chatId,
+      messageId,
+      text
+    );
+
+    return {
+      ok: true,
+      tool: name,
+      data: {
+        edited: true,
+        chat_id: chatId,
+        message_id: messageId
+      }
+    };
+  }
+
+  return {
+    ok: false,
+    error: 'Unknown tool: ' + name
+  };
+}
+
+function nfBuildSystemPrompt(ctx) {
+  return `
+You are the main AI agent of a Telegram bot.
+
+You are NOT a fictional assistant and must NEVER invent information about this bot.
+
+You have access to real Telegram tools.
+
+Your job is to understand the user's natural-language request and either:
+1. answer normally, or
+2. request a real tool execution.
+
+Available tools:
+
+get_chat
+- Get real Telegram chat/channel/group information.
+
+get_member_count
+- Get the real member/subscriber count of a Telegram chat/channel.
+
+get_bot_info
+- Get real information about this bot.
+
+get_member
+- Get real membership information for a Telegram user in a chat.
+
+send_message
+- Send a Telegram message to a specified chat.
+
+delete_message
+- Delete a Telegram message when the bot has permission.
+
+edit_message
+- Edit a Telegram message when the bot has permission.
+
+Never claim that a tool was executed unless the tool result confirms it.
+
+Never invent:
+- member counts
+- channel statistics
+- commands
+- bot features
+- Telegram information
+- permissions
+- API results
+- successful actions
+
+If the user asks for information that requires a tool, use the tool.
+
+If the required capability does not exist in the available tools, clearly say that the capability is not connected.
+
+The bot's real commands are handled by the bot itself. Do not invent commands.
+
+When the user asks:
+"How many members does @Anime_Faarsi have?"
+use get_member_count.
+
+When the user asks:
+"Show information about @Anime_Faarsi"
+use get_chat.
+
+When the user asks:
+"Who is this user in the group?"
+use get_member if the required user ID is available.
+
+When the user asks:
+"What is your bot information?"
+use get_bot_info.
+
+When the user asks to send a message somewhere,
+use send_message only when the target chat and message are clear.
+
+When the user asks to delete or edit a message,
+use the corresponding real Telegram tool only when the target is clear.
+
+Respond in the same language as the user.
+
+Keep responses clean and organized.
+
+Use bold only when useful.
+
+Put programming code inside fenced code blocks.
+
+Return ONLY valid JSON in this exact structure:
+
+{
+  "type": "answer",
+  "text": "answer here"
+}
+
+OR:
+
+{
+  "type": "tool",
+  "tool": "tool_name",
+  "args": {}
+}
+
+Never return Markdown outside the JSON.
+`;
+}
+
+async function nfDecide(ctx, userText, previousResults) {
+  const messages = [
+    {
+      role: 'system',
+      content: nfBuildSystemPrompt(ctx)
+    },
+    {
+      role: 'user',
+      content: userText
+    }
+  ];
+
+  if (previousResults) {
+    messages.push({
+      role: 'user',
+      content:
+        'Tool execution result:\n' +
+        JSON.stringify(previousResults)
+    });
+  }
+
+  const raw = await nfAgent(messages);
+
+  const parsed = nfSafeJsonParse(raw);
+
+  if (!parsed) {
+    return {
+      type: 'answer',
+      text: raw || 'No response received.'
+    };
+  }
+
+  return parsed;
+}
+
+async function nfRunAgent(ctx, userText) {
+  let result = null;
+
+  for (let round = 0; round < 3; round++) {
+    const decision = await nfDecide(
+      ctx,
+      userText,
+      result
+    );
+
+    if (
+      decision.type === 'answer' ||
+      !decision.type
+    ) {
+      return String(
+        decision.text ||
+        'No response received.'
+      );
+    }
+
+    if (decision.type !== 'tool') {
+      return String(
+        decision.text ||
+        'I could not determine the requested action.'
+      );
+    }
+
+    result = await nfExecuteTool(
+      ctx,
+      decision
+    );
+
+    if (!result.ok) {
+      return (
+        '❌ I could not complete that action.\n\n' +
+        String(result.error || 'Unknown error.')
+      );
+    }
+  }
+
+  return '❌ The request required too many tool steps.';
+}
 
 async function nfProcessMessage(ctx, userText) {
   let thinkingMessage = null;
 
   try {
-    thinkingMessage = await ctx.reply('🤖 Thinking...');
+    thinkingMessage = await ctx.reply(
+      '🤖 Thinking...'
+    );
 
-    const answer = await nfAI(userText);
-    const formatted = nfFormatText(answer);
+    const answer = await nfRunAgent(
+      ctx,
+      userText
+    );
+
+    const formatted = nfFormatText(
+      answer
+    );
 
     if (!formatted.codeBlocks.length) {
       await ctx.telegram.editMessageText(
         ctx.chat.id,
         thinkingMessage.message_id,
         undefined,
-        formatted.html || 'No response received.',
+        formatted.html ||
+          'No response received.',
         {
           parse_mode: 'HTML'
         }
@@ -1854,10 +2275,18 @@ async function nfProcessMessage(ctx, userText) {
 
     const buttons = [];
 
-    for (let i = 0; i < formatted.codeBlocks.length; i++) {
-      const item = formatted.codeBlocks[i];
+    for (
+      let i = 0;
+      i < formatted.codeBlocks.length;
+      i++
+    ) {
+      const item =
+        formatted.codeBlocks[i];
 
-      nfCodeStore.set(item.id, item.code);
+      nfCodeStore.set(
+        item.id,
+        item.code
+      );
 
       buttons.push([
         {
@@ -1865,7 +2294,8 @@ async function nfProcessMessage(ctx, userText) {
             formatted.codeBlocks.length > 1
               ? `📋 Copy Code ${i + 1}`
               : '📋 Copy Code',
-          callback_data: `nfcopy:${item.id}`
+          callback_data:
+            `nfcopy:${item.id}`
         }
       ]);
     }
@@ -1874,7 +2304,8 @@ async function nfProcessMessage(ctx, userText) {
       ctx.chat.id,
       thinkingMessage.message_id,
       undefined,
-      formatted.html || 'No response received.',
+      formatted.html ||
+        'No response received.',
       {
         parse_mode: 'HTML',
         reply_markup: {
@@ -1883,11 +2314,19 @@ async function nfProcessMessage(ctx, userText) {
       }
     );
   } catch (error) {
-    console.error('NF AI ERROR:', error);
+    console.error(
+      'NF AGENT ERROR:',
+      error
+    );
 
     const errorText =
       '❌ Error:\n' +
-      nfEscapeHtml(String(error?.message || error));
+      nfEscapeHtml(
+        String(
+          error?.message ||
+          error
+        )
+      );
 
     if (thinkingMessage) {
       try {
@@ -1903,16 +2342,64 @@ async function nfProcessMessage(ctx, userText) {
 
         return;
       } catch (editError) {
-        console.error('NF EDIT ERROR:', editError);
+        console.error(
+          'NF EDIT ERROR:',
+          editError
+        );
       }
     }
 
     await ctx.reply(
       '❌ Error:\n' +
-      String(error?.message || error)
+      String(
+        error?.message ||
+        error
+      )
     );
   }
 }
+
+bot.command('nfon', async (ctx) => {
+  if (ctx.from?.id !== ADMIN_ID) {
+    return ctx.reply(
+      '❌ This command is only available to the bot owner.'
+    );
+  }
+
+  nfEnabled = true;
+
+  return ctx.reply(
+    '🟢 AI Agent enabled.\n\nNormal messages will now be handled by the AI until /nfoff.'
+  );
+});
+
+bot.command('nfoff', async (ctx) => {
+  if (ctx.from?.id !== ADMIN_ID) {
+    return ctx.reply(
+      '❌ This command is only available to the bot owner.'
+    );
+  }
+
+  nfEnabled = false;
+
+  return ctx.reply(
+    '🔴 AI Agent disabled.'
+  );
+});
+
+bot.command('nfstatus', async (ctx) => {
+  if (ctx.from?.id !== ADMIN_ID) {
+    return ctx.reply(
+      '❌ This command is only available to the bot owner.'
+    );
+  }
+
+  return ctx.reply(
+    nfEnabled
+      ? '🟢 AI Agent: ON'
+      : '🔴 AI Agent: OFF'
+  );
+});
 
 bot.use(async (ctx, next) => {
   try {
@@ -1924,9 +2411,18 @@ bot.use(async (ctx, next) => {
       ctx.callbackQuery?.data || ''
     );
 
-    if (callbackData.startsWith('nfcopy:')) {
-      const id = callbackData.slice('nfcopy:'.length);
-      const code = nfCodeStore.get(id);
+    if (
+      callbackData.startsWith(
+        'nfcopy:'
+      )
+    ) {
+      const id =
+        callbackData.slice(
+          'nfcopy:'.length
+        );
+
+      const code =
+        nfCodeStore.get(id);
 
       if (!code) {
         return ctx.answerCbQuery(
@@ -1937,10 +2433,14 @@ bot.use(async (ctx, next) => {
         );
       }
 
-      await ctx.answerCbQuery('📋 Code is ready to copy.');
+      await ctx.answerCbQuery(
+        '📋 Code is ready to copy.'
+      );
 
       return ctx.reply(
-        `<pre><code>${nfEscapeHtml(code)}</code></pre>`,
+        `<pre><code>${nfEscapeHtml(
+          code
+        )}</code></pre>`,
         {
           parse_mode: 'HTML'
         }
@@ -1951,9 +2451,35 @@ bot.use(async (ctx, next) => {
       return next();
     }
 
-    const text = String(ctx.message?.text || '').trim();
+    const text = String(
+      ctx.message?.text || ''
+    ).trim();
 
     if (!text) {
+      return next();
+    }
+
+    if (
+      /^\/nfon(?:@\w+)?(?:\s|$)/i.test(
+        text
+      )
+    ) {
+      return next();
+    }
+
+    if (
+      /^\/nfoff(?:@\w+)?(?:\s|$)/i.test(
+        text
+      )
+    ) {
+      return next();
+    }
+
+    if (
+      /^\/nfstatus(?:@\w+)?(?:\s|$)/i.test(
+        text
+      )
+    ) {
       return next();
     }
 
@@ -1961,9 +2487,16 @@ bot.use(async (ctx, next) => {
       return next();
     }
 
-    return nfProcessMessage(ctx, text);
+    return nfProcessMessage(
+      ctx,
+      text
+    );
   } catch (error) {
-    console.error('NF MIDDLEWARE ERROR:', error);
+    console.error(
+      'NF MIDDLEWARE ERROR:',
+      error
+    );
+
     return next();
   }
 });
