@@ -1711,21 +1711,20 @@ function getAIDynamicSource(
 
 
 const NF_API_KEY = process.env.GROQ_API_KEY;
+
 let nfEnabled = false;
 
 const nfCodeStore = new Map();
 const nfConversationState = new Map();
-const nfRequestLocks = new Map();
-const nfRateState = new Map();
+const nfLocks = new Map();
+const nfLastRequests = new Map();
 
 const NF_MODEL = 'openai/gpt-oss-120b';
-const NF_API_URL =
-  'https://api.groq.com/openai/v1/chat/completions';
+const NF_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-const NF_MAX_HISTORY = 8;
-const NF_MAX_TOOL_ROUNDS = 3;
-const NF_MAX_CONTEXT = 12000;
-const NF_REQUEST_TIMEOUT = 90000;
+const NF_MAX_HISTORY = 6;
+const NF_MAX_TOOL_ROUNDS = 2;
+const NF_TIMEOUT = 45000;
 
 function nfEscapeHtml(text) {
   return String(text || '')
@@ -1735,107 +1734,127 @@ function nfEscapeHtml(text) {
     .replace(/"/g, '&quot;');
 }
 
-function nfFormatText(text) {
+function nfState(ctx) {
+  const key =
+    `${ctx.from?.id || 0}:${ctx.chat?.id || 0}`;
+
+  if (!nfConversationState.has(key)) {
+    nfConversationState.set(key, {
+      history: [],
+      lastUserMessageId: null,
+      lastBotMessageId: null,
+      lastReplyMessageId: null,
+      lastOperation: null,
+      lastTool: null,
+      lastTarget: null
+    });
+  }
+
+  return nfConversationState.get(key);
+}
+
+function nfRemember(
+  ctx,
+  userText,
+  answer,
+  tool,
+  operation
+) {
+  const state = nfState(ctx);
+
+  state.lastUserMessageId =
+    ctx.message?.message_id ||
+    state.lastUserMessageId;
+
+  state.lastReplyMessageId =
+    ctx.message?.reply_to_message?.message_id ||
+    state.lastReplyMessageId;
+
+  state.lastOperation =
+    operation ||
+    state.lastOperation;
+
+  state.lastTool =
+    tool ||
+    state.lastTool;
+
+  state.history.push({
+    user:
+      String(userText || '').slice(0, 1500),
+    assistant:
+      String(answer || '').slice(0, 2500)
+  });
+
+  if (
+    state.history.length >
+    NF_MAX_HISTORY
+  ) {
+    state.history =
+      state.history.slice(-NF_MAX_HISTORY);
+  }
+}
+
+function nfFormat(text) {
   let source =
-    String(text || '')
-      .replace(/\r\n/g, '\n');
+    String(text || '').trim();
 
-  const codeBlocks = [];
+  const codes = [];
 
-  source = source.replace(
-    /```(?:[a-zA-Z0-9_+-]+)?\n?([\s\S]*?)```/g,
-    (match, code) => {
-      const id =
-        `${Date.now()}_${codeBlocks.length}_${Math.floor(Math.random() * 100000)}`;
+  source =
+    source.replace(
+      /```(?:[\w+-]+)?\s*([\s\S]*?)```/g,
+      (match, code) => {
+        const id =
+          `${Date.now()}_${codes.length}_${Math.floor(Math.random() * 100000)}`;
 
-      codeBlocks.push({
-        id,
-        code: String(code || '').trim()
-      });
+        codes.push({
+          id,
+          code:
+            String(code || '').trim()
+        });
 
-      return `\n___NF_CODE_${id}___\n`;
-    }
-  );
-
-  source = nfEscapeHtml(source);
-
-  source = source.replace(
-    /\*\*([^*\n]+)\*\*/g,
-    '<b>$1</b>'
-  );
-
-  source = source.replace(
-    /__([^_\n]+)__/g,
-    '<b>$1</b>'
-  );
-
-  source = source.replace(
-    /`([^`\n]+)`/g,
-    '<code>$1</code>'
-  );
-
-  for (const item of codeBlocks) {
-    source = source.replace(
-      `___NF_CODE_${item.id}___`,
-      `<pre><code>${nfEscapeHtml(item.code)}</code></pre>`
+        return `\n___NF_CODE_${id}___\n`;
+      }
     );
+
+  source =
+    nfEscapeHtml(source);
+
+  source =
+    source.replace(
+      /\*\*([^*\n]+)\*\*/g,
+      '<b>$1</b>'
+    );
+
+  source =
+    source.replace(
+      /__([^_\n]+)__/g,
+      '<b>$1</b>'
+    );
+
+  source =
+    source.replace(
+      /`([^`\n]+)`/g,
+      '<code>$1</code>'
+    );
+
+  for (const item of codes) {
+    source =
+      source.replace(
+        `___NF_CODE_${item.id}___`,
+        `<pre><code>${nfEscapeHtml(item.code)}</code></pre>`
+      );
   }
 
   return {
     html:
-      source.trim() ||
+      source ||
       'No response received.',
-    codeBlocks
+    codes
   };
 }
 
-function nfSafeJsonParse(text) {
-  const value =
-    String(text || '').trim();
-
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(value);
-  } catch {}
-
-  const cleaned =
-    value
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim();
-
-  try {
-    return JSON.parse(cleaned);
-  } catch {}
-
-  const first =
-    cleaned.indexOf('{');
-
-  const last =
-    cleaned.lastIndexOf('}');
-
-  if (
-    first >= 0 &&
-    last > first
-  ) {
-    try {
-      return JSON.parse(
-        cleaned.slice(
-          first,
-          last + 1
-        )
-      );
-    } catch {}
-  }
-
-  return null;
-}
-
-function nfGetTelegramToken() {
+function nfGetToken() {
   return (
     process.env.BOT_TOKEN ||
     process.env.TELEGRAM_BOT_TOKEN ||
@@ -1850,11 +1869,11 @@ async function nfTelegram(
   params
 ) {
   const token =
-    nfGetTelegramToken();
+    nfGetToken();
 
   if (!token) {
     throw new Error(
-      'Telegram token is not available.'
+      'Telegram token unavailable'
     );
   }
 
@@ -1863,34 +1882,21 @@ async function nfTelegram(
       `https://api.telegram.org/bot${token}/${method}`,
       params || {},
       {
-        timeout: 30000
+        timeout: 20000
       }
     );
 
-  if (
-    !response.data?.ok
-  ) {
+  if (!response.data?.ok) {
     throw new Error(
       response.data?.description ||
-      `Telegram API ${method} failed.`
+      `Telegram API ${method} failed`
     );
   }
 
   return response.data.result;
 }
 
-async function nfGetChatInfo(
-  chatId
-) {
-  return await nfTelegram(
-    'getChat',
-    {
-      chat_id: chatId
-    }
-  );
-}
-
-async function nfGetMemberCount(
+async function nfMemberCount(
   chatId
 ) {
   return await nfTelegram(
@@ -1901,40 +1907,18 @@ async function nfGetMemberCount(
   );
 }
 
-async function nfGetMember(
-  chatId,
-  userId
+async function nfGetChat(
+  chatId
 ) {
   return await nfTelegram(
-    'getChatMember',
+    'getChat',
     {
-      chat_id: chatId,
-      user_id: userId
+      chat_id: chatId
     }
   );
 }
 
-async function nfGetBotInfo() {
-  return await nfTelegram(
-    'getMe',
-    {}
-  );
-}
-
-async function nfSendMessage(
-  chatId,
-  text
-) {
-  return await nfTelegram(
-    'sendMessage',
-    {
-      chat_id: chatId,
-      text: text
-    }
-  );
-}
-
-async function nfDeleteMessage(
+async function nfDelete(
   chatId,
   messageId
 ) {
@@ -1947,7 +1931,7 @@ async function nfDeleteMessage(
   );
 }
 
-async function nfEditMessage(
+async function nfEdit(
   chatId,
   messageId,
   text
@@ -1957,12 +1941,12 @@ async function nfEditMessage(
     {
       chat_id: chatId,
       message_id: messageId,
-      text: text
+      text
     }
   );
 }
 
-async function nfGetCurrentSource() {
+async function nfGetSource() {
   const owner =
     typeof GITHUB_OWNER !== 'undefined'
       ? GITHUB_OWNER
@@ -1973,15 +1957,15 @@ async function nfGetCurrentSource() {
       ? GITHUB_REPO
       : 'data-bot';
 
-  const file =
-    typeof GITHUB_FILE_PATH !== 'undefined'
-      ? GITHUB_FILE_PATH
-      : 'source/bot.js';
-
   const branch =
     typeof GITHUB_BRANCH !== 'undefined'
       ? GITHUB_BRANCH
       : 'main';
+
+  const file =
+    typeof GITHUB_FILE_PATH !== 'undefined'
+      ? GITHUB_FILE_PATH
+      : 'source/bot.js';
 
   const response =
     await axios.get(
@@ -1999,109 +1983,70 @@ async function nfGetCurrentSource() {
 function nfExtractCommands(
   source
 ) {
-  const commands = [];
+  const found = [];
   const seen = {};
 
-  const lines =
-    String(source || '')
-      .split('\n');
+  const add = name => {
+    const command =
+      '/' +
+      String(name || '')
+        .replace(/^\/+/, '')
+        .trim();
 
-  for (
-    const line of lines
-  ) {
-    const match =
-      line.match(
-        /^\s*bot\.command\s*['"`]([a-zA-Z0-9_]+)['"`]/
-      );
-
-    if (match) {
-      const command =
-        '/' + match[1];
-
-      if (
-        !seen[
-          command.toLowerCase()
-        ]
-      ) {
-        seen[
-          command.toLowerCase()
-        ] = true;
-
-        commands.push(
-          command
-        );
-      }
-
-      continue;
+    if (
+      !command ||
+      !/^\/[A-Za-z0-9_]+$/.test(command)
+    ) {
+      return;
     }
 
-    const arrayMatch =
-      line.match(
-        /^\s*bot\.command\(\s*\[/
-      );
+    const key =
+      command.toLowerCase();
 
-    if (arrayMatch) {
-      continue;
+    if (!seen[key]) {
+      seen[key] = true;
+      found.push(command);
     }
-  }
+  };
 
-  const arrayPattern =
-    /bot\.command\(\s*\[([\s\S]*?)\s*,/g;
+  const single =
+    /bot\.command\(\s*['"`]([A-Za-z0-9_]+)['"`]/g;
 
-  let arrayMatch;
+  let match;
 
   while (
-    (arrayMatch =
-      arrayPattern.exec(
-        source
-      )) !== null
+    (match = single.exec(source))
+  ) {
+    add(match[1]);
+  }
+
+  const arrays =
+    /bot\.command\(\s*\[([\s\S]*?)\]\s*(?:,|\))/g;
+
+  while (
+    (match = arrays.exec(source))
   ) {
     const names =
-      String(
-        arrayMatch[1] || ''
-      ).match(
-        /['"`]([a-zA-Z0-9_]+)['"`]/g
+      match[1].match(
+        /['"`]([A-Za-z0-9_]+)['"`]/g
       ) || [];
 
-    for (
-      const item of names
-    ) {
-      const raw =
+    for (const item of names) {
+      add(
         item
           .replace(/^['"`]/, '')
           .replace(/['"`]$/, '')
-          .trim();
-
-      if (!raw) {
-        continue;
-      }
-
-      const command =
-        '/' + raw;
-
-      if (
-        !seen[
-          command.toLowerCase()
-        ]
-      ) {
-        seen[
-          command.toLowerCase()
-        ] = true;
-
-        commands.push(
-          command
-        );
-      }
+      );
     }
   }
 
-  return commands.sort(
+  return found.sort(
     (a, b) =>
       a.localeCompare(b)
   );
 }
 
-function nfFindCommandSource(
+function nfFindCommand(
   source,
   command
 ) {
@@ -2133,365 +2078,328 @@ function nfFindCommandSource(
     return null;
   }
 
-  const start =
+  return source.slice(
     Math.max(
       0,
-      match.index - 250
-    );
-
-  return source.slice(
-    start,
+      match.index - 200
+    ),
     Math.min(
       source.length,
-      match.index + 5000
+      match.index + 6000
     )
   );
 }
 
-function nfGetConversation(
-  userId,
-  chatId
-) {
-  const key =
-    `${userId}:${chatId}`;
-
-  if (
-    !nfConversationState.has(key)
-  ) {
-    nfConversationState.set(
-      key,
-      {
-        history: [],
-        lastBotMessageId: null,
-        lastUserMessageId: null,
-        lastChatId: chatId,
-        lastOperation: null,
-        lastTool: null,
-        lastToolResult: null
-      }
-    );
-  }
-
-  return nfConversationState.get(
-    key
+function nfOwner(ctx) {
+  return (
+    Number(ctx.from?.id) ===
+    Number(ADMIN_ID)
   );
 }
 
-function nfSaveConversation(
+function nfUpdateOwner(ctx) {
+  return (
+    Number(ctx.from?.id) ===
+    Number(
+      typeof UPDATE_ADMIN_ID !== 'undefined'
+        ? UPDATE_ADMIN_ID
+        : ADMIN_ID
+    )
+  );
+}
+
+function nfNormalize(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[يى]/g, 'ی')
+    .replace(/[ك]/g, 'ک')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function nfIsGreeting(text) {
+  const value =
+    nfNormalize(text);
+
+  return [
+    'سلام',
+    'هلو',
+    'hello',
+    'hi',
+    'hey',
+    'خوبی',
+    'چطوری',
+    'چه خبر',
+    'عشقی',
+    'مرسی',
+    'تشکر',
+    'ممنون'
+  ].includes(value);
+}
+
+function nfIsCommandCount(text) {
+  const value =
+    nfNormalize(text);
+
+  return (
+    (
+      value.includes('چند دستور') ||
+      value.includes('تعداد دستور') ||
+      value.includes('دستورات') ||
+      value.includes('دستورهای')
+    ) &&
+    (
+      value.includes('ربات') ||
+      value.includes('بات')
+    )
+  );
+}
+
+function nfIsCommandList(text) {
+  const value =
+    nfNormalize(text);
+
+  return (
+    (
+      value.includes('لیست') ||
+      value.includes('فهرست') ||
+      value.includes('همه')
+    ) &&
+    (
+      value.includes('دستور') ||
+      value.includes('کامند')
+    )
+  );
+}
+
+function nfIsDeleteRequest(text) {
+  const value =
+    nfNormalize(text);
+
+  return (
+    value.includes('پاک کن') ||
+    value.includes('حذف کن') ||
+    value.includes('حذفش کن') ||
+    value.includes('پاکش کن') ||
+    value === 'delete'
+  );
+}
+
+function nfIsPreviousDelete(text) {
+  const value =
+    nfNormalize(text);
+
+  return (
+    value === 'قبلی' ||
+    value.includes('پیام قبلی') ||
+    value.includes('همون قبلی')
+  );
+}
+
+function nfLooksLikeUpdate(text) {
+  const value =
+    nfNormalize(text);
+
+  const updateWords = [
+    'اپدیت',
+    'آپدیت',
+    'به روز',
+    'به‌روز',
+    'نسخه جدید',
+    'فایل جدید',
+    'کد جدید',
+    'جایگزین',
+    'نسخه جدید ربات',
+    'فایل جدید ربات',
+    'کد جدید ربات'
+  ];
+
+  return updateWords.some(
+    word =>
+      value.includes(word)
+  );
+}
+
+async function nfDirectRouter(
   ctx,
-  userText,
-  answer,
-  operation,
-  tool,
-  result,
-  botMessageId
+  text
 ) {
-  const userId =
-    ctx.from?.id;
+  const value =
+    nfNormalize(text);
 
-  const chatId =
-    ctx.chat?.id;
+  if (nfIsGreeting(text)) {
+    if (
+      value === 'خوبی' ||
+      value === 'چطوری'
+    ) {
+      return {
+        handled: true,
+        text:
+          'خوبم، ممنون! شما چطورید؟'
+      };
+    }
 
-  const state =
-    nfGetConversation(
-      userId,
-      chatId
-    );
+    if (
+      value === 'عشقی'
+    ) {
+      return {
+        handled: true,
+        text:
+          'قربانت ❤️'
+      };
+    }
 
-  state.lastUserMessageId =
-    ctx.message?.message_id ||
-    state.lastUserMessageId;
+    if (
+      value === 'مرسی' ||
+      value === 'تشکر' ||
+      value === 'ممنون'
+    ) {
+      return {
+        handled: true,
+        text:
+          'خواهش می‌کنم ❤️'
+      };
+    }
 
-  state.lastBotMessageId =
-    botMessageId ||
-    state.lastBotMessageId;
-
-  state.lastOperation =
-    operation ||
-    state.lastOperation;
-
-  state.lastTool =
-    tool ||
-    state.lastTool;
-
-  state.lastToolResult =
-    result ||
-    state.lastToolResult;
-
-  state.history.push({
-    user:
-      String(
-        userText || ''
-      ).slice(
-        0,
-        2000
-      ),
-    assistant:
-      String(
-        answer || ''
-      ).slice(
-        0,
-        4000
-      )
-  });
+    return {
+      handled: true,
+      text:
+        'سلام! چطور می‌تونم کمکت کنم؟'
+    };
+  }
 
   if (
-    state.history.length >
-    NF_MAX_HISTORY
+    value === 'اسمت چیه' ||
+    value === 'اسم تو چیه' ||
+    value === 'نامت چیست'
   ) {
-    state.history =
-      state.history.slice(
-        -NF_MAX_HISTORY
+    return {
+      handled: true,
+      text:
+        'اسم من Anime Faarsi Bot است.'
+    };
+  }
+
+  if (
+    nfIsCommandCount(text)
+  ) {
+    const source =
+      await nfGetSource();
+
+    const commands =
+      nfExtractCommands(
+        source
       );
+
+    return {
+      handled: true,
+      text:
+        `📊 تعداد دستورات فعلی ربات: ${commands.length}`
+    };
   }
 
-  nfConversationState.set(
-    `${userId}:${chatId}`,
-    state
-  );
-}
-
-function nfBuildSystemPrompt(
-  ctx,
-  state
-) {
-  return `
-You are the AI Agent inside "Anime Faarsi Bot".
-
-You are not a separate generic assistant.
-You are the intelligent control layer for the existing Telegram bot.
-
-Your job is to understand the user's intent semantically and use the REAL capabilities available in the current bot/runtime.
-
-IMPORTANT:
-
-Do not use fixed phrase lists.
-
-Do not require exact wording.
-
-Do not map only predefined sentences.
-
-Understand Persian, English, mixed language, informal wording, incomplete wording, abbreviations, references and conversation context.
-
-The user may describe the same operation in many different ways.
-
-Determine the intended operation from meaning.
-
-Never invent a capability.
-
-Never claim an operation succeeded without a real tool result.
-
-Never invent Telegram statistics.
-
-Never invent commands.
-
-Never invent command counts.
-
-Never invent bot features.
-
-Never expose tokens, API keys, credentials, environment secrets or private configuration.
-
-Your name is:
-Anime Faarsi Bot
-
-OWNER:
-
-The runtime has already identified the current user.
-
-Owner status:
-${Number(ctx.from?.id) === Number(ADMIN_ID)}
-
-Do not ask the user to prove ownership.
-
-The runtime decides authorization.
-
-UPDATE:
-
-If the owner semantically intends to start the existing bot update workflow, use:
-
-enter_update_workflow
-
-Do not require a particular phrase.
-
-Do not maintain a list of update phrases.
-
-Do not create another update system.
-
-Do not directly replace source files.
-
-Do not claim deployment or update success.
-
-The real existing update workflow handles the uploaded bot.js.
-
-GENERAL BOT CONTROL:
-
-The bot contains many existing capabilities.
-
-Use the current source/runtime to understand them.
-
-Do not assume the bot only supports the tools explicitly listed below.
-
-For information about a command or feature, inspect the current source.
-
-For an actual action, use a connected real operation when one exists.
-
-AVAILABLE DIRECT TOOLS:
-
-get_chat
-get_member_count
-get_member
-get_bot_info
-send_message
-delete_message
-delete_current_message
-edit_message
-get_bot_commands
-get_command_info
-get_all_command_code
-get_bot_source
-get_bot_source_summary
-enter_update_workflow
-
-TELEGRAM:
-
-Use real Telegram API data.
-
-Never guess.
-
-If the user asks about a channel/group/user, resolve it using Telegram when possible.
-
-If a previous message established the target, reuse that target when unambiguous.
-
-If the user says "قبلی", "همینو", "اون", "این", "همون" or equivalent wording, use conversation context when only one interpretation is reasonable.
-
-MESSAGE ACTIONS:
-
-If the user clearly asks to delete the current message, use delete_current_message.
-
-If the user refers to the previous bot response, use lastBotMessageId from context when available.
-
-Do not unnecessarily ask for a message ID if the conversation state already identifies the target.
-
-COMMANDS:
-
-If the user asks how many commands exist, inspect the current source.
-
-If the user asks what a command does, inspect its actual implementation.
-
-If the user asks for all command code, inspect the current source.
-
-Do not count slash-like strings inside prompts, comments, documentation or normal strings as commands.
-
-SOURCE:
-
-Only expose source when the owner requests it.
-
-Never expose secrets.
-
-If a source request is extremely large, explain that it must be delivered in manageable parts instead of pretending it was sent completely.
-
-NORMAL CHAT:
-
-For ordinary conversation, answer naturally.
-
-Do not call tools unnecessarily.
-
-Do not make a tool call for a simple greeting.
-
-OUTPUT:
-
-Return only valid JSON.
-
-Answer:
-
-{
-  "type": "answer",
-  "text": "..."
-}
-
-Tool:
-
-{
-  "type": "tool",
-  "tool": "tool_name",
-  "args": {}
-}
-
-CURRENT CONTEXT:
-
-${JSON.stringify(
-  {
-    lastOperation:
-      state.lastOperation,
-    lastTool:
-      state.lastTool,
-    lastUserMessageId:
-      state.lastUserMessageId,
-    lastBotMessageId:
-      state.lastBotMessageId,
-    lastToolResult:
-      state.lastToolResult,
-    history:
-      state.history
+  if (
+    nfIsCommandList(text)
+  ) {
+    const source =
+      await nfGetSource();
+
+    const commands =
+      nfExtractCommands(
+        source
+      );
+
+    return {
+      handled: true,
+      text:
+        commands.length
+          ? `📋 دستورات فعلی ربات:\n\n${commands.join('\n')}`
+          : '❌ هیچ دستور واقعی در source پیدا نشد.'
+    };
   }
-)}
-`;
+
+  if (
+    nfIsDeleteRequest(text)
+  ) {
+    const reply =
+      ctx.message?.reply_to_message;
+
+    if (reply?.message_id) {
+      await nfDelete(
+        ctx.chat.id,
+        reply.message_id
+      );
+
+      return {
+        handled: true,
+        text:
+          '🗑 پیام ریپلای‌شده حذف شد.'
+      };
+    }
+
+    return {
+      handled: false,
+      forceAI: true
+    };
+  }
+
+  if (
+    nfIsPreviousDelete(text)
+  ) {
+    const state =
+      nfState(ctx);
+
+    const target =
+      state.lastBotMessageId;
+
+    if (target) {
+      await nfDelete(
+        ctx.chat.id,
+        target
+      );
+
+      return {
+        handled: true,
+        text:
+          '🗑 پیام قبلی ربات حذف شد.'
+      };
+    }
+  }
+
+  if (
+    nfLooksLikeUpdate(text) &&
+    nfOwner(ctx)
+  ) {
+    if (
+      typeof updateBotStates !==
+      'undefined'
+    ) {
+      updateBotStates.set(
+        ctx.from.id,
+        {
+          waitingForFile: true
+        }
+      );
+
+      return {
+        handled: true,
+        text:
+          '📦 آماده‌ام. فایل جدید bot.js را ارسال کن.'
+      };
+    }
+  }
+
+  return {
+    handled: false
+  };
 }
 
-function nfIs429(
-  error
-) {
-  return (
-    Number(
-      error?.response?.status
-    ) === 429 ||
-    /429|rate.?limit|too many requests/i.test(
-      String(
-        error?.message || ''
-      )
-    )
-  );
-}
-
-function nfIsRetryable(
-  error
-) {
-  const status =
-    Number(
-      error?.response?.status
-    );
-
-  return (
-    nfIs429(error) ||
-    status === 408 ||
-    status === 409 ||
-    status === 425 ||
-    status === 500 ||
-    status === 502 ||
-    status === 503 ||
-    status === 504
-  );
-}
-
-function nfSleep(
-  ms
-) {
-  return new Promise(
-    resolve =>
-      setTimeout(
-        resolve,
-        ms
-      )
-  );
-}
-
-async function nfAgent(
-  messages,
-  attempt = 0
+async function nfAI(
+  messages
 ) {
   if (!NF_API_KEY) {
     throw new Error(
-      'GROQ_API_KEY is not configured.'
+      'GROQ_API_KEY is not configured'
     );
   }
 
@@ -2500,20 +2408,19 @@ async function nfAgent(
       NF_API_URL,
       {
         model: NF_MODEL,
-        temperature: 0.1,
-        max_tokens: 1800,
+        temperature: 0.2,
+        max_tokens: 1200,
         messages
       },
       {
         headers: {
           Authorization:
-            'Bearer ' +
-            NF_API_KEY,
+            `Bearer ${NF_API_KEY}`,
           'Content-Type':
             'application/json'
         },
         timeout:
-          NF_REQUEST_TIMEOUT
+          NF_TIMEOUT
       }
     );
 
@@ -2523,104 +2430,102 @@ async function nfAgent(
   );
 }
 
-async function nfAgentSafe(
-  messages
+function nfPrompt(
+  ctx,
+  state
 ) {
-  let lastError =
-    null;
+  return `
+You are Anime Faarsi Bot.
 
-  for (
-    let attempt = 0;
-    attempt < 3;
-    attempt++
-  ) {
-    try {
-      return await nfAgent(
-        messages,
-        attempt
-      );
-    } catch (error) {
-      lastError =
-        error;
+You are the AI layer of an existing Telegram bot.
 
-      if (
-        !nfIsRetryable(error) ||
-        attempt >= 2
-      ) {
-        break;
-      }
+Understand user intent by meaning, not by exact phrases.
 
-      const retryAfter =
-        Number(
-          error?.response?.headers?.['retry-after'] ||
-          0
-        );
+Never invent:
+- commands
+- member counts
+- archive results
+- bot capabilities
+- tool results
+- completed actions
 
-      const wait =
-        retryAfter > 0
-          ? Math.min(
-              retryAfter * 1000,
-              15000
-            )
-          : 1500 *
-            Math.pow(
-              2,
-              attempt
-            );
+The runtime, not the AI, decides authorization.
 
-      await nfSleep(
-        wait
-      );
-    }
-  }
+Owner:
+${nfOwner(ctx)}
 
-  throw lastError ||
-    new Error(
-      'AI request failed.'
-    );
+The bot has many existing features.
+Do not assume it is limited to a small fixed tool list.
+
+When the user asks about an existing bot feature:
+use real source/runtime information when available.
+
+When the user asks for an action that is not actually connected:
+do not pretend it was executed.
+
+UPDATE INTENT:
+
+Understand update requests semantically.
+Do not require a fixed phrase.
+
+If the owner clearly wants to start the existing update workflow,
+start the existing update state.
+
+Do not create another update mechanism.
+
+CONTEXT:
+
+${JSON.stringify({
+  lastUserMessageId:
+    state.lastUserMessageId,
+  lastBotMessageId:
+    state.lastBotMessageId,
+  lastReplyMessageId:
+    state.lastReplyMessageId,
+  lastOperation:
+    state.lastOperation,
+  lastTool:
+    state.lastTool,
+  history:
+    state.history
+})}
+
+Answer naturally in the user's language.
+
+Return plain text only.
+`;
 }
 
-async function nfDecide(
+async function nfAIAnswer(
   ctx,
-  userText,
-  toolResult
+  text
 ) {
   const state =
-    nfGetConversation(
-      ctx.from?.id,
-      ctx.chat?.id
-    );
+    nfState(ctx);
 
   const messages = [
     {
       role: 'system',
       content:
-        nfBuildSystemPrompt(
+        nfPrompt(
           ctx,
           state
         )
     }
   ];
 
-  const compactHistory =
-    state.history
-      .slice(
-        -NF_MAX_HISTORY
-      );
-
   for (
     const item of
-      compactHistory
+      state.history.slice(
+        -NF_MAX_HISTORY
+      )
   ) {
     messages.push({
       role: 'user',
       content:
         String(
           item.user || ''
-        ).slice(
-          0,
-          1500
-        )
+        ).slice(0, 1200)
     });
 
     messages.push({
@@ -2628,924 +2533,154 @@ async function nfDecide(
       content:
         String(
           item.assistant || ''
-        ).slice(
-          0,
-          2500
-        )
+        ).slice(0, 1800)
     });
   }
 
   messages.push({
     role: 'user',
     content:
-      String(
-        userText || ''
-      ).slice(
-        0,
-        4000
-      )
+      String(text || '')
+        .slice(0, 3000)
   });
 
-  if (toolResult) {
-    messages.push({
-      role: 'user',
-      content:
-        'REAL TOOL RESULT:\n' +
-        JSON.stringify(
-          toolResult
-        ).slice(
-          0,
-          NF_MAX_CONTEXT
-        )
-    });
-  }
-
-  const raw =
-    await nfAgentSafe(
-      messages
-    );
-
-  return (
-    nfSafeJsonParse(raw) || {
-      type: 'answer',
-      text:
-        String(
-          raw ||
-          'متوجه پاسخ مدل نشدم.'
-        )
-    }
-  );
-}
-
-function nfDirectAnswerForTool(
-  toolResult
-) {
-  if (
-    !toolResult?.ok
-  ) {
-    return null;
-  }
-
-  const tool =
-    toolResult.tool;
-
-  const data =
-    toolResult.data ||
-    {};
-
-  if (
-    tool ===
-    'get_member_count'
-  ) {
-    return `تعداد اعضای ${data.chat_id || 'کانال'} برابر با ${data.member_count} نفر است.`;
-  }
-
-  if (
-    tool ===
-    'get_bot_commands'
-  ) {
-    const commands =
-      Array.isArray(
-        data.commands
-      )
-        ? data.commands
-        : [];
-
-    return (
-      `تعداد دستورات فعلی ربات: ${commands.length}\n\n` +
-      commands.join('\n')
-    );
-  }
-
-  if (
-    tool ===
-    'get_bot_info'
-  ) {
-    return (
-      `نام ربات: ${data.first_name || 'نامشخص'}\n` +
-      `یوزرنیم: ${data.username ? '@' + data.username : 'نامشخص'}\n` +
-      `ID: ${data.id || 'نامشخص'}`
-    );
-  }
-
-  if (
-    tool ===
-    'delete_current_message'
-  ) {
-    return '🗑 پیام حذف شد.';
-  }
-
-  if (
-    tool ===
-    'delete_message'
-  ) {
-    return '🗑 پیام حذف شد.';
-  }
-
-  if (
-    tool ===
-    'edit_message'
-  ) {
-    return '✅ پیام ویرایش شد.';
-  }
-
-  if (
-    tool ===
-    'send_message'
-  ) {
-    return '✅ پیام ارسال شد.';
-  }
-
-  if (
-    tool ===
-    'enter_update_workflow'
-  ) {
-    return '📦 آماده‌ام. فایل جدید bot.js را ارسال کن.';
-  }
-
-  return null;
-}
-
-async function nfExecuteTool(
-  ctx,
-  action
-) {
-  const name =
-    String(
-      action?.tool || ''
-    );
-
-  const args =
-    action?.args || {};
-
-  if (
-    name ===
-    'get_chat'
-  ) {
-    const chatId =
-      args.chat_id ||
-      args.username;
-
-    if (!chatId) {
-      return {
-        ok: false,
-        error:
-          'chat_id یا username مشخص نشده است.'
-      };
-    }
-
-    const chat =
-      await nfGetChatInfo(
-        chatId
-      );
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        id: chat.id,
-        type: chat.type,
-        title:
-          chat.title ||
-          null,
-        username:
-          chat.username ||
-          null,
-        description:
-          chat.description ||
-          null
-      }
-    };
-  }
-
-  if (
-    name ===
-    'get_member_count'
-  ) {
-    const chatId =
-      args.chat_id ||
-      args.username;
-
-    if (!chatId) {
-      return {
-        ok: false,
-        error:
-          'شناسه یا username کانال/گروه مشخص نشده است.'
-      };
-    }
-
-    const count =
-      await nfGetMemberCount(
-        chatId
-      );
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        chat_id:
-          chatId,
-        member_count:
-          count
-      }
-    };
-  }
-
-  if (
-    name ===
-    'get_member'
-  ) {
-    const chatId =
-      args.chat_id ||
-      args.username;
-
-    const userId =
-      args.user_id;
-
-    if (
-      !chatId ||
-      !userId
-    ) {
-      return {
-        ok: false,
-        error:
-          'chat_id و user_id لازم است.'
-      };
-    }
-
-    const member =
-      await nfGetMember(
-        chatId,
-        userId
-      );
-
-    return {
-      ok: true,
-      tool: name,
-      data: member
-    };
-  }
-
-  if (
-    name ===
-    'get_bot_info'
-  ) {
-    const info =
-      await nfGetBotInfo();
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        id:
-          info.id,
-        is_bot:
-          info.is_bot,
-        first_name:
-          info.first_name,
-        username:
-          info.username
-      }
-    };
-  }
-
-  if (
-    name ===
-    'send_message'
-  ) {
-    const chatId =
-      args.chat_id;
-
-    const text =
-      args.text;
-
-    if (
-      !chatId ||
-      !text
-    ) {
-      return {
-        ok: false,
-        error:
-          'chat_id و text لازم است.'
-      };
-    }
-
-    const sent =
-      await nfSendMessage(
-        chatId,
-        text
-      );
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        message_id:
-          sent.message_id,
-        chat_id:
-          sent.chat?.id ||
-          chatId
-      }
-    };
-  }
-
-  if (
-    name ===
-    'delete_current_message'
-  ) {
-    const chatId =
-      ctx.chat?.id;
-
-    const messageId =
-      ctx.message?.message_id;
-
-    if (
-      !chatId ||
-      !messageId
-    ) {
-      return {
-        ok: false,
-        error:
-          'پیام فعلی در دسترس نیست.'
-      };
-    }
-
-    await nfDeleteMessage(
-      chatId,
-      messageId
-    );
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        deleted: true,
-        chat_id:
-          chatId,
-        message_id:
-          messageId
-      }
-    };
-  }
-
-  if (
-    name ===
-    'delete_message'
-  ) {
-    const chatId =
-      args.chat_id ||
-      ctx.chat?.id;
-
-    let messageId =
-      args.message_id;
-
-    if (!messageId) {
-      messageId =
-        ctx.message
-          ?.reply_to_message
-          ?.message_id;
-    }
-
-    if (!messageId) {
-      const state =
-        nfGetConversation(
-          ctx.from?.id,
-          ctx.chat?.id
-        );
-
-      messageId =
-        state.lastBotMessageId;
-    }
-
-    if (
-      !chatId ||
-      !messageId
-    ) {
-      return {
-        ok: false,
-        error:
-          'پیام موردنظر مشخص نیست.'
-      };
-    }
-
-    await nfDeleteMessage(
-      chatId,
-      messageId
-    );
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        deleted: true,
-        chat_id:
-          chatId,
-        message_id:
-          messageId
-      }
-    };
-  }
-
-  if (
-    name ===
-    'edit_message'
-  ) {
-    const chatId =
-      args.chat_id ||
-      ctx.chat?.id;
-
-    const messageId =
-      args.message_id ||
-      nfGetConversation(
-        ctx.from?.id,
-        ctx.chat?.id
-      ).lastBotMessageId;
-
-    const text =
-      args.text;
-
-    if (
-      !chatId ||
-      !messageId ||
-      !text
-    ) {
-      return {
-        ok: false,
-        error:
-          'پیام یا متن ویرایش مشخص نیست.'
-      };
-    }
-
-    await nfEditMessage(
-      chatId,
-      messageId,
-      text
-    );
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        edited: true,
-        chat_id:
-          chatId,
-        message_id:
-          messageId
-      }
-    };
-  }
-
-  if (
-    name ===
-    'get_bot_commands'
-  ) {
-    const source =
-      await nfGetCurrentSource();
-
-    const commands =
-      nfExtractCommands(
-        source
-      );
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        count:
-          commands.length,
-        commands
-      }
-    };
-  }
-
-  if (
-    name ===
-    'get_command_info'
-  ) {
-    const command =
-      args.command;
-
-    if (!command) {
-      return {
-        ok: false,
-        error:
-          'command مشخص نشده است.'
-      };
-    }
-
-    const source =
-      await nfGetCurrentSource();
-
-    const commands =
-      nfExtractCommands(
-        source
-      );
-
-    const normalized =
-      '/' +
-      String(command)
-        .replace(/^\/+/, '')
-        .trim();
-
-    const exists =
-      commands.some(
-        item =>
-          item.toLowerCase() ===
-          normalized.toLowerCase()
-      );
-
-    if (!exists) {
-      return {
-        ok: true,
-        tool: name,
-        data: {
-          command:
-            normalized,
-          exists: false
-        }
-      };
-    }
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        command:
-          normalized,
-        exists: true,
-        implementation:
-          nfFindCommandSource(
-            source,
-            normalized
-          )
-      }
-    };
-  }
-
-  if (
-    name ===
-    'get_all_command_code'
-  ) {
-    const source =
-      await nfGetCurrentSource();
-
-    const commands =
-      nfExtractCommands(
-        source
-      );
-
-    const result =
-      [];
-
-    for (
-      const command of
-        commands
-    ) {
-      result.push({
-        command,
-        implementation:
-          nfFindCommandSource(
-            source,
-            command
-          )
-      });
-    }
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        count:
-          result.length,
-        commands:
-          result
-      }
-    };
-  }
-
-  if (
-    name ===
-    'get_bot_source'
-  ) {
-    const source =
-      await nfGetCurrentSource();
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        length:
-          source.length,
-        source
-      }
-    };
-  }
-
-  if (
-    name ===
-    'get_bot_source_summary'
-  ) {
-    const source =
-      await nfGetCurrentSource();
-
-    const commands =
-      nfExtractCommands(
-        source
-      );
-
-    const features =
-      [];
-
-    const featurePatterns = [
-      /sequence/i,
-      /postnews|posttools/i,
-      /manageadmin/i,
-      /group/i,
-      /backend/i,
-      /backup/i,
-      /updatebot/i,
-      /upload/i,
-      /welcome/i,
-      /warnings?/i,
-      /filter/i,
-      /nofilter/i,
-      /captcha/i,
-      /schedule/i,
-      /search/i,
-      /uploader/i,
-      /setanime|setmovie|setseries|setanimation/i
-    ];
-
-    const featureNames = [
-      'Sequence',
-      'Post Tools',
-      'Manage Admin',
-      'Group',
-      'Backend',
-      'Backup',
-      'Update',
-      'Upload',
-      'Welcome',
-      'Warnings',
-      'Filter',
-      'NoFilter',
-      'Captcha',
-      'Schedule',
-      'Search',
-      'Uploader',
-      'Post Generators'
-    ];
-
-    for (
-      let i = 0;
-      i <
-      featurePatterns.length;
-      i++
-    ) {
-      if (
-        featurePatterns[i].test(
-          source
-        )
-      ) {
-        features.push(
-          featureNames[i]
-        );
-      }
-    }
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        command_count:
-          commands.length,
-        commands,
-        features
-      }
-    };
-  }
-
-  if (
-    name ===
-    'enter_update_workflow'
-  ) {
-    if (
-      Number(ctx.from?.id) !==
-      Number(UPDATE_ADMIN_ID)
-    ) {
-      return {
-        ok: false,
-        error:
-          'این عملیات فقط برای مالک اصلی ربات مجاز است.'
-      };
-    }
-
-    if (
-      typeof updateBotStates ===
-      'undefined' ||
-      !updateBotStates
-    ) {
-      return {
-        ok: false,
-        error:
-          'سیستم UpdateBot موجود نیست.'
-      };
-    }
-
-    updateBotStates.set(
-      ctx.from.id,
-      {
-        waitingForFile: true
-      }
-    );
-
-    return {
-      ok: true,
-      tool: name,
-      data: {
-        existing_workflow:
-          true,
-        waitingForFile:
-          true
-      }
-    };
-  }
-
-  return {
-    ok: false,
-    error:
-      'ابزار واقعی برای این عملیات متصل نیست.'
-  };
-}
-
-async function nfRunAgent(
-  ctx,
-  userText
-) {
-  let toolResult =
-    null;
+  let lastError;
 
   for (
-    let round = 0;
-    round <
-    NF_MAX_TOOL_ROUNDS;
-    round++
+    let attempt = 0;
+    attempt < 2;
+    attempt++
   ) {
-    const decision =
-      await nfDecide(
-        ctx,
-        userText,
-        toolResult
+    try {
+      return await nfAI(
+        messages
       );
+    } catch (error) {
+      lastError =
+        error;
 
-    if (
-      decision.type ===
-        'answer' ||
-      !decision.type
-    ) {
-      return {
-        text:
-          String(
-            decision.text ||
-            'متوجه درخواست نشدم.'
-          ),
-        tool: null,
-        result: null
-      };
-    }
+      const status =
+        Number(
+          error?.response?.status
+        );
 
-    if (
-      decision.type !==
-      'tool'
-    ) {
-      return {
-        text:
-          String(
-            decision.text ||
-            'نتوانستم درخواست را مشخص کنم.'
-          ),
-        tool: null,
-        result: null
-      };
-    }
+      if (
+        status !== 429 &&
+        status !== 408 &&
+        status !== 500 &&
+        status !== 502 &&
+        status !== 503 &&
+        status !== 504
+      ) {
+        break;
+      }
 
-    toolResult =
-      await nfExecuteTool(
-        ctx,
-        decision
-      );
-
-    if (
-      !toolResult.ok
-    ) {
-      return {
-        text:
-          '❌ ' +
-          String(
-            toolResult.error ||
-            'عملیات انجام نشد.'
-          ),
-        tool:
-          decision.tool,
-        result:
-          toolResult
-      };
-    }
-
-    const direct =
-      nfDirectAnswerForTool(
-        toolResult
-      );
-
-    if (direct) {
-      return {
-        text:
-          direct,
-        tool:
-          decision.tool,
-        result:
-          toolResult
-      };
+      if (
+        attempt === 0
+      ) {
+        await new Promise(
+          resolve =>
+            setTimeout(
+              resolve,
+              status === 429
+                ? 2500
+                : 1000
+            )
+        );
+      }
     }
   }
 
-  return {
-    text:
-      '❌ این درخواست به مراحل بیشتری نیاز داشت و برای جلوگیری از اجرای تکراری متوقف شد.',
-    tool: null,
-    result: null
-  };
+  throw lastError ||
+    new Error(
+      'AI request failed'
+    );
 }
 
-async function nfProcessMessage(
+async function nfProcess(
   ctx,
-  userText
+  text
 ) {
-  const userId =
-    ctx.from?.id;
-
-  const chatId =
-    ctx.chat?.id;
-
   const lockKey =
-    `${userId}:${chatId}`;
+    `${ctx.from?.id}:${ctx.chat?.id}`;
 
   if (
-    nfRequestLocks.get(
-      lockKey
-    )
+    nfLocks.get(lockKey)
   ) {
     return;
   }
 
-  nfRequestLocks.set(
+  nfLocks.set(
     lockKey,
     true
   );
 
-  let thinkingMessage =
-    null;
+  let thinking = null;
 
   try {
-    thinkingMessage =
+    const direct =
+      await nfDirectRouter(
+        ctx,
+        text
+      );
+
+    if (
+      direct.handled
+    ) {
+      const sent =
+        await ctx.reply(
+          direct.text
+        );
+
+      const state =
+        nfState(ctx);
+
+      state.lastBotMessageId =
+        sent.message_id;
+
+      nfRemember(
+        ctx,
+        text,
+        direct.text,
+        null,
+        'direct'
+      );
+
+      return;
+    }
+
+    thinking =
       await ctx.reply(
         '🤖 Thinking...'
       );
 
-    const result =
-      await nfRunAgent(
-        ctx,
-        userText
-      );
-
     const answer =
-      String(
-        result.text ||
-        'متوجه درخواست نشدم.'
+      await nfAIAnswer(
+        ctx,
+        text
       );
 
     const formatted =
-      nfFormatText(
+      nfFormat(
         answer
       );
 
-    const buttons =
-      [];
+    const keyboard = [];
 
     for (
       const item of
-        formatted.codeBlocks
+        formatted.codes
     ) {
       nfCodeStore.set(
         item.id,
         item.code
       );
 
-      buttons.push([
+      keyboard.push([
         {
           text:
-            formatted.codeBlocks.length > 1
-              ? `📋 Copy Code ${buttons.length + 1}`
+            formatted.codes.length > 1
+              ? `📋 Copy Code ${keyboard.length + 1}`
               : '📋 Copy Code',
           callback_data:
             `nfcopy:${item.id}`
@@ -3553,76 +2688,66 @@ async function nfProcessMessage(
       ]);
     }
 
-    const options = {
-      parse_mode:
-        'HTML'
-    };
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      thinking.message_id,
+      undefined,
+      formatted.html,
+      {
+        parse_mode:
+          'HTML',
+        ...(keyboard.length
+          ? {
+              reply_markup: {
+                inline_keyboard:
+                  keyboard
+              }
+            }
+          : {})
+      }
+    );
 
-    if (
-      buttons.length
-    ) {
-      options.reply_markup = {
-        inline_keyboard:
-          buttons
-      };
-    }
+    const state =
+      nfState(ctx);
 
-    const botMessage =
-      await ctx.telegram.editMessageText(
-        chatId,
-        thinkingMessage.message_id,
-        undefined,
-        formatted.html,
-        options
-      );
+    state.lastBotMessageId =
+      thinking.message_id;
 
-    nfSaveConversation(
+    nfRemember(
       ctx,
-      userText,
+      text,
       answer,
-      result.tool
-        ? 'tool'
-        : 'answer',
-      result.tool,
-      result.result,
-      botMessage?.message_id ||
-        thinkingMessage.message_id
+      null,
+      'ai'
     );
   } catch (error) {
     console.error(
-      'NF AGENT ERROR:',
+      'NF ERROR:',
       error
     );
 
     let message =
-      '❌ خطایی در پردازش درخواست رخ داد.';
+      '❌ در پردازش درخواست خطایی رخ داد.';
+
+    const status =
+      Number(
+        error?.response?.status
+      );
 
     if (
-      nfIs429(error)
+      status === 429
     ) {
       message =
-        '⏳ سرویس هوش مصنوعی موقتاً به محدودیت درخواست رسیده است. چند لحظه بعد دوباره امتحان کن.';
-    } else if (
-      error?.response?.status ===
-      400
-    ) {
-      message =
-        '❌ درخواست نامعتبر بود یا اطلاعات لازم برای عملیات کامل نبود.';
-    } else if (
-      error?.response?.status ===
-      401
-    ) {
-      message =
-        '❌ اتصال سرویس هوش مصنوعی معتبر نیست.';
+        '⏳ سرویس هوش مصنوعی موقتاً محدود شده است. عملیات‌های مستقیم همچنان قابل استفاده‌اند؛ چند لحظه بعد دوباره امتحان کن.';
     }
 
     if (
-      thinkingMessage
+      thinking
     ) {
       try {
         await ctx.telegram.editMessageText(
-          chatId,
-          thinkingMessage.message_id,
+          ctx.chat.id,
+          thinking.message_id,
           undefined,
           nfEscapeHtml(
             message
@@ -3643,7 +2768,7 @@ async function nfProcessMessage(
       );
     }
   } finally {
-    nfRequestLocks.delete(
+    nfLocks.delete(
       lockKey
     );
   }
@@ -3652,10 +2777,7 @@ async function nfProcessMessage(
 bot.command(
   'nfon',
   async ctx => {
-    if (
-      Number(ctx.from?.id) !==
-      Number(ADMIN_ID)
-    ) {
+    if (!nfOwner(ctx)) {
       return ctx.reply(
         '❌ این دستور فقط برای مالک ربات است.'
       );
@@ -3663,7 +2785,7 @@ bot.command(
 
     nfEnabled = true;
 
-    return ctx.reply(
+    await ctx.reply(
       '🟢 AI Agent فعال شد.\n\nپیام‌های عادی شما توسط AI پردازش می‌شوند.'
     );
   }
@@ -3672,10 +2794,7 @@ bot.command(
 bot.command(
   'nfoff',
   async ctx => {
-    if (
-      Number(ctx.from?.id) !==
-      Number(ADMIN_ID)
-    ) {
+    if (!nfOwner(ctx)) {
       return ctx.reply(
         '❌ این دستور فقط برای مالک ربات است.'
       );
@@ -3683,7 +2802,7 @@ bot.command(
 
     nfEnabled = false;
 
-    return ctx.reply(
+    await ctx.reply(
       '🔴 AI Agent خاموش شد.'
     );
   }
@@ -3692,16 +2811,13 @@ bot.command(
 bot.command(
   'nfstatus',
   async ctx => {
-    if (
-      Number(ctx.from?.id) !==
-      Number(ADMIN_ID)
-    ) {
+    if (!nfOwner(ctx)) {
       return ctx.reply(
         '❌ این دستور فقط برای مالک ربات است.'
       );
     }
 
-    return ctx.reply(
+    await ctx.reply(
       nfEnabled
         ? '🟢 AI Agent: ON'
         : '🔴 AI Agent: OFF'
@@ -3715,37 +2831,36 @@ bot.use(
     next
   ) => {
     try {
-      if (
-        Number(ctx.from?.id) !==
-        Number(ADMIN_ID)
-      ) {
-        return next();
-      }
-
-      const callbackData =
+      const callback =
         String(
           ctx.callbackQuery?.data ||
           ''
         );
 
       if (
-        callbackData.startsWith(
+        callback.startsWith(
           'nfcopy:'
         )
       ) {
-        const id =
-          callbackData.slice(
-            7
+        if (!nfOwner(ctx)) {
+          return ctx.answerCbQuery(
+            '❌ دسترسی ندارید.',
+            {
+              show_alert:
+                true
+            }
           );
+        }
+
+        const id =
+          callback.slice(7);
 
         const code =
-          nfCodeStore.get(
-            id
-          );
+          nfCodeStore.get(id);
 
         if (!code) {
           return ctx.answerCbQuery(
-            '❌ این کد دیگر در دسترس نیست.',
+            '❌ کد دیگر در دسترس نیست.',
             {
               show_alert:
                 true
@@ -3758,9 +2873,7 @@ bot.use(
         );
 
         return ctx.reply(
-          `<pre><code>${nfEscapeHtml(
-            code
-          )}</code></pre>`,
+          `<pre><code>${nfEscapeHtml(code)}</code></pre>`,
           {
             parse_mode:
               'HTML'
@@ -3788,7 +2901,35 @@ bot.use(
         return next();
       }
 
-      return nfProcessMessage(
+      if (!nfOwner(ctx)) {
+        return next();
+      }
+
+      const key =
+        `${ctx.from.id}:${ctx.chat.id}`;
+
+      const previous =
+        nfLastRequests.get(key);
+
+      if (
+        previous &&
+        previous.text === text &&
+        Date.now() -
+          previous.time <
+          1500
+      ) {
+        return;
+      }
+
+      nfLastRequests.set(
+        key,
+        {
+          text,
+          time: Date.now()
+        }
+      );
+
+      return nfProcess(
         ctx,
         text
       );
