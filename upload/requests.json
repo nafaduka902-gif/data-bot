@@ -3,10 +3,10 @@
     "id": "up_1790773437713_u12h1y",
     "userId": 2048310529,
     "chatId": 2048310529,
-    "mode": null,
-    "status": "selecting",
+    "mode": "group",
+    "status": "waiting_files",
     "files": [],
     "createdAt": 1790773437713,
-    "updatedAt": 1790773437713
+    "updatedAt": 1790773442768
   }
 ]
