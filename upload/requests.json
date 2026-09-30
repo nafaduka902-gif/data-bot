@@ -190,9 +190,72 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "waiting_files",
-    "files": [],
+    "status": "ready",
+    "files": [
+      {
+        "messageId": 39,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 019 [720p].mkv",
+        "addedAt": 1790780852669
+      },
+      {
+        "messageId": 40,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 020 [720p].mkv",
+        "addedAt": 1790780852827
+      },
+      {
+        "messageId": 41,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 021 [720p].mkv",
+        "addedAt": 1790780852948
+      },
+      {
+        "messageId": 42,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 022 [720p].mkv",
+        "addedAt": 1790780853071
+      },
+      {
+        "messageId": 43,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 023 [720p].mkv",
+        "addedAt": 1790780853186
+      },
+      {
+        "messageId": 44,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 024 [720p].mkv",
+        "addedAt": 1790780860646
+      },
+      {
+        "messageId": 45,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 025 [720p].mkv",
+        "addedAt": 1790780860858
+      },
+      {
+        "messageId": 46,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 026 [720p].mkv",
+        "addedAt": 1790780860902
+      },
+      {
+        "messageId": 47,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 027 [720p].mkv",
+        "addedAt": 1790780860939
+      },
+      {
+        "messageId": 48,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 028 [720p].mkv",
+        "addedAt": 1790780860998
+      }
+    ],
     "createdAt": 1790780834288,
-    "updatedAt": 1790780834288
+    "updatedAt": 1790780881183,
+    "fileCount": 10,
+    "readyAt": 1790780880389
   }
 ]
