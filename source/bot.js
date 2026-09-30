@@ -1112,11 +1112,22 @@ bot.on('message', async (ctx, next) => {
     } catch (error) {
         console.error('UPLOAD FILE ERROR:', error);
 
-        try {
-            await ctx.reply(
-                '❌ انتقال فایل انجام نشد.\nلطفاً دوباره تلاش کنید.'
-            );
-        } catch {}
+        let details = error?.response?.data;
+
+        if (typeof details === 'object' && details !== null) {
+            details = JSON.stringify(details, null, 2);
+        }
+
+        if (!details) {
+            details = error?.message || String(error);
+        }
+
+        await ctx.reply(
+            '❌ خطا در انتقال فایل\n\n' +
+            `📌 نوع خطا: ${error?.name || 'Unknown'}\n` +
+            `📌 پیام: ${error?.message || 'Unknown error'}\n\n` +
+            `📋 جزئیات:\n${String(details).slice(0, 3500)}`
+        );
 
         return;
     }
