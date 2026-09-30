@@ -115,8 +115,28 @@
     "chatId": 2048310529,
     "mode": "group",
     "status": "waiting_files",
-    "files": [],
+    "files": [
+      {
+        "messageId": 29,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 019 [720p].mkv",
+        "addedAt": 1790778418915
+      },
+      {
+        "messageId": 30,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 020 [720p].mkv",
+        "addedAt": 1790778419013
+      },
+      {
+        "messageId": 31,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 021 [720p].mkv",
+        "addedAt": 1790778419187
+      }
+    ],
     "createdAt": 1790778381480,
-    "updatedAt": 1790778385005
+    "updatedAt": 1790778419096,
+    "fileCount": 1
   }
 ]
