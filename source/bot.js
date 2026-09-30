@@ -10259,8 +10259,13 @@ async function handleNewMembers(
         ctx.chat
       );
 
+    const captchaToken =
+      `${Date.now().toString(36)}_${Math.random()
+        .toString(36)
+        .slice(2, 10)}`;
+    
     const startUrl =
-      `https://t.me/${BOT_USERNAME}?start=captcha_-${user.id}`;
+      `https://t.me/${BOT_USERNAME}?start=captcha_${user.id}_${captchaToken}`;
 
     let sent;
 
@@ -10294,15 +10299,16 @@ async function handleNewMembers(
 
     if (groupSettings.captchaEnabled) {
       pending.push({
-        userId: Number(user.id),
-        chatId:
-          Number(ctx.chat.id),
-        chatTitle:
-          ctx.chat.title || '',
-        welcomeMessageId:
-          sent.message_id,
-        createdAt:
-          new Date().toISOString()
+  userId: Number(user.id),
+  chatId:
+    Number(ctx.chat.id),
+  chatTitle:
+    ctx.chat.title || '',
+  welcomeMessageId:
+    sent.message_id,
+  captchaToken,
+  createdAt:
+    new Date().toISOString()
       });
     }
 
@@ -10353,16 +10359,26 @@ async function handleNewMembers(
 }
 
 async function findPendingCaptcha(
-  userId
+  userId,
+  captchaToken = ''
 ) {
   const data =
     await getWelcomeData();
+
+  const token =
+    String(captchaToken || '').trim();
 
   const item =
     data.pending.find(
       x =>
         Number(x.userId) ===
-        Number(userId)
+          Number(userId) &&
+        (
+          !token ||
+          String(
+            x.captchaToken || ''
+          ) === token
+        )
     );
 
   return {
@@ -10371,77 +10387,243 @@ async function findPendingCaptcha(
   };
 }
 
+
 async function sendRulesToUser(
   ctx,
   data
 ) {
-  const rules =
-    data.settings.rulesText;
+  const pendingItem =
+    data.pending.find(
+      x =>
+        Number(x.userId) ===
+        Number(ctx.from?.id)
+    );
 
-  const max =
-    3900;
+  if (!pendingItem) {
+    return;
+  }
 
-  const chunks = [];
-  let current = '';
+  const captchaToken =
+    String(
+      pendingItem.captchaToken || ''
+    ).trim();
 
-  for (
-    const line of
-    String(rules).split('\n')
-  ) {
-    const next =
-      current
-        ? `${current}\n${line}`
-        : line;
+  if (!captchaToken) {
+    return;
+  }
 
-    if (
-      next.length > max &&
-      current
-    ) {
-      chunks.push(current);
-      current = line;
-    } else {
-      current = next;
+  await ctx.reply(
+    '<b>📋 قوانین گروه</b>\n\n' +
+    'لطفاً قوانین گروه را مطالعه کنید و سپس تأیید کنید.',
+    {
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: '✅ تأیید قوانین',
+              callback_data:
+                `captcha_accept:${captchaToken}`
+            }
+          ]
+        ]
+      }
     }
-  }
+  );
+}
 
-  if (current) {
-    chunks.push(current);
-  }
 
-  for (
-    let i = 0;
-    i < chunks.length;
-    i++
-  ) {
+bot.start(
+  async ctx => {
+    const text =
+      ctx.message?.text || '';
+
+    const match =
+      text.match(
+        /^\/start(?:@\w+)?(?:\s+(.+))?$/i
+      );
+
+    const payload =
+      String(match?.[1] || '').trim();
+
     if (
-      i ===
-      chunks.length - 1
+      payload.startsWith(
+        'captcha_'
+      )
     ) {
-      await ctx.reply(
-        chunks[i],
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text:
-                    data.settings
-                      .confirmButtonText,
-                  callback_data:
-                    'captcha_accept'
-                }
-              ]
-            ]
+      const parts =
+        payload.split('_');
+
+      const targetId =
+        Number(parts[1]);
+
+      const captchaToken =
+        parts.slice(2).join('_');
+
+      if (
+        !Number.isFinite(targetId) ||
+        targetId !==
+          Number(ctx.from?.id) ||
+        !captchaToken
+      ) {
+        return;
+      }
+
+      const result =
+        await findPendingCaptcha(
+          ctx.from.id,
+          captchaToken
+        );
+
+      if (!result.item) {
+        await ctx.reply(
+          '<b>این درخواست منقضی شده یا قبلاً تأیید شده است.</b>',
+          {
+            parse_mode: 'HTML'
           }
+        );
+
+        return;
+      }
+
+      await sendRulesToUser(
+        ctx,
+        result.data
+      );
+
+      return;
+    }
+
+    if (isAdmin(ctx)) {
+      await ctx.reply(
+        '<b>Owner Panel</b>',
+        {
+          parse_mode: 'HTML',
+          reply_markup:
+            mainKeyboard()
         }
       );
-    } else {
-      await ctx.reply(
-        chunks[i]
-      );
+
+      return;
     }
+
+    await ctx.reply(
+      USER_COMMANDS_TEXT,
+      {
+        parse_mode: 'HTML',
+        link_preview_options: {
+          is_disabled: true
+        }
+      }
+    );
   }
-}
+);
+
+
+bot.action(
+  /^captcha_accept:(.+)$/,
+  async ctx => {
+    const userId =
+      Number(ctx.from?.id);
+
+    const captchaToken =
+      String(
+        ctx.match?.[1] || ''
+      ).trim();
+
+    if (!captchaToken) {
+      try {
+        await ctx.answerCbQuery(
+          'درخواست نامعتبر است.'
+        );
+      } catch {}
+
+      return;
+    }
+
+    const result =
+      await findPendingCaptcha(
+        userId,
+        captchaToken
+      );
+
+    if (!result.item) {
+      try {
+        await ctx.answerCbQuery(
+          'درخواست پیدا نشد یا منقضی شده است.'
+        );
+      } catch {}
+
+      return;
+    }
+
+    const success =
+      await unmuteUser(
+        ctx,
+        result.item.chatId,
+        userId
+      );
+
+    if (!success) {
+      try {
+        await ctx.answerCbQuery(
+          'خطا در تأیید عضویت.'
+        );
+      } catch {}
+
+      return;
+    }
+
+    if (
+      result.item.chatId &&
+      result.item.welcomeMessageId
+    ) {
+      try {
+        await ctx.telegram.deleteMessage(
+          Number(
+            result.item.chatId
+          ),
+          Number(
+            result.item.welcomeMessageId
+          )
+        );
+      } catch (error) {
+        console.error(
+          'WELCOME MESSAGE DELETE ERROR:',
+          error
+        );
+      }
+    }
+
+    const newPending =
+      result.data.pending.filter(
+        item =>
+          Number(item.userId) !==
+          userId
+      );
+
+    await saveWelcomeData(
+      result.data.settings,
+      newPending
+    );
+
+    try {
+      await ctx.answerCbQuery(
+        'تأیید شد ✅'
+      );
+    } catch {}
+
+    try {
+      await ctx.editMessageText(
+        '<b>عضویت شما تأیید شد ✅</b>\n\n' +
+        'اکنون می‌توانید از گروه استفاده کنید.',
+        {
+          parse_mode: 'HTML'
+        }
+      );
+    } catch {}
+  }
+);
 
 function userInfoText(
   user
@@ -11625,90 +11807,6 @@ bot.action(
   }
 );
 
-bot.start(
-  async ctx => {
-    const text =
-      ctx.message?.text || '';
-
-    const match =
-      text.match(
-        /^\/start(?:@\w+)?(?:\s+(.+))?$/i
-      );
-
-    const payload =
-      String(match?.[1] || '').trim();
-
-
-    if (
-      payload.startsWith(
-        'captcha_-'
-      )
-    ) {
-      const targetId =
-        Number(
-          payload.replace(
-            'captcha_-',
-            ''
-          )
-        );
-
-      if (
-        !Number.isFinite(targetId) ||
-        targetId !==
-          Number(ctx.from?.id)
-      ) {
-        return;
-      }
-
-      const result =
-        await findPendingCaptcha(
-          ctx.from.id
-        );
-
-      if (!result.item) {
-        await ctx.reply(
-          '<b>این درخواست منقضی شده یا قبلاً تأیید شده است.</b>',
-          {
-            parse_mode: 'HTML'
-          }
-        );
-
-        return;
-      }
-
-      await sendRulesToUser(
-        ctx,
-        result.data
-      );
-
-      return;
-    }
-
-
-    if (isAdmin(ctx)) {
-      await ctx.reply(
-        '<b>Owner Panel</b>',
-        {
-          parse_mode: 'HTML',
-          reply_markup:
-            mainKeyboard()
-        }
-      );
-
-      return;
-    }
-
-    await ctx.reply(
-      USER_COMMANDS_TEXT,
-      {
-        parse_mode: 'HTML',
-        link_preview_options: {
-          is_disabled: true
-        }
-      }
-    );
-  }
-);
 
 
 
@@ -15901,108 +15999,7 @@ bot.action(
   }
 );
 
-bot.action(
-  'captcha_accept',
-  async ctx => {
-    const userId =
-      Number(ctx.from?.id);
 
-    const result =
-      await findPendingCaptcha(
-        userId
-      );
-
-    if (!result.item) {
-      try {
-        await ctx.answerCbQuery(
-          'درخواست پیدا نشد.'
-        );
-      } catch {}
-
-      return;
-    }
-
-    const success =
-      await unmuteUser(
-        ctx,
-        result.item.chatId,
-        userId
-      );
-
-    if (!success) {
-      try {
-        await ctx.answerCbQuery(
-          'باز کردن دسترسی انجام نشد.'
-        );
-      } catch {}
-
-      try {
-        await ctx.reply(
-          '<b>❌ باز کردن دسترسی انجام نشد. لطفاً دوباره تلاش کنید.</b>',
-          {
-            parse_mode: 'HTML'
-          }
-        );
-      } catch {}
-
-      return;
-    }
-
-    /*
-     * حذف پیام خوش‌آمدگویی گروه
-     * همان پیامی که بعد از ورود کاربر ارسال شده
-     */
-    if (
-      result.item.chatId &&
-      result.item.welcomeMessageId
-    ) {
-      try {
-        await ctx.telegram.deleteMessage(
-          Number(result.item.chatId),
-          Number(result.item.welcomeMessageId)
-        );
-      } catch (error) {
-        console.error(
-          'WELCOME MESSAGE DELETE ERROR:',
-          error
-        );
-      }
-    }
-
-    const newPending =
-      result.data.pending.filter(
-        item =>
-          Number(item.userId) !==
-          userId
-      );
-
-    await saveWelcomeData(
-      result.data.settings,
-      newPending
-    );
-
-    try {
-      await ctx.answerCbQuery(
-        'قوانین تأیید شد.'
-      );
-    } catch {}
-
-    try {
-      await ctx.editMessageReplyMarkup({
-        inline_keyboard: []
-      });
-    } catch {}
-
-    try {
-      await ctx.reply(
-        '<b>قوانین گروپ تأیید شد و دسترسی شما باز شد.</b>',
-        {
-          parse_mode: 'HTML'
-        }
-      );
-    } catch {}
-  }
-);
 
 bot.hears(
   'Post Tools',
