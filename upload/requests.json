@@ -29,8 +29,22 @@
     "chatId": 2048310529,
     "mode": "group",
     "status": "waiting_files",
-    "files": [],
+    "files": [
+      {
+        "messageId": 10,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790773727333
+      },
+      {
+        "messageId": 11,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790773727515
+      }
+    ],
     "createdAt": 1790773718523,
-    "updatedAt": 1790773724074
+    "updatedAt": 1790773727506,
+    "fileCount": 1
   }
 ]
