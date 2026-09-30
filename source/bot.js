@@ -12086,178 +12086,412 @@ bot.command('updatebot', async (ctx) => {
 });
 
 
-bot.on('document', async (ctx) => {
+function updateBotGithubHeaders() {
+  return {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'AnimeFaarsi-Bot',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+}
+
+function updateBotRawUrl(path) {
+  return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${path}`;
+}
+
+function updateBotGithubApiUrl(path) {
+  return `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
+}
+
+function updateBotRateReset(headers) {
+  const value =
+    headers?.['x-ratelimit-reset'] ||
+    headers?.['X-RateLimit-Reset'];
+
+  if (!value) return null;
+
+  const timestamp = Number(value);
+
+  if (!Number.isFinite(timestamp)) {
+    return null;
+  }
+
+  return new Date(timestamp * 1000);
+}
+
+function updateBotRateMessage(error) {
+  const headers =
+    error?.response?.headers || {};
+
+  const reset =
+    updateBotRateReset(headers);
+
+  const remaining =
+    headers?.['x-ratelimit-remaining'] ??
+    headers?.['X-RateLimit-Remaining'];
+
+  const limit =
+    headers?.['x-ratelimit-limit'] ??
+    headers?.['X-RateLimit-Limit'];
+
+  let text =
+    '⛔ GitHub API Rate Limit\n\n';
+
+  if (limit !== undefined) {
+    text += `📊 Limit: ${limit}\n`;
+  }
+
+  if (remaining !== undefined) {
+    text += `📉 Remaining: ${remaining}\n`;
+  }
+
+  if (reset) {
+    text +=
+      `🔄 Reset: ${reset.toISOString()}\n`;
+  }
+
+  return text;
+}
+
+async function updateBotGithubPut(
+  path,
+  payload
+) {
   try {
-    if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) return;
+    return await axios.put(
+      updateBotGithubApiUrl(path),
+      payload,
+      {
+        headers:
+          updateBotGithubHeaders(),
+        timeout:
+          30000
+      }
+    );
+  } catch (error) {
 
-    const state = updateBotStates.get(ctx.from.id);
-    if (!state || !state.waitingForFile) return;
+    if (
+      error?.response?.status === 403 &&
+      String(
+        error?.response?.data?.message || ''
+      ).toLowerCase().includes(
+        'rate limit'
+      )
+    ) {
+      error.isGithubRateLimit = true;
+    }
 
-    const document = ctx.message.document;
+    throw error;
+  }
+}
 
-    if (!document || document.file_name !== 'bot.js') {
+bot.on('document', async (ctx) => {
+  let progress = null;
+  let currentStep = 'start';
+
+  try {
+    if (
+      !ctx.from ||
+      Number(ctx.from.id) !== UPDATE_ADMIN_ID
+    ) {
+      return;
+    }
+
+    const state =
+      updateBotStates.get(
+        ctx.from.id
+      );
+
+    if (
+      !state ||
+      !state.waitingForFile
+    ) {
+      return;
+    }
+
+    const document =
+      ctx.message?.document;
+
+    if (
+      !document ||
+      document.file_name !== 'bot.js'
+    ) {
       return ctx.reply(
-        '❌ Invalid file.\n\nSend a file named exactly bot.js'
+        '❌ Invalid file.\n\n' +
+        'Send a file named exactly bot.js'
       );
     }
 
-    updateBotStates.delete(ctx.from.id);
-
-    const progress = await ctx.reply('⏳ Updating bot.js...');
-
-    const headers = {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28'
-    };
-
-    // Get current bot.js
-    const currentUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
-
-    const currentResponse = await axios.get(
-      currentUrl,
-      { headers }
+    updateBotStates.delete(
+      ctx.from.id
     );
 
-    const currentFile = currentResponse.data;
+    progress =
+      await ctx.reply(
+        '⏳ Updating bot.js...'
+      );
 
-    if (!currentFile?.sha || !currentFile?.content) {
-      throw new Error('Current bot.js not found.');
-    }
+    const headers =
+      updateBotGithubHeaders();
 
-    const oldSha = currentFile.sha;
+    const botPath =
+      GITHUB_FILE_PATH;
 
-    // Backup uses the real GitHub SHA
     const backupPath =
-      `${GITHUB_BACKUP_DIR}/bot-${oldSha}.js`;
+      `${GITHUB_BACKUP_DIR}/bot-${Date.now()}.js`;
 
-    const backupUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${backupPath}`;
+    const nowPath =
+      `${GITHUB_BACKUP_DIR}/now.json`;
 
-    // Check if this exact version already has a backup
-    let backupExists = false;
+    currentStep =
+      'download_current_bot';
+
+    let currentCode;
 
     try {
-      await axios.get(backupUrl, { headers });
-      backupExists = true;
+
+      const currentResponse =
+        await axios.get(
+          updateBotRawUrl(botPath),
+          {
+            responseType:
+              'arraybuffer',
+            timeout:
+              30000
+          }
+        );
+
+      currentCode =
+        Buffer.from(
+          currentResponse.data
+        ).toString('utf8');
+
     } catch (error) {
-      if (!error.response || error.response.status !== 404) {
+
+      if (
+        error?.response?.status === 403
+      ) {
         throw error;
       }
-    }
 
-    // Create backup only if it does not exist
-    if (!backupExists) {
-      await axios.put(
-        backupUrl,
-        {
-          message: `Backup bot.js ${oldSha.substring(0, 7)}`,
-          content: currentFile.content.replace(/\s/g, ''),
-          branch: GITHUB_BRANCH
-        },
-        { headers }
+      throw new Error(
+        'Could not download current bot.js from GitHub Raw.'
       );
     }
 
-    // Download new bot.js
-    const fileUrl =
-      await ctx.telegram.getFileLink(document.file_id);
-
-    const fileResponse = await axios.get(
-      fileUrl,
-      { responseType: 'arraybuffer' }
-    );
-
-    const newCode =
-      Buffer.from(fileResponse.data).toString('utf8');
-
-    if (!newCode.trim()) {
-      throw new Error('New bot.js is empty.');
+    if (
+      !currentCode ||
+      !currentCode.trim()
+    ) {
+      throw new Error(
+        'Current bot.js is empty.'
+      );
     }
 
-    const newContent =
-      Buffer.from(newCode, 'utf8').toString('base64');
+    currentStep =
+      'download_new_bot';
 
-    // Update bot.js
-    const updateUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+    const fileUrl =
+      await ctx.telegram.getFileLink(
+        document.file_id
+      );
 
-    const updateResponse = await axios.put(
-      updateUrl,
+    const fileResponse =
+      await axios.get(
+        fileUrl,
+        {
+          responseType:
+            'arraybuffer',
+          timeout:
+            60000
+        }
+      );
+
+    const newCode =
+      Buffer.from(
+        fileResponse.data
+      ).toString('utf8');
+
+    if (
+      !newCode ||
+      !newCode.trim()
+    ) {
+      throw new Error(
+        'New bot.js is empty.'
+      );
+    }
+
+    currentStep =
+      'github_get_current_sha';
+
+    const currentApiResponse =
+      await axios.get(
+        updateBotGithubApiUrl(
+          botPath
+        ),
+        {
+          headers,
+          params: {
+            ref:
+              GITHUB_BRANCH
+          },
+          timeout:
+            30000
+        }
+      );
+
+    const oldSha =
+      currentApiResponse.data?.sha;
+
+    if (!oldSha) {
+      throw new Error(
+        'GitHub did not return the current bot.js SHA.'
+      );
+    }
+
+    currentStep =
+      'github_create_backup';
+
+    const backupContent =
+      Buffer.from(
+        currentCode,
+        'utf8'
+      ).toString('base64');
+
+    await updateBotGithubPut(
+      backupPath,
       {
-        message: 'Update bot.js',
-        content: newContent,
-        sha: oldSha,
-        branch: GITHUB_BRANCH
-      },
-      { headers }
+        message:
+          `Backup bot.js ${oldSha.substring(0, 7)}`,
+        content:
+          backupContent,
+        branch:
+          GITHUB_BRANCH
+      }
     );
+
+    currentStep =
+      'github_update_bot';
+
+    const newContent =
+      Buffer.from(
+        newCode,
+        'utf8'
+      ).toString('base64');
+
+    const updateResponse =
+      await updateBotGithubPut(
+        botPath,
+        {
+          message:
+            'Update bot.js',
+          content:
+            newContent,
+          sha:
+            oldSha,
+          branch:
+            GITHUB_BRANCH
+        }
+      );
 
     const newSha =
       updateResponse.data?.content?.sha;
 
     if (!newSha) {
-      throw new Error('GitHub did not return the new SHA.');
-    }
-
-    // Update now.json
-    const nowPath =
-      `${GITHUB_BACKUP_DIR}/now.json`;
-
-    const nowUrl =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${nowPath}`;
-
-    let nowSha = null;
-
-    try {
-      const nowResponse = await axios.get(
-        `${nowUrl}?ref=${GITHUB_BRANCH}`,
-        { headers }
+      throw new Error(
+        'GitHub did not return the new bot.js SHA.'
       );
-
-      nowSha = nowResponse.data?.sha || null;
-
-    } catch (error) {
-      if (!error.response || error.response.status !== 404) {
-        throw error;
-      }
     }
+
+    currentStep =
+      'github_update_now';
 
     const nowData = {
-      version: newSha,
-      previousVersion: oldSha,
-      file: GITHUB_FILE_PATH,
-      branch: GITHUB_BRANCH,
-      source: 'github',
-      updatedAt: new Date().toISOString(),
-      status: 'pending'
+      version:
+        newSha,
+      previousVersion:
+        oldSha,
+      file:
+        botPath,
+      branch:
+        GITHUB_BRANCH,
+      source:
+        'github',
+      updatedAt:
+        new Date().toISOString(),
+      status:
+        'pending'
     };
 
     const nowContent =
       Buffer.from(
-        JSON.stringify(nowData, null, 2),
+        JSON.stringify(
+          nowData,
+          null,
+          2
+        ),
         'utf8'
       ).toString('base64');
 
+    let nowSha = null;
+
+    try {
+
+      const nowResponse =
+        await axios.get(
+          updateBotGithubApiUrl(
+            nowPath
+          ),
+          {
+            headers,
+            params: {
+              ref:
+                GITHUB_BRANCH
+            },
+            timeout:
+              30000
+          }
+        );
+
+      nowSha =
+        nowResponse.data?.sha ||
+        null;
+
+    } catch (error) {
+
+      if (
+        error?.response?.status !== 404
+      ) {
+        throw error;
+      }
+    }
+
     const nowPayload = {
-      message: 'Update bot version metadata',
-      content: nowContent,
-      branch: GITHUB_BRANCH
+      message:
+        'Update bot version metadata',
+      content:
+        nowContent,
+      branch:
+        GITHUB_BRANCH
     };
 
     if (nowSha) {
-      nowPayload.sha = nowSha;
+      nowPayload.sha =
+        nowSha;
     }
 
-    await axios.put(
-      nowUrl,
-      nowPayload,
-      { headers }
+    await updateBotGithubPut(
+      nowPath,
+      nowPayload
     );
 
+    currentStep =
+      'finish';
+
     const backupRawUrl =
-      `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${backupPath}`;
+      updateBotRawUrl(
+        backupPath
+      );
 
     await ctx.telegram.editMessageText(
       ctx.chat.id,
@@ -12271,13 +12505,203 @@ bot.on('document', async (ctx) => {
     );
 
   } catch (error) {
-    console.error('updatebot:', error);
 
-    updateBotStates.delete(ctx.from.id);
+    console.error(
+      'updatebot:',
+      error
+    );
+
+    updateBotStates.delete(
+      ctx.from.id
+    );
+
+    let errorText =
+      '❌ UPDATE FAILED\n\n' +
+      `📍 Step:\n${currentStep}\n\n` +
+      `❌ Error:\n${
+        error?.message ||
+        'Unknown error'
+      }\n\n`;
+
+    if (
+      error?.isGithubRateLimit
+    ) {
+
+      errorText +=
+        updateBotRateMessage(
+          error
+        );
+
+    } else if (
+      error?.response
+    ) {
+
+      errorText +=
+        `📡 HTTP: ${
+          error.response.status ||
+          'N/A'
+        }\n\n` +
+
+        `🐙 GitHub:\n${
+          error.response.data?.message ||
+          'No GitHub error message'
+        }`;
+
+    } else {
+
+      errorText +=
+        `🔢 Code: ${
+          error?.code ||
+          'N/A'
+        }`;
+    }
+
+    const chunks = [];
+
+    for (
+      let i = 0;
+      i < errorText.length;
+      i += 3500
+    ) {
+      chunks.push(
+        errorText.substring(
+          i,
+          i + 3500
+        )
+      );
+    }
+
+    try {
+
+      if (progress) {
+
+        await ctx.telegram.editMessageText(
+          ctx.chat.id,
+          progress.message_id,
+          undefined,
+          chunks[0]
+        );
+
+        for (
+          let i = 1;
+          i < chunks.length;
+          i++
+        ) {
+          await ctx.reply(
+            chunks[i]
+          );
+        }
+
+      } else {
+
+        for (
+          const chunk of chunks
+        ) {
+          await ctx.reply(
+            chunk
+          );
+        }
+      }
+
+    } catch (sendError) {
+
+      console.error(
+        'UPDATEBOT SEND ERROR:',
+        sendError
+      );
+    }
+  }
+});
+
+
+
+bot.command('githublimit', async (ctx) => {
+  try {
+    if (
+      !ctx.from ||
+      Number(ctx.from.id) !== UPDATE_ADMIN_ID
+    ) {
+      return;
+    }
+
+    const response = await axios.get(
+      'https://api.github.com/rate_limit',
+      {
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github+json',
+          'User-Agent': 'AnimeFaarsi-Bot',
+          'X-GitHub-Api-Version': '2022-11-28'
+        },
+        timeout: 15000
+      }
+    );
+
+    const rate =
+      response.data?.resources?.core;
+
+    if (!rate) {
+      return ctx.reply(
+        '❌ GitHub rate limit information was not found.'
+      );
+    }
+
+    const resetDate =
+      new Date(rate.reset * 1000);
+
+    const now =
+      Date.now();
+
+    const remainingMs =
+      Math.max(
+        0,
+        resetDate.getTime() - now
+      );
+
+    const hours =
+      Math.floor(
+        remainingMs / 3600000
+      );
+
+    const minutes =
+      Math.floor(
+        (remainingMs % 3600000) / 60000
+      );
+
+    const seconds =
+      Math.floor(
+        (remainingMs % 60000) / 1000
+      );
 
     await ctx.reply(
-      '❌ Update failed.\n\n' +
-      (error.message || 'Please try again.')
+      '🐙 GitHub API Rate Limit\n\n' +
+      `📊 Limit: ${rate.limit}\n` +
+      `📉 Used: ${rate.used}\n` +
+      `✅ Remaining: ${rate.remaining}\n\n` +
+      `🔄 Reset:\n${resetDate.toISOString()}\n\n` +
+      `⏳ Time remaining:\n` +
+      `${hours}h ${minutes}m ${seconds}s`
+    );
+
+  } catch (error) {
+
+    const status =
+      error?.response?.status;
+
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Unknown error';
+
+    await ctx.reply(
+      '❌ GitHub Rate Limit Check Failed\n\n' +
+      `📡 HTTP: ${status || 'N/A'}\n` +
+      `❌ ${message}`
+    );
+
+    console.error(
+      'GITHUB LIMIT ERROR:',
+      error
     );
   }
 });
@@ -18942,6 +19366,10 @@ ensureUploadGithubFiles()
             error
         );
     });
+
+
+
+
 
 
 bot.catch(
