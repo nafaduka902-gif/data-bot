@@ -533,5 +533,15 @@
     "files": [],
     "createdAt": 1790789131837,
     "updatedAt": 1790789131837
+  },
+  {
+    "id": "up_1790789587336_iq9nst",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": "group",
+    "status": "waiting_files",
+    "files": [],
+    "createdAt": 1790789587336,
+    "updatedAt": 1790789587336
   }
 ]
