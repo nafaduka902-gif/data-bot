@@ -625,5 +625,15 @@
     "updatedAt": 1790799346130,
     "fileCount": 1,
     "readyAt": 1790799345949
+  },
+  {
+    "id": "up_1790799464715_epz21x",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": "group",
+    "status": "waiting_files",
+    "files": [],
+    "createdAt": 1790799464715,
+    "updatedAt": 1790799464715
   }
 ]
