@@ -5,8 +5,16 @@
     "chatId": 2048310529,
     "mode": "group",
     "status": "waiting_files",
-    "files": [],
+    "files": [
+      {
+        "messageId": 14,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790774490282
+      }
+    ],
     "createdAt": 1790774463677,
-    "updatedAt": 1790774477414
+    "updatedAt": 1790774490445,
+    "fileCount": 1
   }
 ]
