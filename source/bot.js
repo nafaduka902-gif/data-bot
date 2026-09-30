@@ -1067,12 +1067,15 @@ async function uploadUpdateStatusMessage(
     }
 }
 
-bot.command(
-    'upload',
-    async ctx => {
+bot.on(
+    'message',
+    async (ctx, next) => {
         try {
-            if (!ctx.from) {
-                return
+            if (
+                !ctx.from ||
+                !ctx.message
+            ) {
+                return next()
             }
 
             const userId =
@@ -1080,92 +1083,143 @@ bot.command(
                     ctx.from.id
                 )
 
-            uploadClearState(
-                userId
-            )
+            const state =
+                uploadGetState(
+                    userId
+                )
 
-            const request = {
-                id:
-                    uploadGenerateId(),
-                userId,
+            if (
+                !state ||
+                state.mode !==
+                    'group'
+            ) {
+                return next()
+            }
+
+            if (
+                !uploadIsFile(
+                    ctx.message
+                )
+            ) {
+                return next()
+            }
+
+            const bridgeMessageId =
+                await uploadCopyToBridge(
+                    ctx
+                )
+
+            try {
+                await ctx.telegram.deleteMessage(
+                    ctx.chat.id,
+                    ctx.message.message_id
+                )
+            } catch (error) {
+                console.error(
+                    'UPLOAD DELETE ERROR:',
+                    error.message
+                )
+            }
+
+            const fileRecord = {
+                messageId:
+                    Number(
+                        bridgeMessageId
+                    ),
                 chatId:
                     Number(
-                        ctx.chat.id
+                        UPLOAD_BRIDGE_CHAT_ID
                     ),
-                mode:
-                    'group',
-                status:
-                    'waiting_files',
-                files:
-                    [],
-                createdAt:
-                    Date.now(),
-                updatedAt:
+                fileName:
+                    uploadFileName(
+                        ctx.message
+                    ),
+                addedAt:
                     Date.now()
             }
 
-            const statusMessage =
-                await ctx.reply(
-                    '⚡️ Fast Upload Mode\n\n' +
-                    '✅ Please send your files one by one.\n' +
-                    'All files will receive one common download link.\n\n' +
-                    '📥 Send your files now.',
-                    {
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    {
-                                        text:
-                                            '✅ Finish Upload',
-                                        callback_data:
-                                            `upload_finish:${request.id}`
-                                    }
-                                ],
-                                [
-                                    {
-                                        text:
-                                            '❌ Cancel',
-                                        callback_data:
-                                            `upload_cancel:${request.id}`
-                                    }
-                                ]
-                            ]
-                        }
-                    }
-                )
+            state.files.push(
+                fileRecord
+            )
 
             uploadSetState(
                 userId,
+                state
+            )
+
+            const count =
+                state.files.length
+
+            await uploadUpdateStatusMessage(
+                ctx,
+                state.statusMessageId,
+                `⚡️ Fast Upload Mode\n\n` +
+                `✅ File received: ${count}\n` +
+                `📥 Waiting for the next file...\n\n` +
+                `📦 Total files: ${count}`,
                 {
-                    requestId:
-                        request.id,
-                    mode:
-                        'group',
-                    files:
-                        [],
-                    statusMessageId:
-                        Number(
-                            statusMessage.message_id
-                        ),
-                    chatId:
-                        Number(
-                            ctx.chat.id
-                        )
+                    inline_keyboard: [
+                        [
+                            {
+                                text:
+                                    '✅ Finish Upload',
+                                callback_data:
+                                    `upload_finish:${state.requestId}`
+                            }
+                        ],
+                        [
+                            {
+                                text:
+                                    '❌ Cancel',
+                                callback_data:
+                                    `upload_cancel:${state.requestId}`
+                            }
+                        ]
+                    ]
                 }
             )
 
-            await uploadCreateRequestSafely(
-                request
-            )
+            return
         } catch (error) {
             console.error(
-                'UPLOAD COMMAND ERROR:',
-                error
+                'UPLOAD FILE ERROR:',
+                JSON.stringify(
+                    {
+                        message:
+                            error?.message ||
+                            null,
+                        code:
+                            error?.code ||
+                            null,
+                        status:
+                            error?.response?.status ||
+                            null,
+                        data:
+                            error?.response?.data ||
+                            null,
+                        description:
+                            error?.response?.description ||
+                            null
+                    },
+                    null,
+                    2
+                )
             )
 
-            await ctx.reply(
-                '❌ Failed to start upload.'
-            )
+            try {
+                await uploadUpdateStatusMessage(
+                    ctx,
+                    uploadGetState(
+                        Number(
+                            ctx.from?.id
+                        )
+                    )?.statusMessageId,
+                    '❌ Failed to receive the file.\n\n' +
+                    '📥 Please try sending it again.'
+                )
+            } catch {}
+
+            return
         }
     }
 )
@@ -1298,8 +1352,8 @@ bot.action(
                 ctx,
                 state.statusMessageId,
                 `📦 ${files.length} files received.\n\n` +
-                '⏳ Upload request sent.\n' +
-                'Please wait for the final download link.'
+                '⏳ Upload is in progress.\n' +
+                'Please wait for the download link.'
             )
 
             uploadClearState(
@@ -1428,9 +1482,7 @@ bot.on(
             )
 
             try {
-                await ctx.reply(
-                    '❌ Failed to receive the file.'
-                )
+                
             } catch {}
 
             return
@@ -1509,10 +1561,31 @@ async function uploadCheckResults() {
                 continue
             }
 
+            const fileCount =
+                result.fileCount ||
+                request.fileCount ||
+                request.files?.length ||
+                0
+
             await bot.telegram.sendMessage(
                 chatId,
-                '✅ Upload completed.\n\n' +
-                `🔗 Download link:\n${result.link}`
+                '✅ Upload completed!\n\n' +
+                `📦 ${fileCount} files uploaded successfully.\n\n` +
+                `🔗 Download link:\n${result.link}`,
+                {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text:
+                                        '🔗 Open Download Link',
+                                    url:
+                                        result.link
+                                }
+                            ]
+                        ]
+                    }
+                }
             )
 
             requests[index] = {
