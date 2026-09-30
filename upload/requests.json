@@ -114,7 +114,7 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "ready",
+    "status": "processing",
     "files": [
       {
         "messageId": 29,
@@ -178,7 +178,8 @@
       }
     ],
     "createdAt": 1790778381480,
-    "updatedAt": 1790778462459,
-    "fileCount": 10
+    "updatedAt": 1790778465676,
+    "fileCount": 10,
+    "processingStartedAt": 1790778464790
   }
 ]
