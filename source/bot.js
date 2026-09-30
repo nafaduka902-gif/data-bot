@@ -1645,6 +1645,108 @@ startUploadResultWatcher()
 
 
 
+bot.command(
+    'upload',
+    async ctx => {
+        try {
+            if (!ctx.from) {
+                return
+            }
+
+            const userId =
+                Number(
+                    ctx.from.id
+                )
+
+            uploadClearState(
+                userId
+            )
+
+            const request = {
+                id:
+                    uploadGenerateId(),
+                userId,
+                chatId:
+                    Number(
+                        ctx.chat.id
+                    ),
+                mode:
+                    'group',
+                status:
+                    'waiting_files',
+                files:
+                    [],
+                createdAt:
+                    Date.now(),
+                updatedAt:
+                    Date.now()
+            }
+
+            const statusMessage =
+                await ctx.reply(
+                    '⚡️ Fast Upload Mode\n\n' +
+                    '✅ Please send your files one by one.\n' +
+                    'All files will receive one common download link.\n\n' +
+                    '📥 Send your files now.',
+                    {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text:
+                                            '✅ Finish Upload',
+                                        callback_data:
+                                            `upload_finish:${request.id}`
+                                    }
+                                ],
+                                [
+                                    {
+                                        text:
+                                            '❌ Cancel',
+                                        callback_data:
+                                            `upload_cancel:${request.id}`
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                )
+
+            uploadSetState(
+                userId,
+                {
+                    requestId:
+                        request.id,
+                    mode:
+                        'group',
+                    files:
+                        [],
+                    statusMessageId:
+                        Number(
+                            statusMessage.message_id
+                        ),
+                    chatId:
+                        Number(
+                            ctx.chat.id
+                        )
+                }
+            )
+
+            await uploadCreateRequestSafely(
+                request
+            )
+        } catch (error) {
+            console.error(
+                'UPLOAD COMMAND ERROR:',
+                error
+            )
+
+            await ctx.reply(
+                '❌ Failed to start upload.'
+            )
+        }
+    }
+)
 
 
 // ==========================================
