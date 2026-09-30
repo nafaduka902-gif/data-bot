@@ -397,5 +397,15 @@
     "resultLink": "https://t.me/Uploaderpro01Bot?start=7643360501_895339772",
     "completedAt": 1790781243727,
     "resultSentAt": 1790781245831
+  },
+  {
+    "id": "up_1790781924644_ckaae2",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": "group",
+    "status": "waiting_files",
+    "files": [],
+    "createdAt": 1790781924644,
+    "updatedAt": 1790781924644
   }
 ]
