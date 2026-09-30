@@ -11,10 +11,16 @@
         "chatId": -1004328029117,
         "fileName": "video",
         "addedAt": 1790776625136
+      },
+      {
+        "messageId": 17,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790776632548
       }
     ],
     "createdAt": 1790776612484,
-    "updatedAt": 1790776625284,
-    "fileCount": 1
+    "updatedAt": 1790776632761,
+    "fileCount": 2
   }
 ]
