@@ -571,7 +571,7 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "processing",
+    "status": "failed",
     "files": [
       {
         "messageId": 104,
@@ -581,9 +581,11 @@
       }
     ],
     "createdAt": 1790789731112,
-    "updatedAt": 1790792015275,
+    "updatedAt": 1790792618464,
     "fileCount": 1,
     "readyAt": 1790789750666,
-    "processingStartedAt": 1790792015263
+    "processingStartedAt": 1790792015263,
+    "error": "Uploader link timeout",
+    "failedAt": 1790792618351
   }
 ]
