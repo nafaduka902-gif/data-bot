@@ -3,10 +3,10 @@
     "id": "up_1790777358441_ko8tpz",
     "userId": 2048310529,
     "chatId": 2048310529,
-    "mode": null,
-    "status": "selecting",
+    "mode": "group",
+    "status": "waiting_files",
     "files": [],
     "createdAt": 1790777358441,
-    "updatedAt": 1790777358441
+    "updatedAt": 1790777361632
   }
 ]
