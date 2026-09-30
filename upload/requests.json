@@ -593,7 +593,7 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "result_sent",
+    "status": "processing",
     "files": [
       {
         "messageId": 106,
@@ -603,12 +603,10 @@
       }
     ],
     "createdAt": 1790799245028,
-    "updatedAt": 1790799546179,
+    "updatedAt": 1790799547530,
     "fileCount": 1,
     "readyAt": 1790799257151,
-    "resultLink": "https://t.me/Uploaderpro01Bot?start=7643360501_551848506",
-    "completedAt": 1790799544373,
-    "resultSentAt": 1790799546179
+    "processingStartedAt": 1790799547525
   },
   {
     "id": "up_1790799334641_5uewlf",
