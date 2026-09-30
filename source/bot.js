@@ -12421,6 +12421,7 @@ bot.command(
 const MAIN_GROUP_ID = -1003900501194;
 const ALLOWED_GROUP_ID_2 = -1002239235244;
 const ALLOWED_GROUP_ID_3 = -1004489761102;
+const ALLOWED_GROUP_ID_4 = -1004328029117;
 
 bot.use(
   async (ctx, next) => {
@@ -12430,13 +12431,13 @@ bot.use(
       return next();
     }
 
-    const chatId =
-      Number(chat.id);
+    const chatId = Number(chat.id);
 
     if (
       chatId === Number(MAIN_GROUP_ID) ||
       chatId === Number(ALLOWED_GROUP_ID_2) ||
-      chatId === Number(ALLOWED_GROUP_ID_3)
+      chatId === Number(ALLOWED_GROUP_ID_3) ||
+      chatId === Number(ALLOWED_GROUP_ID_4)
     ) {
       return next();
     }
@@ -12466,17 +12467,11 @@ bot.use(
       );
     } catch {}
 
-    if (
-      chatId !== Number(MAIN_GROUP_ID) &&
-      chatId !== Number(ALLOWED_GROUP_ID_2) &&
-      chatId !== Number(ALLOWED_GROUP_ID_3)
-    ) {
-      try {
-        await ctx.telegram.leaveChat(
-          chat.id
-        );
-      } catch {}
-    }
+    try {
+      await ctx.telegram.leaveChat(
+        chat.id
+      );
+    } catch {}
 
     return;
   }
