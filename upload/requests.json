@@ -539,7 +539,7 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "ready",
+    "status": "processing",
     "files": [
       {
         "messageId": 102,
@@ -561,9 +561,10 @@
       }
     ],
     "createdAt": 1790789587336,
-    "updatedAt": 1790789636152,
+    "updatedAt": 1790789766570,
     "fileCount": 3,
-    "readyAt": 1790789635761
+    "readyAt": 1790789635761,
+    "processingStartedAt": 1790789766561
   },
   {
     "id": "up_1790789731112_pe7t8e",
