@@ -615,7 +615,7 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "processing",
+    "status": "failed",
     "files": [
       {
         "messageId": 107,
@@ -625,10 +625,12 @@
       }
     ],
     "createdAt": 1790799334641,
-    "updatedAt": 1790800169635,
+    "updatedAt": 1790800790375,
     "fileCount": 1,
     "readyAt": 1790799345949,
-    "processingStartedAt": 1790800169632
+    "processingStartedAt": 1790800169632,
+    "error": "Uploader link timeout",
+    "failedAt": 1790800790245
   },
   {
     "id": "up_1790799464715_epz21x",
