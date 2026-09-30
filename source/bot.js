@@ -1442,6 +1442,19 @@ bot.on(
                     ctx
                 )
 
+            try {
+                await ctx.telegram.deleteMessage(
+                    ctx.chat.id,
+                    ctx.message.message_id
+                )
+            } catch (error) {
+                console.error(
+                    'UPLOAD FILE DELETE ERROR:',
+                    error?.message ||
+                    error
+                )
+            }
+
             const fileRecord = {
                 messageId:
                     Number(
@@ -1504,12 +1517,28 @@ bot.on(
         } catch (error) {
             console.error(
                 'UPLOAD FILE ERROR:',
-                error
+                JSON.stringify(
+                    {
+                        message:
+                            error?.message ||
+                            null,
+                        code:
+                            error?.code ||
+                            null,
+                        status:
+                            error?.response?.status ||
+                            null,
+                        data:
+                            error?.response?.data ||
+                            null,
+                        description:
+                            error?.response?.description ||
+                            null
+                    },
+                    null,
+                    2
+                )
             )
-
-            try {
-                
-            } catch {}
 
             return
         }
