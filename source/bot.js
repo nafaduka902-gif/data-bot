@@ -549,6 +549,11 @@ async function uploadGithubWrite(path, data, message) {
         sha = existing.sha;
     } catch (error) {
         if (!error.response || error.response.status !== 404) {
+            console.error(
+                'GITHUB EXISTING FILE ERROR:',
+                error.response?.status,
+                error.response?.data || error.message
+            );
             throw error;
         }
     }
@@ -568,13 +573,38 @@ async function uploadGithubWrite(path, data, message) {
         body.sha = sha;
     }
 
-    await axios.put(url, body, {
-        headers: {
-            Authorization: `Bearer ${GITHUB_TOKEN}`,
-            Accept: 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-    });
+    try {
+        const response = await axios.put(
+            url,
+            body,
+            {
+                headers: {
+                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                    Accept: 'application/vnd.github+json',
+                    'X-GitHub-Api-Version': '2022-11-28'
+                }
+            }
+        );
+
+        console.log(
+            `✅ GitHub write successful: ${path} | ${response.status}`
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error(
+            '❌ GITHUB WRITE ERROR:',
+            JSON.stringify({
+                path,
+                status: error.response?.status || null,
+                statusText: error.response?.statusText || null,
+                data: error.response?.data || null,
+                message: error.message
+            }, null, 2)
+        );
+
+        throw error;
+    }
 }
 
 async function ensureUploadGithubFiles() {
