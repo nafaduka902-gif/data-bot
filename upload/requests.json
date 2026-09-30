@@ -51,10 +51,28 @@
         "chatId": -1004328029117,
         "fileName": "video",
         "addedAt": 1790777679195
+      },
+      {
+        "messageId": 23,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790777679368
+      },
+      {
+        "messageId": 24,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790777679492
+      },
+      {
+        "messageId": 25,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790777687015
       }
     ],
     "createdAt": 1790777653118,
-    "updatedAt": 1790777679065,
-    "fileCount": 1
+    "updatedAt": 1790777687181,
+    "fileCount": 6
   }
 ]
