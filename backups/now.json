@@ -5,5 +5,6 @@
   "branch": "main",
   "source": "github",
   "updatedAt": "2026-09-30T14:43:36.023Z",
-  "status": "pending"
+  "status": "running",
+  "startedAt": "2026-09-30T14:43:44.837Z"
 }
