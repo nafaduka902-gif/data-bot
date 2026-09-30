@@ -109,5 +109,15 @@
     "error": "Uploader link timeout",
     "failedAt": 1790800789181,
     "createdAt": 1790800789324
+  },
+  {
+    "requestId": "up_1790799590118_uiwf0g",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": "group",
+    "status": "failed",
+    "error": "Uploader link timeout",
+    "failedAt": 1790803424298,
+    "createdAt": 1790803424409
   }
 ]
