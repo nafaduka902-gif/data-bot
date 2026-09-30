@@ -33,8 +33,28 @@
     "chatId": 2048310529,
     "mode": "group",
     "status": "waiting_files",
-    "files": [],
+    "files": [
+      {
+        "messageId": 20,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790777678905
+      },
+      {
+        "messageId": 21,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790777679078
+      },
+      {
+        "messageId": 22,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790777679195
+      }
+    ],
     "createdAt": 1790777653118,
-    "updatedAt": 1790777656377
+    "updatedAt": 1790777679065,
+    "fileCount": 1
   }
 ]
