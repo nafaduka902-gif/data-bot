@@ -10387,7 +10387,6 @@ async function findPendingCaptcha(
   };
 }
 
-
 async function sendRulesToUser(
   ctx,
   data
@@ -10408,25 +10407,41 @@ async function sendRulesToUser(
       pendingItem.captchaToken || ''
     ).trim();
 
-  if (!captchaToken) {
-    return;
-  }
+  const rulesText =
+    String(
+      data.settings?.rulesText ||
+      DEFAULT_RULES_TEXT
+    );
+
+  const confirmButtonText =
+    String(
+      data.settings?.confirmButtonText ||
+      '✅ خواندم و قوانین را قبول دارم'
+    );
+
+  const keyboard = {
+    inline_keyboard: [
+      [
+        {
+          text:
+            confirmButtonText,
+          callback_data:
+            captchaToken
+              ? `captcha_accept:${captchaToken}`
+              : 'captcha_accept'
+        }
+      ]
+    ]
+  };
 
   await ctx.reply(
-    '<b>📋 قوانین گروه</b>\n\n' +
-    'لطفاً قوانین گروه را مطالعه کنید و سپس تأیید کنید.',
+    rulesText,
     {
       parse_mode: 'HTML',
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: '✅ تأیید قوانین',
-              callback_data:
-                `captcha_accept:${captchaToken}`
-            }
-          ]
-        ]
+      reply_markup:
+        keyboard,
+      link_preview_options: {
+        is_disabled: true
       }
     }
   );
