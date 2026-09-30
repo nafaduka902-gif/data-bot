@@ -476,9 +476,48 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "waiting_files",
-    "files": [],
+    "status": "ready",
+    "files": [
+      {
+        "messageId": 87,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 028 [720p].mkv",
+        "addedAt": 1790784870807
+      },
+      {
+        "messageId": 88,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 029 [720p].mkv",
+        "addedAt": 1790784870986
+      },
+      {
+        "messageId": 89,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 026 [720p].mkv",
+        "addedAt": 1790784871121
+      },
+      {
+        "messageId": 90,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 027 [720p].mkv",
+        "addedAt": 1790784871237
+      },
+      {
+        "messageId": 91,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 028 [720p].mkv",
+        "addedAt": 1790784871422
+      },
+      {
+        "messageId": 92,
+        "chatId": -1004328029117,
+        "fileName": "[AWHT] Gintama - 029 [720p].mkv",
+        "addedAt": 1790784878873
+      }
+    ],
     "createdAt": 1790784858835,
-    "updatedAt": 1790784858835
+    "updatedAt": 1790784882641,
+    "fileCount": 6,
+    "readyAt": 1790784882478
   }
 ]
