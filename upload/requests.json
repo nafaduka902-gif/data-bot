@@ -606,5 +606,15 @@
     "updatedAt": 1790799257322,
     "fileCount": 1,
     "readyAt": 1790799257151
+  },
+  {
+    "id": "up_1790799334641_5uewlf",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": "group",
+    "status": "waiting_files",
+    "files": [],
+    "createdAt": 1790799334641,
+    "updatedAt": 1790799334641
   }
 ]
