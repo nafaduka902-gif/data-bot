@@ -497,212 +497,303 @@ async function githubPutFile(
 
 
 
-const UPLOAD_BRIDGE_CHAT_ID = -1004328029117;
-const uploadFlowStates = new Map();
-let uploadResultWatcherStarted = false;
+const UPLOAD_BRIDGE_CHAT_ID = -1004328029117
+
+const uploadFlowStates = new Map()
+
+let uploadResultWatcherStarted = false
+let uploadGithubWriteQueue = Promise.resolve()
+
+const UPLOAD_REQUESTS_FILE = 'upload/requests.json'
+const UPLOAD_RESULTS_FILE = 'upload/results.json'
+
+const UPLOAD_GITHUB_RETRY_COUNT = 8
+const UPLOAD_GITHUB_RETRY_DELAY = 500
+
+function uploadSleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function uploadGithubHeaders() {
+    return {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'AnimeFaarsi-Bot',
+        'X-GitHub-Api-Version': '2022-11-28'
+    }
+}
+
+function uploadGithubUrl(path) {
+    return `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`
+}
 
 async function uploadGithubGet(path) {
-    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
-
-    const response = await axios.get(url, {
-        headers: {
-            Authorization: `Bearer ${GITHUB_TOKEN}`,
-            Accept: 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28'
-        },
-        params: {
-            ref: GITHUB_BRANCH
+    const response = await axios.get(
+        uploadGithubUrl(path),
+        {
+            headers: uploadGithubHeaders(),
+            params: {
+                ref: GITHUB_BRANCH
+            },
+            timeout: 30000
         }
-    });
+    )
 
-    const content = Buffer.from(
-        response.data.content.replace(/\n/g, ''),
-        'base64'
-    ).toString('utf8');
+    const content =
+        Buffer.from(
+            response.data.content.replace(/\n/g, ''),
+            'base64'
+        ).toString('utf8')
 
     return {
         data: JSON.parse(content),
         sha: response.data.sha
-    };
+    }
 }
 
 async function uploadGithubRead(path, fallback) {
     try {
-        const result = await uploadGithubGet(path);
-        return result.data;
+        const result =
+            await uploadGithubGet(path)
+
+        return result.data
     } catch (error) {
-        if (error.response && error.response.status === 404) {
-            return fallback;
+        if (
+            error?.response?.status === 404
+        ) {
+            return fallback
         }
 
-        throw error;
+        throw error
     }
 }
 
-async function uploadGithubWrite(path, data, message) {
-    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
+function uploadQueueGithubWrite(task) {
+    const next =
+        uploadGithubWriteQueue.then(
+            task,
+            task
+        )
 
-    let sha;
+    uploadGithubWriteQueue =
+        next.catch(() => {})
 
-    try {
-        const existing = await uploadGithubGet(path);
-        sha = existing.sha;
-    } catch (error) {
-        if (!error.response || error.response.status !== 404) {
-            console.error(
-                'GITHUB EXISTING FILE ERROR:',
-                error.response?.status,
-                error.response?.data || error.message
-            );
-            throw error;
-        }
-    }
+    return next
+}
 
-    const content = Buffer.from(
-        JSON.stringify(data, null, 2),
-        'utf8'
-    ).toString('base64');
+async function uploadGithubWrite(
+    path,
+    data,
+    message
+) {
+    return uploadQueueGithubWrite(
+        async () => {
+            const url =
+                uploadGithubUrl(path)
 
-    const body = {
-        message,
-        content,
-        branch: GITHUB_BRANCH
-    };
+            for (
+                let attempt = 1;
+                attempt <= UPLOAD_GITHUB_RETRY_COUNT;
+                attempt++
+            ) {
+                let sha = null
 
-    if (sha) {
-        body.sha = sha;
-    }
+                try {
+                    const existing =
+                        await uploadGithubGet(path)
 
-    try {
-        const response = await axios.put(
-            url,
-            body,
-            {
-                headers: {
-                    Authorization: `Bearer ${GITHUB_TOKEN}`,
-                    Accept: 'application/vnd.github+json',
-                    'X-GitHub-Api-Version': '2022-11-28'
+                    sha =
+                        existing.sha
+                } catch (error) {
+                    if (
+                        error?.response?.status !==
+                        404
+                    ) {
+                        throw error
+                    }
+                }
+
+                const body = {
+                    message,
+                    content:
+                        Buffer.from(
+                            JSON.stringify(
+                                data,
+                                null,
+                                2
+                            ),
+                            'utf8'
+                        ).toString(
+                            'base64'
+                        ),
+                    branch:
+                        GITHUB_BRANCH
+                }
+
+                if (sha) {
+                    body.sha = sha
+                }
+
+                try {
+                    const response =
+                        await axios.put(
+                            url,
+                            body,
+                            {
+                                headers:
+                                    uploadGithubHeaders(),
+                                timeout:
+                                    30000
+                            }
+                        )
+
+                    console.log(
+                        `✅ GitHub WRITE OK: ${path}`
+                    )
+
+                    return response.data
+                } catch (error) {
+                    const status =
+                        error?.response?.status
+
+                    if (
+                        status === 409 &&
+                        attempt <
+                            UPLOAD_GITHUB_RETRY_COUNT
+                    ) {
+                        console.log(
+                            `⚠️ GitHub 409: ${path} | retry ${attempt}/${UPLOAD_GITHUB_RETRY_COUNT}`
+                        )
+
+                        await uploadSleep(
+                            UPLOAD_GITHUB_RETRY_DELAY *
+                            attempt
+                        )
+
+                        continue
+                    }
+
+                    if (
+                        status === 429 &&
+                        attempt <
+                            UPLOAD_GITHUB_RETRY_COUNT
+                    ) {
+                        const retryAfter =
+                            Number(
+                                error?.response?.headers?.[
+                                    'retry-after'
+                                ]
+                            ) || 5
+
+                        console.log(
+                            `⚠️ GitHub 429 | waiting ${retryAfter}s`
+                        )
+
+                        await uploadSleep(
+                            retryAfter *
+                            1000
+                        )
+
+                        continue
+                    }
+
+                    console.error(
+                        '❌ GITHUB WRITE ERROR:',
+                        JSON.stringify(
+                            {
+                                path,
+                                status,
+                                message:
+                                    error.message,
+                                data:
+                                    error?.response?.data ||
+                                    null
+                            },
+                            null,
+                            2
+                        )
+                    )
+
+                    throw error
                 }
             }
-        );
 
-        console.log(
-            `✅ GitHub write successful: ${path} | ${response.status}`
-        );
-
-        return response.data;
-    } catch (error) {
-        console.error(
-            '❌ GITHUB WRITE ERROR:',
-            JSON.stringify({
-                path,
-                status: error.response?.status || null,
-                statusText: error.response?.statusText || null,
-                data: error.response?.data || null,
-                message: error.message
-            }, null, 2)
-        );
-
-        throw error;
-    }
+            throw new Error(
+                `GitHub write failed: ${path}`
+            )
+        }
+    )
 }
 
 async function ensureUploadGithubFiles() {
-    const requests = await uploadGithubRead(
-        'upload/requests.json',
-        []
-    );
-
-    const results = await uploadGithubRead(
-        'upload/results.json',
-        []
-    );
-
     try {
-        await uploadGithubGet('upload/requests.json');
+        await uploadGithubGet(
+            UPLOAD_REQUESTS_FILE
+        )
     } catch (error) {
-        if (error.response && error.response.status === 404) {
+        if (
+            error?.response?.status ===
+            404
+        ) {
             await uploadGithubWrite(
-                'upload/requests.json',
-                requests,
+                UPLOAD_REQUESTS_FILE,
+                [],
                 'Create upload requests database'
-            );
+            )
         } else {
-            throw error;
+            throw error
         }
     }
 
     try {
-        await uploadGithubGet('upload/results.json');
+        await uploadGithubGet(
+            UPLOAD_RESULTS_FILE
+        )
     } catch (error) {
-        if (error.response && error.response.status === 404) {
+        if (
+            error?.response?.status ===
+            404
+        ) {
             await uploadGithubWrite(
-                'upload/results.json',
-                results,
+                UPLOAD_RESULTS_FILE,
+                [],
                 'Create upload results database'
-            );
+            )
         } else {
-            throw error;
+            throw error
         }
     }
-}
-
-async function createUploadRequest(request) {
-    const requests = await uploadGithubRead(
-        'upload/requests.json',
-        []
-    );
-
-    requests.push(request);
-
-    await uploadGithubWrite(
-        'upload/requests.json',
-        requests,
-        `Create upload request ${request.id}`
-    );
-}
-
-async function updateUploadRequest(requestId, changes) {
-    const requests = await uploadGithubRead(
-        'upload/requests.json',
-        []
-    );
-
-    const index = requests.findIndex(
-        item => String(item.id) === String(requestId)
-    );
-
-    if (index === -1) {
-        return;
-    }
-
-    requests[index] = {
-        ...requests[index],
-        ...changes,
-        updatedAt: Date.now()
-    };
-
-    await uploadGithubWrite(
-        'upload/requests.json',
-        requests,
-        `Update upload request ${requestId}`
-    );
 }
 
 function uploadGenerateId() {
-    return `up_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    return (
+        `up_${Date.now()}_` +
+        Math.random()
+            .toString(36)
+            .slice(2, 8)
+    )
 }
 
 function uploadGetState(userId) {
-    return uploadFlowStates.get(Number(userId));
+    return uploadFlowStates.get(
+        Number(userId)
+    )
 }
 
-function uploadSetState(userId, state) {
-    uploadFlowStates.set(Number(userId), state);
+function uploadSetState(
+    userId,
+    state
+) {
+    uploadFlowStates.set(
+        Number(userId),
+        state
+    )
 }
 
 function uploadClearState(userId) {
-    uploadFlowStates.delete(Number(userId));
+    uploadFlowStates.delete(
+        Number(userId)
+    )
 }
 
 function uploadIsFile(message) {
@@ -711,526 +802,773 @@ function uploadIsFile(message) {
         message.video ||
         message.audio ||
         message.animation
-    );
+    )
 }
 
 function uploadFileName(message) {
-    if (message.document) {
-        return message.document.file_name || 'file';
+    if (
+        message.document
+    ) {
+        return (
+            message.document.file_name ||
+            'file'
+        )
     }
 
-    if (message.video) {
-        return 'video';
+    if (
+        message.video
+    ) {
+        return 'video'
     }
 
-    if (message.audio) {
-        return message.audio.file_name || 'audio';
+    if (
+        message.audio
+    ) {
+        return (
+            message.audio.file_name ||
+            'audio'
+        )
     }
 
-    if (message.animation) {
-        return 'animation';
+    if (
+        message.animation
+    ) {
+        return 'animation'
     }
 
-    return 'file';
+    return 'file'
 }
 
 async function uploadCopyToBridge(ctx) {
-    const copied = await ctx.telegram.copyMessage(
-        UPLOAD_BRIDGE_CHAT_ID,
-        ctx.chat.id,
-        ctx.message.message_id
-    );
+    const copied =
+        await ctx.telegram.copyMessage(
+            UPLOAD_BRIDGE_CHAT_ID,
+            ctx.chat.id,
+            ctx.message.message_id
+        )
 
     if (!copied) {
-        throw new Error('Bridge copy failed');
+        throw new Error(
+            'Bridge copy failed'
+        )
     }
 
-    if (Array.isArray(copied)) {
+    if (
+        Array.isArray(copied)
+    ) {
         return Number(
-            copied[0].message_id || copied[0]
-        );
+            copied[0].message_id ||
+            copied[0]
+        )
     }
 
     return Number(
-        copied.message_id || copied
-    );
+        copied.message_id ||
+        copied
+    )
 }
 
-bot.command('upload', async ctx => {
-    try {
-        if (!ctx.from) {
-            return;
-        }
+async function createUploadRequest(
+    request
+) {
+    return uploadGithubWrite(
+        UPLOAD_REQUESTS_FILE,
+        await uploadBuildRequestsWithCreate(
+            request
+        ),
+        `Create upload request ${request.id}`
+    )
+}
 
-        const userId = Number(ctx.from.id);
+async function uploadBuildRequestsWithCreate(
+    request
+) {
+    const requests =
+        await uploadGithubRead(
+            UPLOAD_REQUESTS_FILE,
+            []
+        )
 
-        uploadClearState(userId);
+    requests.push(
+        request
+    )
 
-        const request = {
-            id: uploadGenerateId(),
-            userId,
-            chatId: Number(ctx.chat.id),
-            mode: null,
-            status: 'selecting',
-            files: [],
-            createdAt: Date.now(),
-            updatedAt: Date.now()
-        };
+    return requests
+}
 
-        uploadSetState(userId, {
-            requestId: request.id,
-            mode: null,
-            files: []
-        });
-
-        await createUploadRequest(request);
-
-        await ctx.reply(
-            '📤 سیستم آپلود\n\nنوع آپلود را انتخاب کنید:',
-            {
-                reply_markup: {
-                    inline_keyboard: [
-                        [
-                            {
-                                text: '📄 آپلود تکی',
-                                callback_data: `upload_single:${request.id}`
-                            },
-                            {
-                                text: '📚 آپلود گروهی',
-                                callback_data: `upload_group:${request.id}`
-                            }
-                        ],
-                        [
-                            {
-                                text: '❌ لغو',
-                                callback_data: `upload_cancel:${request.id}`
-                            }
-                        ]
-                    ]
-                }
-            }
-        );
-    } catch (error) {
-        console.error('UPLOAD COMMAND ERROR:', error);
-
-        await ctx.reply(
-            '❌ خطا در ایجاد درخواست آپلود.'
-        );
-    }
-});
-
-bot.action(/^upload_single:(.+)$/, async ctx => {
-    try {
-        await ctx.answerCbQuery();
-
-        const requestId = ctx.match[1];
-        const userId = Number(ctx.from.id);
-
-        const state = uploadGetState(userId);
-
-        if (!state || state.requestId !== requestId) {
-            await ctx.reply(
-                '❌ این درخواست دیگر فعال نیست.'
-            );
-            return;
-        }
-
-        state.mode = 'single';
-        uploadSetState(userId, state);
-
-        await updateUploadRequest(
-            requestId,
-            {
-                mode: 'single',
-                status: 'waiting_file'
-            }
-        );
-
-        await ctx.editMessageText(
-            '📄 حالت تکی فعال شد.\n\nفایل خود را ارسال کنید.'
-        );
-    } catch (error) {
-        console.error('UPLOAD SINGLE ERROR:', error);
-
+async function updateUploadRequest(
+    requestId,
+    changes
+) {
+    for (
+        let attempt = 1;
+        attempt <= 8;
+        attempt++
+    ) {
         try {
-            await ctx.reply(
-                '❌ خطا در انتخاب حالت تکی.'
-            );
-        } catch {}
-    }
-});
+            const requests =
+                await uploadGithubRead(
+                    UPLOAD_REQUESTS_FILE,
+                    []
+                )
 
-bot.action(/^upload_group:(.+)$/, async ctx => {
-    try {
-        await ctx.answerCbQuery();
+            const index =
+                requests.findIndex(
+                    item =>
+                        String(
+                            item.id
+                        ) ===
+                        String(
+                            requestId
+                        )
+                )
 
-        const requestId = ctx.match[1];
-        const userId = Number(ctx.from.id);
+            if (
+                index === -1
+            ) {
+                return false
+            }
 
-        const state = uploadGetState(userId);
+            requests[index] = {
+                ...requests[index],
+                ...changes,
+                updatedAt:
+                    Date.now()
+            }
 
-        if (!state || state.requestId !== requestId) {
-            await ctx.reply(
-                '❌ این درخواست دیگر فعال نیست.'
-            );
-            return;
+            await uploadGithubWrite(
+                UPLOAD_REQUESTS_FILE,
+                requests,
+                `Update upload request ${requestId}`
+            )
+
+            return true
+        } catch (error) {
+            if (
+                error?.response?.status ===
+                    409 ||
+                error?.response?.status ===
+                    429
+            ) {
+                await uploadSleep(
+                    500 *
+                    attempt
+                )
+
+                continue
+            }
+
+            throw error
         }
+    }
 
-        state.mode = 'group';
-        state.files = [];
+    throw new Error(
+        `Could not update upload request ${requestId}`
+    )
+}
 
-        uploadSetState(userId, state);
-
-        await updateUploadRequest(
-            requestId,
-            {
-                mode: 'group',
-                status: 'waiting_files'
-            }
-        );
-
-        await ctx.editMessageText(
-            '📚 حالت گروهی فعال شد.\n\n' +
-            'فایل‌ها را یکی‌یکی ارسال کنید.\n' +
-            'وقتی همه فایل‌ها تمام شد، روی «اتمام آپلود» بزنید.'
-        );
-
-        await ctx.reply(
-            '📥 آماده دریافت فایل‌ها',
-            {
-                reply_markup: {
-                    inline_keyboard: [
-                        [
-                            {
-                                text: '✅ اتمام آپلود',
-                                callback_data: `upload_finish:${requestId}`
-                            }
-                        ],
-                        [
-                            {
-                                text: '❌ لغو',
-                                callback_data: `upload_cancel:${requestId}`
-                            }
-                        ]
-                    ]
-                }
-            }
-        );
-    } catch (error) {
-        console.error('UPLOAD GROUP ERROR:', error);
-
+async function uploadCreateRequestSafely(
+    request
+) {
+    for (
+        let attempt = 1;
+        attempt <= 8;
+        attempt++
+    ) {
         try {
-            await ctx.reply(
-                '❌ خطا در انتخاب حالت گروهی.'
-            );
-        } catch {}
-    }
-});
+            const requests =
+                await uploadGithubRead(
+                    UPLOAD_REQUESTS_FILE,
+                    []
+                )
 
-bot.action(/^upload_cancel:(.+)$/, async ctx => {
-    try {
-        await ctx.answerCbQuery();
-
-        const requestId = ctx.match[1];
-        const userId = Number(ctx.from.id);
-
-        const state = uploadGetState(userId);
-
-        if (!state || state.requestId !== requestId) {
-            await ctx.reply(
-                '❌ درخواست پیدا نشد.'
-            );
-            return;
-        }
-
-        await updateUploadRequest(
-            requestId,
-            {
-                status: 'cancelled',
-                cancelledAt: Date.now()
+            if (
+                requests.some(
+                    item =>
+                        String(
+                            item.id
+                        ) ===
+                        String(
+                            request.id
+                        )
+                )
+            ) {
+                return
             }
-        );
 
-        uploadClearState(userId);
+            requests.push(
+                request
+            )
 
-        await ctx.editMessageText(
-            '❌ آپلود لغو شد.'
-        );
-    } catch (error) {
-        console.error('UPLOAD CANCEL ERROR:', error);
-    }
-});
+            await uploadGithubWrite(
+                UPLOAD_REQUESTS_FILE,
+                requests,
+                `Create upload request ${request.id}`
+            )
 
-bot.action(/^upload_finish:(.+)$/, async ctx => {
-    try {
-        await ctx.answerCbQuery();
+            return
+        } catch (error) {
+            if (
+                error?.response?.status ===
+                    409 ||
+                error?.response?.status ===
+                    429
+            ) {
+                await uploadSleep(
+                    500 *
+                    attempt
+                )
 
-        const requestId = ctx.match[1];
-        const userId = Number(ctx.from.id);
-
-        const state = uploadGetState(userId);
-
-        if (!state || state.requestId !== requestId) {
-            await ctx.reply(
-                '❌ این درخواست دیگر فعال نیست.'
-            );
-            return;
-        }
-
-        if (state.mode !== 'group') {
-            await ctx.reply(
-                '❌ این درخواست گروهی نیست.'
-            );
-            return;
-        }
-
-        if (!state.files.length) {
-            await ctx.reply(
-                '❌ هنوز هیچ فایلی دریافت نشده است.'
-            );
-            return;
-        }
-
-        await updateUploadRequest(
-            requestId,
-            {
-                status: 'ready',
-                mode: 'group',
-                files: state.files,
-                fileCount: state.files.length
+                continue
             }
-        );
 
-        await ctx.editMessageText(
-            `📚 ${state.files.length} فایل دریافت شد.\n\n` +
-            '⏳ درخواست برای پنل ارسال شد.\n' +
-            'لطفاً منتظر لینک نهایی بمانید.'
-        );
-
-        uploadClearState(userId);
-    } catch (error) {
-        console.error('UPLOAD FINISH ERROR:', error);
-
-        try {
-            await ctx.reply(
-                '❌ خطا در ثبت پایان آپلود.'
-            );
-        } catch {}
+            throw error
+        }
     }
-});
 
-bot.on('message', async (ctx, next) => {
+    throw new Error(
+        'Could not create upload request'
+    )
+}
+
+async function uploadUpdateStatusMessage(
+    ctx,
+    messageId,
+    text,
+    keyboard = null
+) {
     try {
-        if (!ctx.from || !ctx.message) {
-            return next();
-        }
-
-        const userId = Number(ctx.from.id);
-        const state = uploadGetState(userId);
-
-        if (!state) {
-            return next();
-        }
-
         if (
-            state.mode !== 'single' &&
-            state.mode !== 'group'
+            keyboard
         ) {
-            return next();
-        }
-
-        if (!uploadIsFile(ctx.message)) {
-            return next();
-        }
-
-        if (
-            state.mode === 'single' &&
-            state.files.length >= 1
-        ) {
-            await ctx.reply(
-                '⚠️ در حالت تکی فقط یک فایل مجاز است.'
-            );
-            return;
-        }
-
-        await ctx.reply(
-            '⏳ فایل دریافت شد، در حال انتقال به Bridge...'
-        );
-
-        const bridgeMessageId =
-            await uploadCopyToBridge(ctx);
-
-        const fileRecord = {
-            messageId: Number(bridgeMessageId),
-            chatId: Number(UPLOAD_BRIDGE_CHAT_ID),
-            fileName: uploadFileName(ctx.message),
-            addedAt: Date.now()
-        };
-
-        state.files.push(fileRecord);
-
-        uploadSetState(userId, state);
-
-        if (state.mode === 'single') {
-            await updateUploadRequest(
-                state.requestId,
+            await ctx.telegram.editMessageText(
+                ctx.chat.id,
+                messageId,
+                undefined,
+                text,
                 {
-                    mode: 'single',
-                    status: 'ready',
-                    files: state.files,
-                    fileCount: 1
+                    reply_markup:
+                        keyboard
                 }
-            );
+            )
+        } else {
+            await ctx.telegram.editMessageText(
+                ctx.chat.id,
+                messageId,
+                undefined,
+                text
+            )
+        }
+    } catch (error) {
+        console.error(
+            'UPLOAD STATUS EDIT ERROR:',
+            error.message
+        )
+    }
+}
+
+bot.command(
+    'upload',
+    async ctx => {
+        try {
+            if (!ctx.from) {
+                return
+            }
+
+            const userId =
+                Number(
+                    ctx.from.id
+                )
+
+            uploadClearState(
+                userId
+            )
+
+            const request = {
+                id:
+                    uploadGenerateId(),
+                userId,
+                chatId:
+                    Number(
+                        ctx.chat.id
+                    ),
+                mode:
+                    'group',
+                status:
+                    'waiting_files',
+                files:
+                    [],
+                createdAt:
+                    Date.now(),
+                updatedAt:
+                    Date.now()
+            }
+
+            const statusMessage =
+                await ctx.reply(
+                    '⚡️ Fast Upload Mode\n\n' +
+                    '✅ Please send your files one by one.\n' +
+                    'All files will receive one common download link.\n\n' +
+                    '📥 Send your files now.',
+                    {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text:
+                                            '✅ Finish Upload',
+                                        callback_data:
+                                            `upload_finish:${request.id}`
+                                    }
+                                ],
+                                [
+                                    {
+                                        text:
+                                            '❌ Cancel',
+                                        callback_data:
+                                            `upload_cancel:${request.id}`
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                )
+
+            uploadSetState(
+                userId,
+                {
+                    requestId:
+                        request.id,
+                    mode:
+                        'group',
+                    files:
+                        [],
+                    statusMessageId:
+                        Number(
+                            statusMessage.message_id
+                        ),
+                    chatId:
+                        Number(
+                            ctx.chat.id
+                        )
+                }
+            )
+
+            await uploadCreateRequestSafely(
+                request
+            )
+        } catch (error) {
+            console.error(
+                'UPLOAD COMMAND ERROR:',
+                error
+            )
 
             await ctx.reply(
-                '✅ فایل دریافت و ثبت شد.\n\n' +
-                '⏳ پنل در حال آپلود فایل است...'
-            );
-
-            uploadClearState(userId);
-
-            return;
+                '❌ Failed to start upload.'
+            )
         }
-
-        await updateUploadRequest(
-            state.requestId,
-            {
-                mode: 'group',
-                status: 'waiting_files',
-                files: state.files,
-                fileCount: state.files.length
-            }
-        );
-
-        await ctx.reply(
-            `✅ فایل ${state.files.length} دریافت شد.\n` +
-            '📥 فایل بعدی را ارسال کنید یا «اتمام آپلود» را بزنید.'
-        );
-
-        return;
-
-    } catch (error) {
-        console.error('UPLOAD FILE ERROR:', error);
-
-        let details = error?.response?.data;
-
-        if (typeof details === 'object' && details !== null) {
-            details = JSON.stringify(details, null, 2);
-        }
-
-        if (!details) {
-            details = error?.message || String(error);
-        }
-
-        await ctx.reply(
-            '❌ خطا در انتقال فایل\n\n' +
-            `📌 نوع خطا: ${error?.name || 'Unknown'}\n` +
-            `📌 پیام: ${error?.message || 'Unknown error'}\n\n` +
-            `📋 جزئیات:\n${String(details).slice(0, 3500)}`
-        );
-
-        return;
     }
-});
+)
+
+bot.action(
+    /^upload_cancel:(.+)$/,
+    async ctx => {
+        try {
+            await ctx.answerCbQuery()
+
+            const requestId =
+                ctx.match[1]
+
+            const userId =
+                Number(
+                    ctx.from.id
+                )
+
+            const state =
+                uploadGetState(
+                    userId
+                )
+
+            if (
+                !state ||
+                state.requestId !==
+                    requestId
+            ) {
+                await ctx.reply(
+                    '❌ This upload session is no longer active.'
+                )
+
+                return
+            }
+
+            await updateUploadRequest(
+                requestId,
+                {
+                    status:
+                        'cancelled',
+                    cancelledAt:
+                        Date.now()
+                }
+            )
+
+            uploadClearState(
+                userId
+            )
+
+            await ctx.editMessageText(
+                '❌ Upload cancelled.'
+            )
+        } catch (error) {
+            console.error(
+                'UPLOAD CANCEL ERROR:',
+                error
+            )
+        }
+    }
+)
+
+bot.action(
+    /^upload_finish:(.+)$/,
+    async ctx => {
+        try {
+            await ctx.answerCbQuery()
+
+            const requestId =
+                ctx.match[1]
+
+            const userId =
+                Number(
+                    ctx.from.id
+                )
+
+            const state =
+                uploadGetState(
+                    userId
+                )
+
+            if (
+                !state ||
+                state.requestId !==
+                    requestId
+            ) {
+                await ctx.reply(
+                    '❌ This upload session is no longer active.'
+                )
+
+                return
+            }
+
+            if (
+                !state.files.length
+            ) {
+                await ctx.answerCbQuery(
+                    'Send at least one file first.',
+                    {
+                        show_alert:
+                            true
+                    }
+                )
+
+                return
+            }
+
+            const files =
+                state.files.map(
+                    file => ({
+                        ...file
+                    })
+                )
+
+            await updateUploadRequest(
+                requestId,
+                {
+                    status:
+                        'ready',
+                    mode:
+                        'group',
+                    files,
+                    fileCount:
+                        files.length,
+                    readyAt:
+                        Date.now()
+                }
+            )
+
+            await uploadUpdateStatusMessage(
+                ctx,
+                state.statusMessageId,
+                `📦 ${files.length} files received.\n\n` +
+                '⏳ Upload request sent.\n' +
+                'Please wait for the final download link.'
+            )
+
+            uploadClearState(
+                userId
+            )
+        } catch (error) {
+            console.error(
+                'UPLOAD FINISH ERROR:',
+                error
+            )
+
+            try {
+                await ctx.reply(
+                    '❌ Failed to finish upload.'
+                )
+            } catch {}
+        }
+    }
+)
+
+bot.on(
+    'message',
+    async (ctx, next) => {
+        try {
+            if (
+                !ctx.from ||
+                !ctx.message
+            ) {
+                return next()
+            }
+
+            const userId =
+                Number(
+                    ctx.from.id
+                )
+
+            const state =
+                uploadGetState(
+                    userId
+                )
+
+            if (
+                !state ||
+                state.mode !==
+                    'group'
+            ) {
+                return next()
+            }
+
+            if (
+                !uploadIsFile(
+                    ctx.message
+                )
+            ) {
+                return next()
+            }
+
+            const bridgeMessageId =
+                await uploadCopyToBridge(
+                    ctx
+                )
+
+            const fileRecord = {
+                messageId:
+                    Number(
+                        bridgeMessageId
+                    ),
+                chatId:
+                    Number(
+                        UPLOAD_BRIDGE_CHAT_ID
+                    ),
+                fileName:
+                    uploadFileName(
+                        ctx.message
+                    ),
+                addedAt:
+                    Date.now()
+            }
+
+            state.files.push(
+                fileRecord
+            )
+
+            uploadSetState(
+                userId,
+                state
+            )
+
+            const count =
+                state.files.length
+
+            await uploadUpdateStatusMessage(
+                ctx,
+                state.statusMessageId,
+                `⚡️ Fast Upload Mode\n\n` +
+                `✅ File received: ${count}\n` +
+                `📥 Waiting for the next file...\n\n` +
+                `📦 Total files: ${count}`,
+                {
+                    inline_keyboard: [
+                        [
+                            {
+                                text:
+                                    '✅ Finish Upload',
+                                callback_data:
+                                    `upload_finish:${state.requestId}`
+                            }
+                        ],
+                        [
+                            {
+                                text:
+                                    '❌ Cancel',
+                                callback_data:
+                                    `upload_cancel:${state.requestId}`
+                            }
+                        ]
+                    ]
+                }
+            )
+
+            return
+        } catch (error) {
+            console.error(
+                'UPLOAD FILE ERROR:',
+                error
+            )
+
+            try {
+                await ctx.reply(
+                    '❌ Failed to receive the file.'
+                )
+            } catch {}
+
+            return
+        }
+    }
+)
 
 async function uploadCheckResults() {
     try {
-        const results = await uploadGithubRead(
-            'upload/results.json',
-            []
-        );
+        const results =
+            await uploadGithubRead(
+                UPLOAD_RESULTS_FILE,
+                []
+            )
 
-        if (!Array.isArray(results) || !results.length) {
-            return;
+        if (
+            !Array.isArray(
+                results
+            ) ||
+            !results.length
+        ) {
+            return
         }
 
-        const requests = await uploadGithubRead(
-            'upload/requests.json',
-            []
-        );
-
-        let changed = false;
-
-        for (const result of results) {
+        for (
+            const result of results
+        ) {
             if (
                 !result ||
-                result.status !== 'completed' ||
+                result.status !==
+                    'completed' ||
                 !result.requestId ||
                 !result.link
             ) {
-                continue;
+                continue
             }
 
-            const requestIndex = requests.findIndex(
-                item =>
-                    String(item.id) ===
-                    String(result.requestId)
-            );
+            const requests =
+                await uploadGithubRead(
+                    UPLOAD_REQUESTS_FILE,
+                    []
+                )
 
-            if (requestIndex === -1) {
-                continue;
-            }
-
-            const request = requests[requestIndex];
+            const index =
+                requests.findIndex(
+                    item =>
+                        String(
+                            item.id
+                        ) ===
+                        String(
+                            result.requestId
+                        )
+                )
 
             if (
-                request.status === 'result_sent'
+                index === -1
             ) {
-                continue;
+                continue
+            }
+
+            const request =
+                requests[index]
+
+            if (
+                request.status ===
+                    'result_sent'
+            ) {
+                continue
             }
 
             const chatId =
                 result.chatId ||
-                request.chatId;
+                request.chatId
 
             if (!chatId) {
-                continue;
+                continue
             }
 
             await bot.telegram.sendMessage(
                 chatId,
-                '✅ آپلود با موفقیت انجام شد.\n\n' +
-                `🔗 لینک دانلود:\n${result.link}`
-            );
+                '✅ Upload completed.\n\n' +
+                `🔗 Download link:\n${result.link}`
+            )
 
-            requests[requestIndex] = {
+            requests[index] = {
                 ...request,
-                status: 'result_sent',
-                resultLink: result.link,
-                resultSentAt: Date.now(),
-                updatedAt: Date.now()
-            };
+                status:
+                    'result_sent',
+                resultLink:
+                    result.link,
+                resultSentAt:
+                    Date.now(),
+                updatedAt:
+                    Date.now()
+            }
 
-            changed = true;
-        }
-
-        if (changed) {
-            await uploadGithubWrite(
-                'upload/requests.json',
-                requests,
-                'Mark completed upload results as sent'
-            );
+            try {
+                await uploadGithubWrite(
+                    UPLOAD_REQUESTS_FILE,
+                    requests,
+                    `Mark upload result sent ${result.requestId}`
+                )
+            } catch (error) {
+                console.error(
+                    'UPLOAD RESULT MARK ERROR:',
+                    error.message
+                )
+            }
         }
     } catch (error) {
         console.error(
             'UPLOAD RESULT WATCHER ERROR:',
             error.message
-        );
+        )
     }
 }
 
 function startUploadResultWatcher() {
-    if (uploadResultWatcherStarted) {
-        return;
+    if (
+        uploadResultWatcherStarted
+    ) {
+        return
     }
 
-    uploadResultWatcherStarted = true;
+    uploadResultWatcherStarted =
+        true
 
     setInterval(
         uploadCheckResults,
-        4000
-    );
+        3000
+    )
+
+    console.log(
+        '✅ Upload result watcher started'
+    )
 }
+
+startUploadResultWatcher()
 
 
 
