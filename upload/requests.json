@@ -108,5 +108,15 @@
     "processingStartedAt": 1790778358608,
     "resultLink": "https://t.me/Uploaderpro01Bot?start=7643360501_318302855",
     "resultSentAt": 1790778370108
+  },
+  {
+    "id": "up_1790778381480_0ccard",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": null,
+    "status": "selecting",
+    "files": [],
+    "createdAt": 1790778381480,
+    "updatedAt": 1790778381480
   }
 ]
