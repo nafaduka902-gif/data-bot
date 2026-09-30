@@ -4,7 +4,7 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "waiting_files",
+    "status": "ready",
     "files": [
       {
         "messageId": 16,
@@ -20,7 +20,7 @@
       }
     ],
     "createdAt": 1790776612484,
-    "updatedAt": 1790776632761,
+    "updatedAt": 1790776637914,
     "fileCount": 2
   }
 ]
