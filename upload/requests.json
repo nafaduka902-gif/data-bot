@@ -75,5 +75,15 @@
     "updatedAt": 1790777700799,
     "fileCount": 6,
     "processingStartedAt": 1790777700636
+  },
+  {
+    "id": "up_1790778146769_fhte6l",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": null,
+    "status": "selecting",
+    "files": [],
+    "createdAt": 1790778146769,
+    "updatedAt": 1790778146769
   }
 ]
