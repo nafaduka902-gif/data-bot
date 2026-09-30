@@ -631,9 +631,18 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "waiting_files",
-    "files": [],
+    "status": "ready",
+    "files": [
+      {
+        "messageId": 108,
+        "chatId": -1004328029117,
+        "fileName": "[@Anime_Faarsi] Sakamoto Days 480p.mkv",
+        "addedAt": 1790799478521
+      }
+    ],
     "createdAt": 1790799464715,
-    "updatedAt": 1790799464715
+    "updatedAt": 1790799480448,
+    "fileCount": 1,
+    "readyAt": 1790799480304
   }
 ]
