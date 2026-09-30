@@ -10391,15 +10391,35 @@ async function sendRulesToUser(
   ctx,
   data
 ) {
-  const pendingItem =
+  const userId =
+    Number(ctx.from?.id);
+
+  let pendingItem =
     data.pending.find(
       x =>
         Number(x.userId) ===
-        Number(ctx.from?.id)
+        userId
     );
 
   if (!pendingItem) {
-    return;
+    const captchaToken =
+      `${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+
+    pendingItem = {
+      userId,
+      captchaToken,
+      chatId: '',
+      welcomeMessageId: ''
+    };
+
+    data.pending.push(
+      pendingItem
+    );
+
+    await saveWelcomeData(
+      data.settings,
+      data.pending
+    );
   }
 
   const captchaToken =
@@ -10419,27 +10439,22 @@ async function sendRulesToUser(
       '✅ خواندم و قوانین را قبول دارم'
     );
 
-  const keyboard = {
-    inline_keyboard: [
-      [
-        {
-          text:
-            confirmButtonText,
-          callback_data:
-            captchaToken
-              ? `captcha_accept:${captchaToken}`
-              : 'captcha_accept'
-        }
-      ]
-    ]
-  };
-
   await ctx.reply(
     rulesText,
     {
       parse_mode: 'HTML',
-      reply_markup:
-        keyboard,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text:
+                confirmButtonText,
+              callback_data:
+                `captcha_accept:${captchaToken}`
+            }
+          ]
+        ]
+      },
       link_preview_options: {
         is_disabled: true
       }
@@ -10472,38 +10487,20 @@ bot.start(
       const targetId =
         Number(parts[1]);
 
-      const captchaToken =
-        parts.slice(2).join('_');
-
       if (
         !Number.isFinite(targetId) ||
         targetId !==
-          Number(ctx.from?.id) ||
-        !captchaToken
+          Number(ctx.from?.id)
       ) {
         return;
       }
 
-      const result =
-        await findPendingCaptcha(
-          ctx.from.id,
-          captchaToken
-        );
-
-      if (!result.item) {
-        await ctx.reply(
-          '<b>این درخواست منقضی شده یا قبلاً تأیید شده است.</b>',
-          {
-            parse_mode: 'HTML'
-          }
-        );
-
-        return;
-      }
+      const data =
+        await getWelcomeData();
 
       await sendRulesToUser(
         ctx,
-        result.data
+        data
       );
 
       return;
