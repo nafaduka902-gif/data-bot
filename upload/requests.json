@@ -539,9 +539,30 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "waiting_files",
-    "files": [],
+    "status": "ready",
+    "files": [
+      {
+        "messageId": 102,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790789633367
+      },
+      {
+        "messageId": 103,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790789633491
+      },
+      {
+        "messageId": 101,
+        "chatId": -1004328029117,
+        "fileName": "video",
+        "addedAt": 1790789633601
+      }
+    ],
     "createdAt": 1790789587336,
-    "updatedAt": 1790789587336
+    "updatedAt": 1790789636152,
+    "fileCount": 3,
+    "readyAt": 1790789635761
   }
 ]
