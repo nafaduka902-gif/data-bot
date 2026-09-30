@@ -114,7 +114,7 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "processing",
+    "status": "completed",
     "files": [
       {
         "messageId": 29,
@@ -178,8 +178,10 @@
       }
     ],
     "createdAt": 1790778381480,
-    "updatedAt": 1790778465676,
+    "updatedAt": 1790778500489,
     "fileCount": 10,
-    "processingStartedAt": 1790778464790
+    "processingStartedAt": 1790778464790,
+    "resultLink": "https://t.me/Uploaderpro01Bot?start=7643360501_239840468",
+    "completedAt": 1790778500318
   }
 ]
