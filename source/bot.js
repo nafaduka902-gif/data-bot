@@ -1348,38 +1348,12 @@ bot.action(
                 }
             )
 
-            const oldStatusMessageId =
-                Number(
-                    state.statusMessageId
-                )
-
-            try {
-                await ctx.telegram.deleteMessage(
-                    ctx.chat.id,
-                    oldStatusMessageId
-                )
-            } catch (error) {
-                console.error(
-                    'UPLOAD OLD STATUS DELETE ERROR:',
-                    error.message
-                )
-            }
-
-            const progressMessage =
-                await ctx.reply(
-                    `📦 ${files.length} files received.\n\n` +
-                    '⏳ Upload is in progress.\n' +
-                    'Please wait for the download link.'
-                )
-
-            await updateUploadRequest(
-                requestId,
-                {
-                    statusMessageId:
-                        Number(
-                            progressMessage.message_id
-                        )
-                }
+            await uploadUpdateStatusMessage(
+                ctx,
+                state.statusMessageId,
+                `📦 ${files.length} files received.\n\n` +
+                '⏳ Upload is in progress.\n' +
+                'Please wait for the download link.'
             )
 
             uploadClearState(
@@ -1441,19 +1415,6 @@ bot.on(
                 await uploadCopyToBridge(
                     ctx
                 )
-
-            try {
-                await ctx.telegram.deleteMessage(
-                    ctx.chat.id,
-                    ctx.message.message_id
-                )
-            } catch (error) {
-                console.error(
-                    'UPLOAD FILE DELETE ERROR:',
-                    error?.message ||
-                    error
-                )
-            }
 
             const fileRecord = {
                 messageId:
@@ -1517,28 +1478,12 @@ bot.on(
         } catch (error) {
             console.error(
                 'UPLOAD FILE ERROR:',
-                JSON.stringify(
-                    {
-                        message:
-                            error?.message ||
-                            null,
-                        code:
-                            error?.code ||
-                            null,
-                        status:
-                            error?.response?.status ||
-                            null,
-                        data:
-                            error?.response?.data ||
-                            null,
-                        description:
-                            error?.response?.description ||
-                            null
-                    },
-                    null,
-                    2
-                )
+                error
             )
+
+            try {
+                
+            } catch {}
 
             return
         }
@@ -1621,24 +1566,6 @@ async function uploadCheckResults() {
                 request.fileCount ||
                 request.files?.length ||
                 0
-
-            if (
-                request.statusMessageId
-            ) {
-                try {
-                    await bot.telegram.deleteMessage(
-                        chatId,
-                        Number(
-                            request.statusMessageId
-                        )
-                    )
-                } catch (error) {
-                    console.error(
-                        'UPLOAD STATUS DELETE ERROR:',
-                        error.message
-                    )
-                }
-            }
 
             await bot.telegram.sendMessage(
                 chatId,
@@ -1814,11 +1741,9 @@ bot.command(
                 error
             )
 
-            try {
-                await ctx.reply(
-                    '❌ Failed to start upload.'
-                )
-            } catch {}
+            await ctx.reply(
+                '❌ Failed to start upload.'
+            )
         }
     }
 )
