@@ -70,5 +70,15 @@
     "createdAt": 1790774126093,
     "updatedAt": 1790774141038,
     "fileCount": 2
+  },
+  {
+    "id": "up_1790774279798_r52vce",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": null,
+    "status": "selecting",
+    "files": [],
+    "createdAt": 1790774279798,
+    "updatedAt": 1790774279798
   }
 ]
