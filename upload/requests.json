@@ -80,5 +80,15 @@
     "files": [],
     "createdAt": 1790774279798,
     "updatedAt": 1790774279798
+  },
+  {
+    "id": "up_1790774288030_1cwwcb",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": null,
+    "status": "selecting",
+    "files": [],
+    "createdAt": 1790774288030,
+    "updatedAt": 1790774288030
   }
 ]
