@@ -1348,12 +1348,38 @@ bot.action(
                 }
             )
 
-            await uploadUpdateStatusMessage(
-                ctx,
-                state.statusMessageId,
-                `📦 ${files.length} files received.\n\n` +
-                '⏳ Upload is in progress.\n' +
-                'Please wait for the download link.'
+            const oldStatusMessageId =
+                Number(
+                    state.statusMessageId
+                )
+
+            try {
+                await ctx.telegram.deleteMessage(
+                    ctx.chat.id,
+                    oldStatusMessageId
+                )
+            } catch (error) {
+                console.error(
+                    'UPLOAD OLD STATUS DELETE ERROR:',
+                    error.message
+                )
+            }
+
+            const progressMessage =
+                await ctx.reply(
+                    `📦 ${files.length} files received.\n\n` +
+                    '⏳ Upload is in progress.\n' +
+                    'Please wait for the download link.'
+                )
+
+            await updateUploadRequest(
+                requestId,
+                {
+                    statusMessageId:
+                        Number(
+                            progressMessage.message_id
+                        )
+                }
             )
 
             uploadClearState(
@@ -1567,6 +1593,24 @@ async function uploadCheckResults() {
                 request.files?.length ||
                 0
 
+            if (
+                request.statusMessageId
+            ) {
+                try {
+                    await bot.telegram.deleteMessage(
+                        chatId,
+                        Number(
+                            request.statusMessageId
+                        )
+                    )
+                } catch (error) {
+                    console.error(
+                        'UPLOAD STATUS DELETE ERROR:',
+                        error.message
+                    )
+                }
+            }
+
             await bot.telegram.sendMessage(
                 chatId,
                 '✅ Upload completed!\n\n' +
@@ -1741,9 +1785,11 @@ bot.command(
                 error
             )
 
-            await ctx.reply(
-                '❌ Failed to start upload.'
-            )
+            try {
+                await ctx.reply(
+                    '❌ Failed to start upload.'
+                )
+            } catch {}
         }
     }
 )
