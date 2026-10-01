@@ -677,7 +677,7 @@
     "userId": 2048310529,
     "chatId": 2048310529,
     "mode": "group",
-    "status": "processing",
+    "status": "failed",
     "files": [
       {
         "messageId": 110,
@@ -699,9 +699,11 @@
       }
     ],
     "createdAt": 1790880122903,
-    "updatedAt": 1790880199085,
+    "updatedAt": 1790880833368,
     "fileCount": 3,
     "readyAt": 1790880137015,
-    "processingStartedAt": 1790880199080
+    "processingStartedAt": 1790880199080,
+    "error": "Uploader confirmation timeout: 2/3",
+    "failedAt": 1790880833215
   }
 ]
