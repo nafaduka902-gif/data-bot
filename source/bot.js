@@ -1645,6 +1645,99 @@ startUploadResultWatcher()
 
 
 
+
+
+bot.command('githublimit', async (ctx) => {
+  try {
+    if (
+      !ctx.from ||
+      Number(ctx.from.id) !== UPDATE_ADMIN_ID
+    ) {
+      return;
+    }
+
+    const response = await axios.get(
+      'https://api.github.com/rate_limit',
+      {
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github+json',
+          'User-Agent': 'AnimeFaarsi-Bot',
+          'X-GitHub-Api-Version': '2022-11-28'
+        },
+        timeout: 15000
+      }
+    );
+
+    const rate =
+      response.data?.resources?.core;
+
+    if (!rate) {
+      return ctx.reply(
+        '❌ GitHub rate limit information was not found.'
+      );
+    }
+
+    const resetDate =
+      new Date(rate.reset * 1000);
+
+    const now =
+      Date.now();
+
+    const remainingMs =
+      Math.max(
+        0,
+        resetDate.getTime() - now
+      );
+
+    const hours =
+      Math.floor(
+        remainingMs / 3600000
+      );
+
+    const minutes =
+      Math.floor(
+        (remainingMs % 3600000) / 60000
+      );
+
+    const seconds =
+      Math.floor(
+        (remainingMs % 60000) / 1000
+      );
+
+    await ctx.reply(
+      '🐙 GitHub API Rate Limit\n\n' +
+      `📊 Limit: ${rate.limit}\n` +
+      `📉 Used: ${rate.used}\n` +
+      `✅ Remaining: ${rate.remaining}\n\n` +
+      `🔄 Reset:\n${resetDate.toISOString()}\n\n` +
+      `⏳ Time remaining:\n` +
+      `${hours}h ${minutes}m ${seconds}s`
+    );
+
+  } catch (error) {
+
+    const status =
+      error?.response?.status;
+
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Unknown error';
+
+    await ctx.reply(
+      '❌ GitHub Rate Limit Check Failed\n\n' +
+      `📡 HTTP: ${status || 'N/A'}\n` +
+      `❌ ${message}`
+    );
+
+    console.error(
+      'GITHUB LIMIT ERROR:',
+      error
+    );
+  }
+});
+
 bot.command(
     'upload',
     async ctx => {
@@ -3148,6 +3241,14 @@ async function nfSendResult(
   const chunks =
     nfSplit(text);
 
+  const replyParameters =
+    ctx.message?.message_id
+      ? {
+          message_id:
+            ctx.message.message_id
+        }
+      : undefined;
+
   const first =
     nfFormat(chunks[0]);
 
@@ -3169,6 +3270,7 @@ async function nfSendResult(
       );
 
       edited = true;
+
     } catch {}
   }
 
@@ -3181,7 +3283,13 @@ async function nfSendResult(
             parse_mode: 'HTML',
             link_preview_options: {
               is_disabled: true
-            }
+            },
+            ...(replyParameters
+              ? {
+                  reply_parameters:
+                    replyParameters
+                }
+              : {})
           }
         );
 
@@ -3189,6 +3297,7 @@ async function nfSendResult(
         ctx,
         sent.message_id
       );
+
     } catch {}
   }
 
@@ -3205,7 +3314,13 @@ async function nfSendResult(
             parse_mode: 'HTML',
             link_preview_options: {
               is_disabled: true
-            }
+            },
+            ...(replyParameters
+              ? {
+                  reply_parameters:
+                    replyParameters
+                }
+              : {})
           }
         );
 
@@ -3213,6 +3328,7 @@ async function nfSendResult(
         ctx,
         sent.message_id
       );
+
     } catch {}
   }
 }
@@ -4065,6 +4181,55 @@ const NF_CHANNEL_URL =
 const NF_TEAM_NAME =
   'تیم انیمه فارسی';
 
+const NF_ARCHIVE_FILE = 'channelarchive.json';
+
+const NF_ARCHIVE_CHANNELS = [
+  {
+    username: '@Anime_Faarsi',
+    type: 'anime'
+  },
+  {
+    username: '@FaarsiMovie',
+    type: 'movie'
+  },
+  {
+    username: '@Dubb_Anime',
+    type: 'anime'
+  },
+  {
+    username: '@AnimeFaarsi',
+    type: 'anime'
+  },
+  {
+    username: '@AnimitionFaarsi',
+    type: 'animation'
+  },
+  {
+    username: '@animefaarsi',
+    type: 'anime'
+  }
+];
+
+const NF_AI_CHAT_USERNAME =
+  'Anime_FaarsiChat';
+
+let nfArchiveWriteQueue = Promise.resolve();
+
+function nfArchiveQueueUpsert(ctx) {
+  const job = nfArchiveWriteQueue.then(() =>
+    nfUpsertArchivePost(ctx)
+  );
+
+  nfArchiveWriteQueue = job.catch(() => {});
+
+  return job;
+}
+
+
+
+
+
+
 const NF_TEAM_CHANNELS = [
   {
     name: 'Anime Faarsi',
@@ -4121,6 +4286,599 @@ const NF_TEAM_CHANNELS = [
     url: 'https://t.me/Dubb_Anime'
   }
 ];
+
+function nfArchiveNormalize(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[يى]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[ۀة]/g, 'ه')
+    .replace(/ؤ/g, 'و')
+    .replace(/إ|أ|ٱ/g, 'ا')
+    .replace(/‌/g, ' ')
+    .replace(/ـ/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function nfArchiveWords(value) {
+  return [
+    ...new Set(
+      nfArchiveNormalize(value)
+        .split(/\s+/)
+        .filter(
+          word =>
+            word &&
+            word.length >= 2
+        )
+    )
+  ];
+}
+
+function nfArchiveChannelInfo(
+  username
+) {
+  const normalized =
+    String(username || '')
+      .trim()
+      .toLowerCase()
+      .replace(/^@/, '');
+
+  return (
+    NF_ARCHIVE_CHANNELS.find(
+      item =>
+        String(item.username || '')
+          .toLowerCase()
+          .replace(/^@/, '') ===
+        normalized
+    ) || null
+  );
+}
+
+function nfArchiveChannelAllowed(
+  username
+) {
+  return Boolean(
+    nfArchiveChannelInfo(
+      username
+    )
+  );
+}
+
+function nfArchivePostLink(
+  username,
+  messageId
+) {
+  const clean =
+    String(username || '')
+      .trim()
+      .replace(/^@/, '');
+
+  const id =
+    Number(messageId);
+
+  if (
+    !clean ||
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
+    return '';
+  }
+
+  return `https://t.me/${clean}/${id}`;
+}
+
+function nfArchiveExtractTitle(text) {
+  const value = String(text || '').trim();
+  if (!value) return '';
+
+  const quoted = value.match(/[«"]([^»"]+)[»"]/);
+  if (quoted?.[1]) {
+    return String(quoted[1]).replace(/\s+/g, ' ').trim();
+  }
+
+  const lines = value
+    .split('\n')
+    .map(x => x.replace(/^[📼🎬🎞️📺]+\s*/u, '').trim())
+    .filter(Boolean);
+
+  if (!lines.length) return '';
+
+  return lines[0]
+    .replace(/^(انیمه|انیمیشن)\s+(سریالی|سینمایی|سریال|فیلم)\s*/i, '')
+    .replace(/^فیلم\s+و\s+سریال\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function nfArchiveMessageText(
+  message
+) {
+  return String(
+    message?.text ||
+    message?.caption ||
+    ''
+  ).trim();
+}
+
+function nfArchiveRecordFromChannelPost(
+  ctx
+) {
+  const post =
+    ctx.channelPost ||
+    ctx.editedChannelPost;
+
+  if (!post) {
+    return null;
+  }
+
+  const chat =
+    ctx.chat;
+
+  if (
+    chat?.type !== 'channel'
+  ) {
+    return null;
+  }
+
+  const username =
+    String(
+      chat.username || ''
+    ).trim();
+
+  if (
+    !nfArchiveChannelAllowed(
+      username
+    )
+  ) {
+    return null;
+  }
+
+  const info =
+    nfArchiveChannelInfo(
+      username
+    );
+
+  const messageId =
+    Number(
+      post.message_id
+    );
+
+  if (
+    !Number.isInteger(messageId) ||
+    messageId <= 0
+  ) {
+    return null;
+  }
+
+  const text =
+    nfArchiveMessageText(
+      post
+    );
+
+  const title =
+    nfArchiveExtractTitle(
+      post
+    );
+
+  const now =
+    new Date().toISOString();
+
+  return {
+    id:
+      `${String(username)
+        .replace(/^@/, '')
+        .toLowerCase()}:${messageId}`,
+
+    name:
+      title ||
+      `Post ${messageId}`,
+
+    nameNormalized:
+      nfArchiveNormalize(
+        title ||
+        `Post ${messageId}`
+      ),
+
+    link:
+      nfArchivePostLink(
+        username,
+        messageId
+      ),
+
+    channel:
+      String(username),
+
+    channelNormalized:
+      String(username)
+        .replace(/^@/, '')
+        .toLowerCase(),
+
+    channelType:
+      info?.type || 'unknown',
+
+    messageId,
+
+    text,
+
+    caption:
+      String(
+        post.caption || ''
+      ).trim(),
+
+    entities:
+      post.entities ||
+      post.caption_entities ||
+      [],
+
+    date:
+      post.date
+        ? Number(post.date)
+        : null,
+
+    createdAt:
+      now,
+
+    updatedAt:
+      now
+  };
+}
+
+async function nfReadArchive() {
+  try {
+    const data =
+      await githubGetFile(
+        NF_ARCHIVE_FILE
+      );
+
+    let records = [];
+
+    if (data?.content) {
+      const raw =
+        Buffer.from(
+          data.content.replace(
+            /\s/g,
+            ''
+          ),
+          'base64'
+        ).toString('utf8');
+
+      const parsed =
+        JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        records = parsed;
+      } else if (
+        Array.isArray(
+          parsed?.records
+        )
+      ) {
+        records =
+          parsed.records;
+      }
+    }
+
+    return records;
+  } catch (error) {
+    const status =
+      Number(
+        error?.response?.status
+      );
+
+    if (status !== 404) {
+      console.error(
+        'NF ARCHIVE READ ERROR:',
+        error?.message ||
+          error
+      );
+    }
+
+    return [];
+  }
+}
+
+async function nfWriteArchive(
+  records
+) {
+  return githubWriteFileV1(
+    NF_ARCHIVE_FILE,
+    records,
+    'channel'
+  );
+}
+
+async function nfUpsertArchivePost(
+  ctx
+) {
+  const record =
+    nfArchiveRecordFromChannelPost(
+      ctx
+    );
+
+  if (!record) {
+    return false;
+  }
+
+  try {
+    const records =
+      await nfReadArchive();
+
+    const index =
+      records.findIndex(
+        item =>
+          String(item?.id || '') ===
+          String(record.id)
+      );
+
+    if (index >= 0) {
+      const old =
+        records[index] || {};
+
+      records[index] = {
+        ...old,
+        ...record,
+        createdAt:
+          old.createdAt ||
+          record.createdAt
+      };
+    } else {
+      records.push(record);
+    }
+
+    records.sort(
+      (a, b) =>
+        Number(b?.date || 0) -
+        Number(a?.date || 0)
+    );
+
+    const saved =
+      await nfWriteArchive(
+        records
+      );
+
+    if (!saved) {
+      console.error(
+        'NF ARCHIVE SAVE FAILED:',
+        record.link
+      );
+
+      return false;
+    }
+
+    console.log(
+      'NF ARCHIVE SAVED:',
+      record.channel,
+      record.messageId,
+      record.name
+    );
+
+    return true;
+
+  } catch (error) {
+    console.error(
+      'NF ARCHIVE UPSERT ERROR:',
+      error
+    );
+
+    return false;
+  }
+}
+
+async function nfArchiveQueueUpsert(
+  ctx
+) {
+  try {
+    return await nfUpsertArchivePost(
+      ctx
+    );
+  } catch (error) {
+    console.error(
+      'NF ARCHIVE QUEUE ERROR:',
+      error
+    );
+
+    return false;
+  }
+}
+
+function nfArchiveSearchScore(
+  query,
+  record
+) {
+  const q =
+    nfArchiveNormalize(
+      query
+    );
+
+  if (!q || !record) {
+    return 0;
+  }
+
+  const title =
+    nfArchiveNormalize(
+      record.name
+    );
+
+  const text =
+    nfArchiveNormalize(
+      record.text
+    );
+
+  const channel =
+    nfArchiveNormalize(
+      record.channel
+    );
+
+  if (!title) {
+    return 0;
+  }
+
+  let score = 0;
+
+  if (q === title) {
+    score += 10000;
+  }
+
+  if (
+    title.includes(q)
+  ) {
+    score += 4000;
+  }
+
+  if (
+    q.includes(title)
+  ) {
+    score += 3000;
+  }
+
+  const qWords =
+    nfArchiveWords(q);
+
+  const titleWords =
+    nfArchiveWords(title);
+
+  const textWords =
+    nfArchiveWords(text);
+
+  for (
+    const word of qWords
+  ) {
+    if (
+      titleWords.includes(word)
+    ) {
+      score += 700;
+    }
+
+    if (
+      textWords.includes(word)
+    ) {
+      score += 70;
+    }
+  }
+
+  if (
+    channel &&
+    q.includes(channel)
+  ) {
+    score += 100;
+  }
+
+  return score;
+}
+
+function nfArchiveSearch(
+  records,
+  query,
+  limit = 12
+) {
+  const scored =
+    records
+      .map(
+        record => ({
+          record,
+          score:
+            nfArchiveSearchScore(
+              query,
+              record
+            )
+        })
+      )
+      .filter(
+        item =>
+          item.score > 0
+      )
+      .sort(
+        (a, b) =>
+          b.score - a.score
+      );
+
+  return scored
+    .slice(0, limit)
+    .map(
+      item => item.record
+    );
+}
+
+function nfArchiveIntentText(
+  text
+) {
+  return String(text || '')
+    .replace(
+      /لینک\s+(?:پست|انیمه|فیلم|سریال)?/gi,
+      ' '
+    )
+    .replace(
+      /(?:کجاست|هست|موجوده|موجود هست|دارید|دارین|بذار|بزار|بده|بفرست|ارسال کن|پیدا کن|چند قسمته|چند فصل داره|دوبله(?:ش|ش هست|هست)?)/gi,
+      ' '
+    )
+    .replace(
+      /(?:انیمه|anime)\s+/gi,
+      ' '
+    )
+    .replace(
+      /(?:فیلم|movie|سریال|series)\s+/gi,
+      ' '
+    )
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function nfSearchRealArchive(
+  ctx,
+  userText
+) {
+  const records =
+    await nfReadArchive();
+
+  if (!records.length) {
+    return [];
+  }
+
+  const query =
+    String(userText || '')
+      .trim();
+
+  if (!query) {
+    return [];
+  }
+
+  const direct =
+    nfArchiveSearch(
+      records,
+      query,
+      12
+    );
+
+  if (direct.length) {
+    return direct;
+  }
+
+  const cleaned =
+    nfArchiveIntentText(
+      query
+    );
+
+  if (
+    cleaned &&
+    cleaned !== query
+  ) {
+    const cleanedResults =
+      nfArchiveSearch(
+        records,
+        cleaned,
+        12
+      );
+
+    if (cleanedResults.length) {
+      return cleanedResults;
+    }
+  }
+
+  return [];
+}
+
 
 function nfNormalizeArchiveText(
   value
@@ -4423,105 +5181,177 @@ async function nfBuildArchiveContext(
   userText
 ) {
   try {
-    const cache =
-      await githubReadChannelPosts();
-
     const records =
-      Array.isArray(
-        cache?.records
-      )
-        ? cache.records
-        : [];
+      await nfReadArchive();
 
     if (!records.length) {
-      return '';
+      return [
+        'REAL TELEGRAM CHANNEL ARCHIVE',
+        'NO ARCHIVE RECORDS ARE CURRENTLY AVAILABLE.'
+      ].join('\n');
     }
 
-    let matched =
-      nfExtractArchiveCandidatesFromText(
-        userText,
-        records
+    const query =
+      String(userText || '').trim();
+
+    if (!query) {
+      return [
+        'REAL TELEGRAM CHANNEL ARCHIVE',
+        'NO SEARCH QUERY WAS PROVIDED.'
+      ].join('\n');
+    }
+
+    const matched =
+      await nfSearchRealArchive(
+        ctx,
+        query
       );
-
-    if (!matched.length) {
-      matched =
-        await nfAIExtractArchiveTitles(
-          userText,
-          records
-        );
-    }
-
-    if (!matched.length) {
-      return '';
-    }
 
     const output = [
-      'REAL ARCHIVE CONTEXT',
-      `Channel: ${NF_CHANNEL_NAME}`,
-      `Username: ${NF_CHANNEL_USERNAME}`,
-      `URL: ${NF_CHANNEL_URL}`,
-      `Team: ${NF_TEAM_NAME}`
+      'REAL TELEGRAM CHANNEL ARCHIVE',
+      'SOURCE: ACTUAL TELEGRAM CHANNEL POSTS SAVED IN channelarchive.json',
+      'RULE: Use only the records below for archive-related claims.',
+      'RULE: Never invent titles, links, episode counts, season counts or dub status.',
+      'RULE: If a record has a link, use that exact link.',
+      'RULE: A similar title is not the same title.',
+      'RULE: If no matching record exists, do not claim that the title exists.',
+      ''
     ];
 
+    if (!matched.length) {
+      output.push(
+        'NO MATCHING REAL TELEGRAM CHANNEL POST WAS FOUND.'
+      );
+
+      output.push(
+        `SEARCH QUERY: ${query}`
+      );
+
+      return output
+        .join('\n')
+        .slice(0, 50000);
+    }
+
+    output.push(
+      `MATCHED RECORDS: ${matched.length}`
+    );
+
+    output.push('');
+
     for (
-      const record of matched.slice(0, 8)
+      const record of matched.slice(0, 12)
     ) {
       output.push(
-        '\n--- ARCHIVE ITEM ---'
+        '--- REAL TELEGRAM CHANNEL POST ---'
       );
 
       output.push(
-        `Name: ${String(
-          record?.name || ''
-        )}`
+        `Exact Title: ${String(
+          record.name ||
+          record.title ||
+          ''
+        ).trim()}`
       );
 
       output.push(
-        `Link: ${String(
-          record?.link || ''
-        )}`
+        `Channel: ${String(
+          record.channel ||
+          ''
+        ).trim()}`
       );
 
-      if (record?.text) {
+      output.push(
+        `Message ID: ${String(
+          record.messageId ||
+          record.id ||
+          ''
+        ).trim()}`
+      );
+
+      output.push(
+        `Exact Telegram Link: ${String(
+          record.link ||
+          record.postUrl ||
+          ''
+        ).trim()}`
+      );
+
+      output.push(
+        `Type: ${String(
+          record.channelType ||
+          record.type ||
+          ''
+        ).trim()}`
+      );
+
+      if (
+        record.category
+      ) {
         output.push(
-          `Post text:\n${String(
+          `Category: ${String(
+            record.category
+          ).trim()}`
+        );
+      }
+
+      if (
+        record.kind
+      ) {
+        output.push(
+          `Kind: ${String(
+            record.kind
+          ).trim()}`
+        );
+      }
+
+      if (
+        record.seasons
+      ) {
+        output.push(
+          `Seasons: ${String(
+            record.seasons
+          ).trim()}`
+        );
+      }
+
+      if (
+        record.text
+      ) {
+        output.push(
+          'Post Content:'
+        );
+
+        output.push(
+          String(
             record.text
-          )}`
+          ).trim()
         );
       }
 
-      if (record?.caption) {
-        output.push(
-          `Post caption:\n${String(
-            record.caption
-          )}`
-        );
-      }
-
-      if (record?.description) {
-        output.push(
-          `Description:\n${String(
-            record.description
-          )}`
-        );
-      }
+      output.push('');
     }
+
+    output.push(
+      'END OF REAL ARCHIVE RESULTS.'
+    );
 
     return output
       .join('\n')
-      .slice(0, 45000);
+      .slice(0, 50000);
 
   } catch (error) {
     console.error(
-      'NF ARCHIVE CONTEXT ERROR:',
-      error?.message ||
-        error
+      'NF REAL ARCHIVE CONTEXT ERROR:',
+      error
     );
 
-    return '';
+    return [
+      'REAL TELEGRAM CHANNEL ARCHIVE',
+      'ARCHIVE LOOKUP FAILED.',
+      'Do not invent archive information.'
+    ].join('\n');
   }
 }
-
 
 
 
@@ -4565,22 +5395,31 @@ async function nfAskAI(
     'مفهوم واقعی پیام را بفهم.',
     'فارسی، انگلیسی، فینگلیش، غلط تایپی و نام‌های غیررسمی را درک کن.',
     'گفت‌وگوی عادی را طبیعی و کوتاه پاسخ بده.',
+    'در پیام‌های دنبال‌دار، ضمیرهایی مثل ش، این، اون، همون و قبلی را با توجه به گفت‌وگوی قبلی بفهم.',
 
     '',
-    'آرشیو:',
-    'برای سؤال درباره کانال، انیمه، فیلم، سریال، موجود بودن، فصل، قسمت، دوبله یا لینک از REAL ARCHIVE CONTEXT استفاده کن.',
-    'اگر لینک واقعی رکورد وجود دارد، همان را بده.',
+    'آرشیو واقعی:',
+    'REAL TELEGRAM CHANNEL ARCHIVE منبع اصلی اطلاعات مربوط به پست‌های کانال است.',
+    'اگر کاربر درباره موجود بودن یک عنوان، لینک پست، دوبله، فیلم، سریال، انیمه یا انیمیشن سؤال کرد، فقط از رکوردهای واقعی استفاده کن.',
+    'هرگز عنوانی را فقط به دلیل شباهت معنایی با عنوان دیگری جایگزین نکن.',
+    'مثلاً اگر رکورد واقعی «تک رو» است، آن را به Tekken تبدیل نکن.',
+    'اگر لینک رکورد واقعی وجود دارد، دقیقاً همان لینک را بده.',
     'هرگز لینک Telegram را حدس نزن.',
-    'برای درخواست لینک انیمه، لینک واقعی Anime Faarsi را بده.',
-    'لینک Crunchyroll، Netflix یا سایت‌های دیگر را جایگزین لینک Anime Faarsi نکن.',
-    'وجود عنوان به معنی وجود تمام قسمت‌ها یا فصل‌ها نیست.',
-    'برای وضعیت دوبله و تعداد قسمت‌ها فقط از اطلاعات موجود استفاده کن.',
+    'هرگز لینک سایت خارجی را به جای لینک کانال Anime Faarsi نده.',
+    'وجود یک پست به معنی وجود تمام قسمت‌ها یا فصل‌ها نیست.',
+    'تعداد قسمت‌ها و فصل‌ها را فقط وقتی بیان کن که در داده واقعی مشخص باشد.',
+    'اگر داده واقعی برای پاسخ وجود ندارد، واضح بگو اطلاعات آن در آرشیو پیدا نشد.',
+
+    '',
+    'شمارش:',
+    'اگر کاربر تعداد پست‌ها یا عناوین موجود در کانال را خواست، از داده واقعی آرشیو استفاده کن.',
+    'اگر چند کانال یا چند نوع محتوا مطرح شد، آنها را با داده واقعی تفکیک کن.',
 
     '',
     'پاسخ:',
-    'مستقیم جواب بده.',
-    'مقدمه غیرضروری نگو.',
-    'اگر چند مورد در پیام وجود دارد، همه را بررسی کن.',
+    'مستقیم و طبیعی جواب بده.',
+    'اگر کاربر لینک خواست، لینک واقعی را بده.',
+    'اگر چند مورد خواست، همه موارد مرتبط را بررسی کن.',
     'هیچ عملیات انجام‌شده‌ای را جعل نکن.',
     'زبان پیش‌فرض فارسی است.'
   ].join('\n');
@@ -4648,8 +5487,36 @@ async function nfAskAI(
 
 
 function nfCanUseAI(ctx) {
-  return Boolean(
-    ctx.from?.id
+  if (
+    !ctx.from
+  ) {
+    return false;
+  }
+
+  if (
+    !ctx.chat
+  ) {
+    return false;
+  }
+
+  if (
+    !['group', 'supergroup'].includes(
+      ctx.chat.type
+    )
+  ) {
+    return false;
+  }
+
+  const username =
+    String(
+      ctx.chat.username || ''
+    )
+      .replace(/^@/, '')
+      .toLowerCase();
+
+  return (
+    username ===
+    NF_AI_CHAT_USERNAME.toLowerCase()
   );
 }
 
@@ -4697,7 +5564,15 @@ async function nfProcess(
       try {
         thinking =
           await ctx.reply(
-            '🤖 Thinking...'
+            '🤖 Thinking...',
+            ctx.message?.message_id
+              ? {
+                  reply_parameters: {
+                    message_id:
+                      ctx.message.message_id
+                  }
+                }
+              : undefined
           );
 
         nfTrackBotMessage(
@@ -4736,17 +5611,241 @@ async function nfProcess(
     let archiveContext = '';
 
     try {
-      archiveContext =
-        await nfBuildArchiveContext(
-          ctx,
-          text
+      let archiveQuery =
+        directText;
+
+      const history =
+        nfState(ctx)
+          .history
+          .slice(-10);
+
+      const resolverMessages = [
+        {
+          role: 'system',
+          content: [
+            'تو مسئول تشخیص موضوع جستجوی آرشیو واقعی تلگرام هستی.',
+            'پیام فعلی را با توجه به کل گفت‌وگوی قبلی درک کن.',
+            'اگر پیام فعلی ادامه سؤال قبلی است، موضوع قبلی را حفظ کن.',
+            'اگر پیام فعلی مستقل است، موضوع جدید را استفاده کن.',
+            'اگر کاربر درباره یک عنوان صحبت کرده و بعد گفت «دوبله داره؟»، «لینکش رو بده»، «چند قسمته؟»، «موجوده؟» یا عبارت مشابهی گفت، همان عنوان قبلی را حفظ کن.',
+            'اگر کاربر موضوع جدیدی مطرح کرد، موضوع قبلی را کنار بگذار.',
+            'هیچ عنوانی را اختراع یا تصحیح نکن.',
+            'اگر عنوانی در گفت‌وگو به شکل خاصی آمده، همان مفهوم را حفظ کن.',
+            'فقط عبارت مناسب برای جستجوی آرشیو را برگردان.',
+            'هیچ توضیح دیگری ننویس.'
+          ].join('\n')
+        },
+        ...history,
+        {
+          role: 'user',
+          content: directText
+        }
+      ];
+
+      const resolver =
+        await axios.post(
+          NF_API_URL,
+          {
+            model: NF_MODEL,
+            messages:
+              resolverMessages,
+            temperature: 0,
+            max_tokens: 120
+          },
+          {
+            headers: {
+              Authorization:
+                `Bearer ${NF_API_KEY}`,
+              'Content-Type':
+                'application/json'
+            },
+            timeout: 15000
+          }
         );
+
+      const resolved =
+        resolver?.data?.choices?.[0]
+          ?.message?.content;
+
+      if (
+        resolved &&
+        String(resolved).trim()
+      ) {
+        archiveQuery =
+          String(resolved)
+            .trim()
+            .replace(
+              /^["'«]+|["'»]+$/g,
+              ''
+            )
+            .trim();
+      }
+
+      const archiveResults =
+        await nfSearchRealArchive(
+          ctx,
+          archiveQuery
+        );
+
+      if (
+        archiveResults.length
+      ) {
+        const first =
+          archiveResults[0];
+
+        const state =
+          nfState(ctx);
+
+        const archiveTitle =
+          String(
+            first.name ||
+            first.title ||
+            ''
+          ).trim();
+
+        if (archiveTitle) {
+          state.lastArchiveTitle =
+            archiveTitle;
+        }
+
+        const output = [
+          'REAL TELEGRAM CHANNEL ARCHIVE',
+          'SOURCE: ACTUAL TELEGRAM CHANNEL POSTS SAVED IN channelarchive.json',
+          'RULE: Use only the records below for archive-related claims.',
+          'RULE: Never invent titles, links, episode counts, season counts or dub status.',
+          'RULE: If a record has a link, use that exact link.',
+          'RULE: A similar title is not the same title.',
+          ''
+        ];
+
+        output.push(
+          `MATCHED RECORDS: ${archiveResults.length}`
+        );
+
+        output.push('');
+
+        for (
+          const record of archiveResults.slice(
+            0,
+            12
+          )
+        ) {
+          output.push(
+            '--- REAL TELEGRAM CHANNEL POST ---'
+          );
+
+          output.push(
+            `Exact Title: ${String(
+              record.name ||
+              record.title ||
+              ''
+            ).trim()}`
+          );
+
+          output.push(
+            `Channel: ${String(
+              record.channel ||
+              ''
+            ).trim()}`
+          );
+
+          output.push(
+            `Message ID: ${String(
+              record.messageId ||
+              record.id ||
+              ''
+            ).trim()}`
+          );
+
+          output.push(
+            `Exact Telegram Link: ${String(
+              record.link ||
+              record.postUrl ||
+              ''
+            ).trim()}`
+          );
+
+          output.push(
+            `Type: ${String(
+              record.channelType ||
+              record.type ||
+              ''
+            ).trim()}`
+          );
+
+          if (record.category) {
+            output.push(
+              `Category: ${String(
+                record.category
+              ).trim()}`
+            );
+          }
+
+          if (record.kind) {
+            output.push(
+              `Kind: ${String(
+                record.kind
+              ).trim()}`
+            );
+          }
+
+          if (record.seasons) {
+            output.push(
+              `Seasons: ${String(
+                record.seasons
+              ).trim()}`
+            );
+          }
+
+          if (record.text) {
+            output.push(
+              'Post Content:'
+            );
+
+            output.push(
+              String(
+                record.text
+              ).trim()
+            );
+          }
+
+          output.push('');
+        }
+
+        archiveContext =
+          output
+            .join('\n')
+            .slice(0, 50000);
+
+      } else {
+        archiveContext = [
+          'REAL TELEGRAM CHANNEL ARCHIVE',
+          'NO MATCHING REAL TELEGRAM CHANNEL POST WAS FOUND.',
+          `SEARCH QUERY: ${archiveQuery}`,
+          'Do not invent or assume that the requested title exists.'
+        ].join('\n');
+      }
+
     } catch (error) {
       console.error(
-        'NF ARCHIVE ERROR:',
+        'NF ARCHIVE AI ERROR:',
         error?.message ||
           error
       );
+
+      try {
+        archiveContext =
+          await nfBuildArchiveContext(
+            ctx,
+            directText
+          );
+      } catch (archiveError) {
+        console.error(
+          'NF ARCHIVE ERROR:',
+          archiveError?.message ||
+            archiveError
+        );
+      }
     }
 
     let answer;
@@ -4758,6 +5857,7 @@ async function nfProcess(
           text,
           archiveContext
         );
+
     } catch (error) {
       const status =
         Number(
@@ -4803,32 +5903,42 @@ async function nfProcess(
   }
 }
 
-bot.command('nfon', async ctx => {
-  if (!nfIsOwner(ctx)) return;
+bot.command(
+  'nfon',
+  async ctx => {
+    if (!nfIsOwner(ctx)) {
+      return;
+    }
 
-  nfEnabled.set(
-    'GLOBAL',
-    true
-  );
+    nfEnabled.set(
+      'GLOBAL',
+      true
+    );
 
-  nfResetState(ctx);
+    nfResetState(ctx);
 
-  await ctx.reply(
-    '🟢 AI Agent برای همه کاربران فعال شد.'
-  );
-});
+    await ctx.reply(
+      '🟢 AI Agent فعال شد.\n\n📍 فقط در @Anime_FaarsiChat'
+    );
+  }
+);
 
-bot.command('nfoff', async ctx => {
-  if (!nfIsOwner(ctx)) return;
+bot.command(
+  'nfoff',
+  async ctx => {
+    if (!nfIsOwner(ctx)) {
+      return;
+    }
 
-  nfEnabled.delete(
-    'GLOBAL'
-  );
+    nfEnabled.delete(
+      'GLOBAL'
+    );
 
-  await ctx.reply(
-    '🔴 AI Agent برای همه کاربران خاموش شد.'
-  );
-});
+    await ctx.reply(
+      '🔴 AI Agent خاموش شد.'
+    );
+  }
+);
 
 bot.command(
   'nfstatus',
@@ -4838,10 +5948,70 @@ bot.command(
     }
 
     await ctx.reply(
-      nfEnabled.has(nfKey(ctx))
-        ? '🟢 AI Agent فعال است.'
+      nfEnabled.has('GLOBAL')
+        ? '🟢 AI Agent فعال است.\n\n📍 محدوده: @Anime_FaarsiChat'
         : '🔴 AI Agent خاموش است.'
     );
+  }
+);
+
+bot.on(
+  'channel_post',
+  async ctx => {
+    try {
+      const username =
+        String(
+          ctx.chat?.username || ''
+        ).trim();
+
+      if (
+        !nfArchiveChannelAllowed(
+          username
+        )
+      ) {
+        return;
+      }
+
+      await nfArchiveQueueUpsert(
+        ctx
+      );
+
+    } catch (error) {
+      console.error(
+        'CHANNEL POST ARCHIVE ERROR:',
+        error
+      );
+    }
+  }
+);
+
+bot.on(
+  'edited_channel_post',
+  async ctx => {
+    try {
+      const username =
+        String(
+          ctx.chat?.username || ''
+        ).trim();
+
+      if (
+        !nfArchiveChannelAllowed(
+          username
+        )
+      ) {
+        return;
+      }
+
+      await nfArchiveQueueUpsert(
+        ctx
+      );
+
+    } catch (error) {
+      console.error(
+        'EDITED CHANNEL POST ARCHIVE ERROR:',
+        error
+      );
+    }
   }
 );
 
@@ -4890,6 +6060,7 @@ bot.use(
         ctx.message.text.trim();
 
       if (
+        !text ||
         text.startsWith('/')
       ) {
         return next();
@@ -4908,7 +6079,15 @@ bot.use(
 
       try {
         await ctx.reply(
-          '❌ خطایی در AI Agent رخ داد.'
+          '❌ خطایی در AI Agent رخ داد.',
+          ctx.message?.message_id
+            ? {
+                reply_parameters: {
+                  message_id:
+                    ctx.message.message_id
+                }
+              }
+            : undefined
         );
       } catch {}
     }
@@ -17408,17 +18587,27 @@ bot.on(
     if (isAdmin(ctx, 'postTools')) {
       const fixState =
         fixPostStates.get(ctx.chat.id);
+
       if (
         fixState &&
-        Number(fixState.ownerId) === Number(ctx.from.id)
+        Number(fixState.ownerId) ===
+          Number(ctx.from.id)
       ) {
         fixPostStates.delete(ctx.chat.id);
-        await handleFixPost(ctx, text);
+
+        await handleFixPost(
+          ctx,
+          text
+        );
+
         return;
       }
 
       if (
-        await handleScheduleText(ctx, text)
+        await handleScheduleText(
+          ctx,
+          text
+        )
       ) {
         return;
       }
@@ -17426,30 +18615,49 @@ bot.on(
 
     if (isAdmin(ctx, 'fileTools')) {
       const uploaderState =
-        uploaderStates.get(ctx.chat.id);
+        uploaderStates.get(
+          ctx.chat.id
+        );
+
       if (
-        uploaderState?.step === 'destination' &&
-        Number(uploaderState.ownerId) === Number(ctx.from.id)
+        uploaderState?.step ===
+          'destination' &&
+        Number(
+          uploaderState.ownerId
+        ) ===
+          Number(ctx.from.id)
       ) {
         await sendUploaderToChannel(
           ctx,
           text
         );
+
         return;
       }
     }
 
     const managerState =
-      managerStates.get(ctx.chat.id);
+      managerStates.get(
+        ctx.chat.id
+      );
+
     if (
       managerState &&
-      ['group', 'supergroup'].includes(ctx.chat?.type)
+      ['group', 'supergroup'].includes(
+        ctx.chat?.type
+      )
     ) {
       if (
-        managerState.action === 'warning-limit'
+        managerState.action ===
+        'warning-limit'
       ) {
-        managerStates.delete(ctx.chat.id);
-        const value = Number(text);
+        managerStates.delete(
+          ctx.chat.id
+        );
+
+        const value =
+          Number(text);
+
         if (
           !Number.isInteger(value) ||
           value < 1 ||
@@ -17458,54 +18666,80 @@ bot.on(
           await ctx.reply(
             'عدد باید بین ۱ تا ۲۰ باشد.'
           );
+
           return;
         }
+
         const saved =
           await saveGroupSettingsV1(
             ctx.chat.id,
-            { warningLimit: value }
+            {
+              warningLimit:
+                value
+            }
           );
+
         await ctx.reply(
           saved
             ? `✅ حد Warning روی ${value} تنظیم شد.`
             : 'ذخیره تنظیمات انجام نشد.'
         );
+
         return;
       }
 
       if (
-        managerState.action === 'nofilter-remove'
+        managerState.action ===
+        'nofilter-remove'
       ) {
-        managerStates.delete(ctx.chat.id);
+        managerStates.delete(
+          ctx.chat.id
+        );
+
         const current =
-          await getAllowedLinksV1(ctx.chat.id);
+          await getAllowedLinksV1(
+            ctx.chat.id
+          );
+
         const removeValues =
-          text.split(/[\s,]+/)
-            .map(normalizeAllowedLink);
+          text
+            .split(/[\s,]+/)
+            .map(
+              normalizeAllowedLink
+            );
+
         const saved =
           await updateAllowedLinksV1(
             ctx.chat.id,
             current.filter(
               item =>
                 !removeValues.includes(
-                  normalizeAllowedLink(item)
+                  normalizeAllowedLink(
+                    item
+                  )
                 )
             )
           );
+
         await ctx.reply(
           saved
             ? '✅ موارد انتخاب‌شده حذف شدند.'
             : 'ذخیره تغییر انجام نشد.'
         );
+
         return;
       }
 
-      managerStates.delete(ctx.chat.id);
+      managerStates.delete(
+        ctx.chat.id
+      );
+
       await handleModerationActionV1(
         ctx,
         managerState.action,
         text
       );
+
       return;
     }
 
@@ -17561,7 +18795,8 @@ bot.on(
             ? '<b>✅ متن با موفقیت ذخیره شد.</b>'
             : '<b>❌ ذخیره انجام نشد.</b>',
           {
-            parse_mode: 'HTML',
+            parse_mode:
+              'HTML',
             reply_markup:
               welcomeKeyboard(
                 data.settings.enabled
@@ -17725,7 +18960,9 @@ bot.on(
         }
 
         if (
-          /^https?:\/\//i.test(text)
+          /^https?:\/\//i.test(
+            text
+          )
         ) {
           await handleSetLink(
             ctx,
@@ -17743,7 +18980,8 @@ bot.on(
         await ctx.reply(
           '<b>⚠️ لطفاً لینک دانلود معتبر ارسال کنید یا «Skip» را بزنید.</b>',
           {
-            parse_mode: 'HTML',
+            parse_mode:
+              'HTML',
             reply_markup:
               setKeyboard()
           }
@@ -17753,16 +18991,33 @@ bot.on(
       }
     }
 
+    const inAiChat =
+      ['group', 'supergroup'].includes(
+        ctx.chat?.type
+      ) &&
+      String(
+        ctx.chat?.username || ''
+      )
+        .replace(/^@/, '')
+        .toLowerCase() ===
+        NF_AI_CHAT_USERNAME.toLowerCase();
+
+    if (inAiChat) {
+      return next();
+    }
+
     const normalized =
       normalizeChannelName(
         text
       );
-    
+
     let searchQuery =
       normalized;
-    
+
     if (
-      /^انیمه\s+/i.test(text)
+      /^انیمه\s+/i.test(
+        text
+      )
     ) {
       searchQuery =
         normalizeChannelName(
@@ -17772,9 +19027,11 @@ bot.on(
           )
         );
     }
-    
+
     if (
-      /^anime\s+/i.test(text)
+      /^anime\s+/i.test(
+        text
+      )
     ) {
       searchQuery =
         normalizeChannelName(
@@ -17784,21 +19041,21 @@ bot.on(
           )
         );
     }
-    
+
     if (!searchQuery) {
       return next();
     }
-    
+
     const found =
       await searchChannelPostForUser(
         ctx,
         searchQuery
       );
-    
+
     if (found) {
       return;
     }
-    
+
     return next();
   }
 );
