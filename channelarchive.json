@@ -1,5 +1,21 @@
 [
   {
+    "id": "anime_faarsi:1005",
+    "name": "اضافه شده است",
+    "nameNormalized": "اضافه شده است",
+    "link": "https://t.me/Anime_Faarsi/1005",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1005,
+    "text": "اضافه شده است",
+    "caption": "",
+    "entities": [],
+    "date": 1790983004,
+    "createdAt": "2026-10-02T23:16:44.666Z",
+    "updatedAt": "2026-10-02T23:16:44.666Z"
+  },
+  {
     "id": "anime_faarsi:1004",
     "name": "اضافه شد",
     "nameNormalized": "اضافه شد",
