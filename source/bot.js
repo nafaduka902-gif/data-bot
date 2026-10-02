@@ -12165,37 +12165,73 @@ async function handleChannelAddLink(
     return;
   }
 
-  const cache =
-    await githubReadChannelPosts();
+  const records =
+    await nfReadArchive();
 
   const now =
     new Date().toISOString();
 
   let added = 0;
-
-  let updated = 0;
+  let skipped = 0;
 
   for (
     const item of extracted
   ) {
-    let name =
-      item.name;
+    const linkValue =
+      String(item.link || '')
+        .trim();
+
+    if (!linkValue) {
+      continue;
+    }
 
     const source =
       messageLinkTarget(
-        item.link
+        linkValue
       );
 
-    if (
-      !name &&
-      source
-    ) {
-      name =
-        `Post ${source.messageId}`;
+    const messageId =
+      source?.messageId
+        ? Number(source.messageId)
+        : null;
+
+    const existing =
+      records.find(
+        record =>
+          String(
+            record.link || ''
+          ).trim() === linkValue ||
+          (
+            messageId &&
+            Number(
+              record.messageId
+            ) === messageId &&
+            normalizeChannelName(
+              record.channel ||
+                ''
+            ) ===
+              normalizeChannelName(
+                source?.username ||
+                  source?.channel ||
+                  ''
+              )
+          )
+      );
+
+    if (existing) {
+      skipped++;
+      continue;
     }
 
+    let name =
+      String(item.name || '')
+        .trim();
+
     if (!name) {
-      continue;
+      name =
+        messageId
+          ? `Post ${messageId}`
+          : linkValue;
     }
 
     const normalizedName =
@@ -12203,60 +12239,58 @@ async function handleChannelAddLink(
         name
       );
 
-    const index =
-      cache.records.findIndex(
-        record =>
-          normalizeChannelName(
-            record.name
-          ) === normalizedName
-      );
-
-    const old =
-      index >= 0
-        ? cache.records[index]
-        : {};
-
-    const record = {
+    records.push({
+      id:
+        source?.username
+          ? `${String(
+              source.username
+            ).replace(
+              /^@/,
+              ''
+            ).toLowerCase()}_${messageId || Date.now()}`
+          : `manual_${Date.now()}_${added + 1}`,
       name,
+      title: name,
       nameNormalized:
         normalizedName,
       link:
-        item.link,
-      text:
-        String(
-          old.text || ''
-        ),
-      caption:
-        String(
-          old.caption || ''
-        ),
-      createdAt:
-        old.createdAt ||
-        now,
-      updatedAt:
-        now
-    };
+        linkValue,
+      channel:
+        source?.username
+          ? String(
+              source.username
+            ).replace(/^@/, '')
+          : '',
+      channelNormalized:
+        source?.username
+          ? String(
+              source.username
+            ).replace(/^@/, '')
+            .toLowerCase()
+          : '',
+      channelType:
+        source?.username
+          ? 'channel'
+          : 'manual',
+      messageId:
+        messageId || '',
+      category: 'anime',
+      kind: 'series',
+      text: '',
+      caption: '',
+      createdAt: now,
+      updatedAt: now
+    });
 
-    if (index >= 0) {
-      cache.records[index] = {
-        ...old,
-        ...record
-      };
-
-      updated++;
-    } else {
-      cache.records.push(
-        record
-      );
-
-      added++;
-    }
+    added++;
   }
 
   const saved =
-    await githubWriteChannelPosts(
-      cache.records
-    );
+    added > 0
+      ? await nfWriteArchive(
+          records
+        )
+      : true;
 
   channelAddStates.delete(
     ctx.chat.id
@@ -12269,7 +12303,7 @@ async function handleChannelAddLink(
 
   if (!saved) {
     await ctx.reply(
-      '<b>❌ ذخیره در channelpost.json انجام نشد.</b>',
+      '<b>❌ ذخیره در channelarchive.json انجام نشد.</b>',
       {
         parse_mode: 'HTML',
         reply_markup:
@@ -12281,10 +12315,10 @@ async function handleChannelAddLink(
   }
 
   await ctx.reply(
-    `<b>✅ آرشیو با موفقیت بروزرسانی شد.</b>
+    `<b>✅ آرشیو جدید بروزرسانی شد.</b>
 
 ➕ اضافه شده: ${added}
-♻️ بروزرسانی شده: ${updated}
+⏭️ قبلاً موجود بود: ${skipped}
 🔗 لینک‌های شناسایی شده: ${extracted.length}`,
     {
       parse_mode: 'HTML',
