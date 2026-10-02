@@ -3230,6 +3230,94 @@ async function nfReadSource() {
   return response.data;
 }
 
+
+const githubApiUsage = {
+  total: 0,
+  authenticated: 0,
+  unauthenticated: 0,
+  requests: [],
+  endpoints: new Map()
+};
+
+function githubUsageRecord(config) {
+  const url =
+    String(config?.url || '');
+
+  if (
+    !url.includes('api.github.com')
+  ) {
+    return;
+  }
+
+  const method =
+    String(
+      config?.method || 'get'
+    ).toUpperCase();
+
+  const hasToken =
+    !!(
+      config?.headers?.Authorization ||
+      config?.headers?.authorization
+    );
+
+  let endpoint = url;
+
+  try {
+    endpoint =
+      new URL(
+        url,
+        'https://api.github.com'
+      ).pathname;
+  } catch {}
+
+  githubApiUsage.total++;
+
+  if (hasToken) {
+    githubApiUsage.authenticated++;
+  } else {
+    githubApiUsage.unauthenticated++;
+  }
+
+  const key =
+    `${method} ${endpoint}`;
+
+  githubApiUsage.endpoints.set(
+    key,
+    (githubApiUsage.endpoints.get(key) || 0) + 1
+  );
+
+  githubApiUsage.requests.push({
+    time:
+      new Date().toISOString(),
+    method,
+    endpoint,
+    token: hasToken
+      ? 'YES'
+      : 'NO'
+  });
+
+  if (
+    githubApiUsage.requests.length > 200
+  ) {
+    githubApiUsage.requests.shift();
+  }
+}
+
+if (
+  !axios.__githubUsageInterceptor
+) {
+  axios.interceptors.request.use(
+    config => {
+      githubUsageRecord(config);
+      return config;
+    }
+  );
+
+  axios.__githubUsageInterceptor =
+    true;
+}
+
+
 function nfFindFunction(
   source,
   name
@@ -3787,9 +3875,533 @@ async function nfDirect(
   return null;
 }
 
+
+const NF_BOT_NAME =
+  'Anime Faarsi Bot';
+
+const NF_CHANNEL_NAME =
+  'Anime Faarsi';
+
+const NF_CHANNEL_USERNAME =
+  '@Anime_Faarsi';
+
+const NF_CHANNEL_URL =
+  'https://t.me/Anime_Faarsi';
+
+const NF_TEAM_NAME =
+  'تیم انیمه فارسی';
+
+function nfNormalizeArchiveText(
+  value
+) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[يى]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[ۀة]/g, 'ه')
+    .replace(/ؤ/g, 'و')
+    .replace(/إ|أ|ٱ/g, 'ا')
+    .replace(/‌/g, ' ')
+    .replace(/ـ/g, '')
+    .replace(
+      /[^\p{L}\p{N}\s]/gu,
+      ' '
+    )
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function nfArchiveWords(
+  value
+) {
+  return [
+    ...new Set(
+      nfNormalizeArchiveText(value)
+        .split(/\s+/)
+        .filter(
+          word =>
+            word.length >= 2
+        )
+    )
+  ];
+}
+
+function nfArchiveTitleScore(
+  query,
+  title
+) {
+  const q =
+    nfNormalizeArchiveText(
+      query
+    );
+
+  const t =
+    nfNormalizeArchiveText(
+      title
+    );
+
+  if (!q || !t) {
+    return 0;
+  }
+
+  if (q === t) {
+    return 1000;
+  }
+
+  const qWords =
+    nfArchiveWords(q);
+
+  const tWords =
+    nfArchiveWords(t);
+
+  if (!qWords.length || !tWords.length) {
+    return 0;
+  }
+
+  let score = 0;
+
+  for (const word of qWords) {
+    if (tWords.includes(word)) {
+      score += 20;
+    }
+  }
+
+  const joinedQ =
+    qWords.join(' ');
+
+  const joinedT =
+    tWords.join(' ');
+
+  if (
+    joinedT.includes(joinedQ) ||
+    joinedQ.includes(joinedT)
+  ) {
+    score += 80;
+  }
+
+  return score;
+}
+
+function nfExtractArchiveCandidatesFromText(
+  text,
+  records
+) {
+  const source =
+    String(text || '');
+
+  const candidates = [];
+
+  for (const item of records) {
+    const name =
+      String(
+        item?.name ||
+        item?.nameNormalized ||
+        ''
+      ).trim();
+
+    if (!name) {
+      continue;
+    }
+
+    const score =
+      nfArchiveTitleScore(
+        source,
+        name
+      );
+
+    if (score > 0) {
+      candidates.push({
+        record: item,
+        score
+      });
+    }
+  }
+
+  candidates.sort(
+    (a, b) =>
+      b.score - a.score
+  );
+
+  return candidates
+    .slice(0, 8)
+    .map(item => item.record);
+}
+
+async function nfAIExtractArchiveTitles(
+  userText,
+  records
+) {
+  if (!NF_API_KEY) {
+    return [];
+  }
+
+  const names =
+    records
+      .map(
+        item =>
+          String(
+            item?.name || ''
+          ).trim()
+      )
+      .filter(Boolean);
+
+  if (!names.length) {
+    return [];
+  }
+
+  const limitedNames =
+    names
+      .slice(0, 1200)
+      .join('\n');
+
+  const prompt = `
+You are the archive-search router for Anime Faarsi Bot.
+
+The user is the owner of the bot.
+
+Your task is NOT to answer the user.
+Your task is only to identify which anime/movie/series titles
+the user is talking about, using the available archive titles.
+
+User message:
+${String(userText || '')}
+
+Available archive titles:
+${limitedNames}
+
+Rules:
+- Understand Persian, English, mixed Persian-English and common informal spellings.
+- "وانپیس", "وان پیس", "One Piece" may refer to the same title.
+- "مرد تک مشتی" can refer to "One Punch Man".
+- Do not invent a title that is not present in the archive list.
+- Return only titles that actually exist in the provided archive.
+- If the message does not refer to an archive title, return an empty array.
+- A user may refer to more than one title.
+
+Return JSON ONLY:
+
+{
+  "titles": ["exact archive title 1", "exact archive title 2"]
+}
+`;
+
+  try {
+    const response =
+      await axios.post(
+        NF_API_URL,
+        {
+          model: NF_MODEL,
+          messages: [
+            {
+              role: 'system',
+              content:
+                'Return valid JSON only.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0,
+          max_tokens: 600
+        },
+        {
+          headers: {
+            Authorization:
+              `Bearer ${NF_API_KEY}`,
+            'Content-Type':
+              'application/json'
+          },
+          timeout: 18000
+        }
+      );
+
+    const raw =
+      response?.data
+        ?.choices?.[0]
+        ?.message?.content;
+
+    if (!raw) {
+      return [];
+    }
+
+    let parsed;
+
+    try {
+      parsed =
+        JSON.parse(
+          aiCleanGroqJson(raw)
+        );
+    } catch {
+      return [];
+    }
+
+    const requested =
+      Array.isArray(
+        parsed?.titles
+      )
+        ? parsed.titles
+        : [];
+
+    const valid = [];
+
+    for (const title of requested) {
+      const exact =
+        records.find(
+          item =>
+            nfNormalizeArchiveText(
+              item?.name
+            ) ===
+            nfNormalizeArchiveText(
+              title
+            )
+        );
+
+      if (
+        exact &&
+        !valid.some(
+          item =>
+            String(
+              item?.link || ''
+            ) ===
+            String(
+              exact?.link || ''
+            )
+        )
+      ) {
+        valid.push(exact);
+      }
+    }
+
+    return valid;
+  } catch (error) {
+    console.error(
+      'NF ARCHIVE TITLE ERROR:',
+      error?.message || error
+    );
+
+    return [];
+  }
+}
+
+async function nfReadTelegramArchivePost(
+  ctx,
+  record
+) {
+  const link =
+    String(
+      record?.link || ''
+    ).trim();
+
+  const target =
+    messageLinkTarget(link);
+
+  if (!target) {
+    return null;
+  }
+
+  let copied;
+
+  try {
+    copied =
+      await ctx.telegram.copyMessage(
+        ctx.chat.id,
+        target.chatId,
+        target.messageId
+      );
+  } catch (error) {
+    console.error(
+      'NF ARCHIVE POST FETCH ERROR:',
+      error?.message || error
+    );
+
+    return null;
+  }
+
+  try {
+    const text =
+      String(
+        copied?.text ||
+        copied?.caption ||
+        ''
+      );
+
+    const entities =
+      copied?.entities ||
+      copied?.caption_entities ||
+      [];
+
+    return {
+      name:
+        String(
+          record?.name ||
+          ''
+        ),
+      link,
+      text,
+      entities,
+      messageId:
+        Number(
+          target.messageId
+        ),
+      chatId:
+        target.chatId
+    };
+  } finally {
+    try {
+      await ctx.telegram.deleteMessage(
+        ctx.chat.id,
+        copied.message_id
+      );
+    } catch {}
+  }
+}
+
+async function nfBuildArchiveContext(
+  ctx,
+  userText
+) {
+  try {
+    const cache =
+      await githubReadChannelPosts();
+
+    const records =
+      Array.isArray(
+        cache?.records
+      )
+        ? cache.records
+        : [];
+
+    if (!records.length) {
+      return '';
+    }
+
+    let matched =
+      nfExtractArchiveCandidatesFromText(
+        userText,
+        records
+      );
+
+    if (!matched.length) {
+      matched =
+        await nfAIExtractArchiveTitles(
+          userText,
+          records
+        );
+    }
+
+    if (!matched.length) {
+      return '';
+    }
+
+    const posts = [];
+
+    for (
+      const record of matched.slice(0, 5)
+    ) {
+      const post =
+        await nfReadTelegramArchivePost(
+          ctx,
+          record
+        );
+
+      posts.push({
+        record,
+        post
+      });
+    }
+
+    const usable =
+      posts.filter(
+        item =>
+          item.record ||
+          item.post
+      );
+
+    if (!usable.length) {
+      return '';
+    }
+
+    const output = [];
+
+    output.push(
+      'REAL ARCHIVE CONTEXT'
+    );
+
+    output.push(
+      `Channel name: ${NF_CHANNEL_NAME}`
+    );
+
+    output.push(
+      `Channel username: ${NF_CHANNEL_USERNAME}`
+    );
+
+    output.push(
+      `Channel URL: ${NF_CHANNEL_URL}`
+    );
+
+    output.push(
+      `Team: ${NF_TEAM_NAME}`
+    );
+
+    for (
+      const item of usable
+    ) {
+      const record =
+        item.record || {};
+
+      const post =
+        item.post || {};
+
+      output.push(
+        '\n--- ARCHIVE ITEM ---'
+      );
+
+      output.push(
+        `Name: ${String(
+          record.name || ''
+        )}`
+      );
+
+      output.push(
+        `Link: ${String(
+          record.link || ''
+        )}`
+      );
+
+      if (post.text) {
+        output.push(
+          `Real Telegram post text:\n${post.text}`
+        );
+      } else {
+        output.push(
+          'Real Telegram post text: unavailable'
+        );
+      }
+    }
+
+    return output
+      .join('\n')
+      .slice(0, 45000);
+  } catch (error) {
+    console.error(
+      'NF ARCHIVE CONTEXT ERROR:',
+      error?.message || error
+    );
+
+    return '';
+  }
+}
+
+
+
+
+
 async function nfAskAI(
   ctx,
-  text
+  text,
+  archiveContext = ''
 ) {
   if (!NF_API_KEY) {
     throw new Error(
@@ -3797,33 +4409,70 @@ async function nfAskAI(
     );
   }
 
-  const state =
-    nfState(ctx);
-
   const system =
     [
-      'تو AI داخلی Anime Faarsi Bot هستی.',
-      'نام ربات Anime Faarsi Bot است.',
-      'کاربر مالک ربات است.',
-      'درخواست‌های مربوط به کد، دستورات، توابع و قابلیت‌های واقعی باید بر اساس سورس واقعی bot.js پاسخ داده شوند.',
-      'هرگز ادعا نکن که امکان ارائه کد منبع وجود ندارد.',
-      'هرگز اطلاعاتی را که نمی‌دانی جعل نکن.',
-      'اگر یک عملیات واقعی توسط Router انجام نشده و ابزار لازم برای اجرای آن وجود ندارد، صادقانه بگو.',
-      'پاسخ کوتاه و طبیعی بده.',
-      'زبان پیش‌فرض فارسی است.'
+      `تو ${NF_BOT_NAME} هستی.`,
+      `نام کانال: ${NF_CHANNEL_NAME}.`,
+      `لینک کانال: ${NF_CHANNEL_URL}.`,
+      `یوزرنیم کانال: ${NF_CHANNEL_USERNAME}.`,
+      `نام تیم: ${NF_TEAM_NAME}.`,
+      'کاربر فعلی مالک ربات است.',
+
+      'تو یک دستیار هوشمند و طبیعی هستی.',
+      'نباید فقط بر اساس چند دستور ثابت پاسخ بدهی.',
+      'مفهوم واقعی هر پیام را بفهم.',
+      'کاربر ممکن است فارسی، انگلیسی، فینگلیش یا ترکیبی صحبت کند.',
+      'غلط‌های رایج تایپی و نام‌های غیررسمی انیمه‌ها را تا حد ممکن بفهم.',
+
+      'اگر پیام درباره آرشیو، انیمه، فیلم، سریال، دوبله، فصل، قسمت، موجود بودن محتوا یا پست کانال است، از REAL ARCHIVE CONTEXT استفاده کن.',
+      'اطلاعات آرشیو واقعی است و نباید برخلاف آن چیزی را جعل کنی.',
+      'اگر اطلاعات واقعی آرشیو می‌گوید دوبله فقط تا یک قسمت مشخص موجود است، همان را مبنا قرار بده.',
+      'اگر اطلاعات کافی نیست، صادقانه بگو اطلاعات کافی در آرشیو پیدا نشد.',
+      'هرگز صرفاً به خاطر اینکه عنوانی در archive record وجود دارد، ادعا نکن که تمام قسمت‌ها یا تمام فصل‌ها موجود هستند.',
+      'برای تعداد فصل‌ها، قسمت‌ها یا وضعیت دوبله فقط از متن واقعی پست استفاده کن.',
+
+      'اگر کاربر فقط گفت سلام، خوبی، ممنون و موارد مشابه، طبیعی و کوتاه جواب بده و لازم نیست درباره آرشیو صحبت کنی.',
+
+      'اگر کاربر درباره ربات سؤال کرد، نام صحیح ربات Anime Faarsi Bot است.',
+      'اگر درباره کانال سؤال کرد، نام صحیح کانال Anime Faarsi و لینک صحیح آن https://t.me/Anime_Faarsi است.',
+      'اگر درباره تیم سؤال کرد، نام صحیح تیم تیم انیمه فارسی است.',
+
+      'اگر سؤال درباره کد، قابلیت، دستور یا منطق واقعی ربات است، فقط بر اساس اطلاعاتی که واقعاً در context یا conversation داری پاسخ بده.',
+      'ادعا نکن کاری انجام شده مگر اینکه واقعاً انجام شده باشد.',
+
+      'پاسخ‌ها طبیعی، کوتاه و متناسب با پیام کاربر باشند.',
+      'لازم نیست همیشه ساختار ثابت داشته باشی.',
+      'اگر کاربر چند درخواست را در یک پیام مطرح کرد، همه موارد قابل بررسی را بررسی و در یک پاسخ جمع‌بندی کن.',
+      'اگر اطلاعات واقعی پیدا شد، آن را واضح و قابل فهم برای مالک توضیح بده.',
+      'زبان پیش‌فرض پاسخ فارسی است.'
     ].join('\n');
 
   const messages = [
     {
       role: 'system',
       content: system
-    },
-    ...state.history.slice(-10),
-    {
-      role: 'user',
-      content: String(text)
     }
   ];
+
+  if (archiveContext) {
+    messages.push({
+      role: 'system',
+      content:
+        archiveContext
+    });
+  }
+
+  messages.push(
+    ...nfState(ctx)
+      .history
+      .slice(-10)
+  );
+
+  messages.push({
+    role: 'user',
+    content:
+      String(text || '')
+  });
 
   const response =
     await axios.post(
@@ -3832,7 +4481,7 @@ async function nfAskAI(
         model: NF_MODEL,
         messages,
         temperature: 0.2,
-        max_tokens: 1600
+        max_tokens: 1800
       },
       {
         headers: {
@@ -3841,7 +4490,7 @@ async function nfAskAI(
           'Content-Type':
             'application/json'
         },
-        timeout: 18000
+        timeout: 30000
       }
     );
 
@@ -3855,7 +4504,9 @@ async function nfAskAI(
     );
   }
 
-  return String(answer).trim();
+  return String(
+    answer
+  ).trim();
 }
 
 async function nfProcess(
@@ -3919,13 +4570,29 @@ async function nfProcess(
       );
     } catch {}
 
+    let archiveContext = '';
+
+    try {
+      archiveContext =
+        await nfBuildArchiveContext(
+          ctx,
+          text
+        );
+    } catch (error) {
+      console.error(
+        'NF ARCHIVE BUILD ERROR:',
+        error?.message || error
+      );
+    }
+
     let answer;
 
     try {
       answer =
         await nfAskAI(
           ctx,
-          text
+          text,
+          archiveContext
         );
     } catch (error) {
       const status =
@@ -9269,16 +9936,69 @@ function normalizeChannelName(
     )
     .replace(/\s+/g, ' ')
     .replace(
-      /^(انیمه|anime)\s+/i,
+      /^(انیمه|anime)(?:\s+|$)/i,
       ''
     )
     .trim();
 }
 
 async function githubReadChannelPosts() {
-  return githubReadFileV1(
-    GITHUB_CHANNEL_FILE
-  );
+  try {
+    const url =
+      `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_CHANNEL_FILE}`;
+
+    const response =
+      await axios.get(
+        url,
+        {
+          timeout: 15000
+        }
+      );
+
+    let records =
+      response.data;
+
+    if (
+      typeof records === 'string'
+    ) {
+      try {
+        records =
+          JSON.parse(records);
+      } catch {
+        records = [];
+      }
+    }
+
+    if (
+      records &&
+      !Array.isArray(records) &&
+      Array.isArray(records.records)
+    ) {
+      records =
+        records.records;
+    }
+
+    return {
+      records:
+        Array.isArray(records)
+          ? records
+          : [],
+      sha: null,
+      available: true
+    };
+  } catch (error) {
+    console.error(
+      'Public channelpost read error:',
+      error?.message ||
+        error
+    );
+
+    return {
+      records: [],
+      sha: null,
+      available: false
+    };
+  }
 }
 
 async function githubWriteChannelPosts(
@@ -12790,96 +13510,92 @@ bot.on('document', async (ctx) => {
 
 
 
-bot.command('githublimit', async (ctx) => {
-  try {
-    if (
-      !ctx.from ||
-      Number(ctx.from.id) !== UPDATE_ADMIN_ID
-    ) {
-      return;
-    }
-
-    const response = await axios.get(
-      'https://api.github.com/rate_limit',
-      {
-        headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-          Accept: 'application/vnd.github+json',
-          'User-Agent': 'AnimeFaarsi-Bot',
-          'X-GitHub-Api-Version': '2022-11-28'
-        },
-        timeout: 15000
+bot.command(
+  'githubusage',
+  async ctx => {
+    try {
+      if (
+        !ctx.from ||
+        Number(ctx.from.id) !==
+          UPDATE_ADMIN_ID
+      ) {
+        return;
       }
-    );
 
-    const rate =
-      response.data?.resources?.core;
+      const entries =
+        Array.from(
+          githubApiUsage.endpoints.entries()
+        )
+        .sort(
+          (a, b) => b[1] - a[1]
+        );
 
-    if (!rate) {
-      return ctx.reply(
-        '❌ GitHub rate limit information was not found.'
+      let text =
+        '🐙 GitHub API Usage Monitor\n\n';
+
+      text +=
+        `📊 Observed requests: ${githubApiUsage.total}\n`;
+
+      text +=
+        `🔐 With Token: ${githubApiUsage.authenticated}\n`;
+
+      text +=
+        `🔓 Without Token: ${githubApiUsage.unauthenticated}\n\n`;
+
+      text +=
+        '📌 Endpoints:\n';
+
+      if (!entries.length) {
+        text +=
+          'هیچ درخواست GitHub API از زمان فعال شدن مانیتور ثبت نشده.';
+      } else {
+        for (
+          const [
+            endpoint,
+            count
+          ] of entries
+        ) {
+          text +=
+            `\n${count}× ${endpoint}`;
+        }
+      }
+
+      text +=
+        '\n\n🕐 Last requests:\n';
+
+      const recent =
+        githubApiUsage.requests
+          .slice(-15)
+          .reverse();
+
+      if (!recent.length) {
+        text +=
+          'هیچ موردی ثبت نشده.';
+      } else {
+        for (
+          const item of recent
+        ) {
+          text +=
+            `\n${item.time}\n` +
+            `${item.method} ${item.endpoint}\n` +
+            `🔐 Token: ${item.token}\n`;
+        }
+      }
+
+      await ctx.reply(text);
+
+    } catch (error) {
+      console.error(
+        'GITHUB USAGE ERROR:',
+        error
+      );
+
+      await ctx.reply(
+        '❌ دریافت گزارش GitHub Usage ناموفق بود.'
       );
     }
-
-    const resetDate =
-      new Date(rate.reset * 1000);
-
-    const now =
-      Date.now();
-
-    const remainingMs =
-      Math.max(
-        0,
-        resetDate.getTime() - now
-      );
-
-    const hours =
-      Math.floor(
-        remainingMs / 3600000
-      );
-
-    const minutes =
-      Math.floor(
-        (remainingMs % 3600000) / 60000
-      );
-
-    const seconds =
-      Math.floor(
-        (remainingMs % 60000) / 1000
-      );
-
-    await ctx.reply(
-      '🐙 GitHub API Rate Limit\n\n' +
-      `📊 Limit: ${rate.limit}\n` +
-      `📉 Used: ${rate.used}\n` +
-      `✅ Remaining: ${rate.remaining}\n\n` +
-      `🔄 Reset:\n${resetDate.toISOString()}\n\n` +
-      `⏳ Time remaining:\n` +
-      `${hours}h ${minutes}m ${seconds}s`
-    );
-
-  } catch (error) {
-
-    const status =
-      error?.response?.status;
-
-    const message =
-      error?.response?.data?.message ||
-      error?.message ||
-      'Unknown error';
-
-    await ctx.reply(
-      '❌ GitHub Rate Limit Check Failed\n\n' +
-      `📡 HTTP: ${status || 'N/A'}\n` +
-      `❌ ${message}`
-    );
-
-    console.error(
-      'GITHUB LIMIT ERROR:',
-      error
-    );
   }
-});
+);
 
 
 bot.command('backupfile', async (ctx) => {
