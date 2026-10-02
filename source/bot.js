@@ -2976,7 +2976,9 @@ const nfLocks = new Map();
 const nfCodeStore = new Map();
 
 function nfKey(ctx) {
-  return `${ctx.chat?.id || 0}:${ctx.from?.id || 0}`;
+  return String(
+    ctx.from?.id || 0
+  );
 }
 
 function nfIsOwner(ctx) {
@@ -3159,7 +3161,10 @@ async function nfSendResult(
         undefined,
         first,
         {
-          parse_mode: 'HTML'
+          parse_mode: 'HTML',
+          link_preview_options: {
+            is_disabled: true
+          }
         }
       );
 
@@ -3173,7 +3178,10 @@ async function nfSendResult(
         await ctx.reply(
           first,
           {
-            parse_mode: 'HTML'
+            parse_mode: 'HTML',
+            link_preview_options: {
+              is_disabled: true
+            }
           }
         );
 
@@ -3194,7 +3202,10 @@ async function nfSendResult(
         await ctx.reply(
           nfFormat(chunks[i]),
           {
-            parse_mode: 'HTML'
+            parse_mode: 'HTML',
+            link_preview_options: {
+              is_disabled: true
+            }
           }
         );
 
@@ -3891,6 +3902,63 @@ const NF_CHANNEL_URL =
 const NF_TEAM_NAME =
   'تیم انیمه فارسی';
 
+const NF_TEAM_CHANNELS = [
+  {
+    name: 'Anime Faarsi',
+    description: 'کانال اصلی انیمه فارسی',
+    username: '@Anime_Faarsi',
+    url: 'https://t.me/Anime_Faarsi'
+  },
+  {
+    name: 'اخبار سینما انیمه',
+    description: 'کانال اخبار سینمای جهان',
+    username: '@Anime_FaarsiNews',
+    url: 'https://t.me/Anime_FaarsiNews'
+  },
+  {
+    name: 'فارسی مووی',
+    description: 'کانال فیلم و سریال',
+    username: '@FaarsiMovie',
+    url: 'https://t.me/FaarsiMovie'
+  },
+  {
+    name: 'گروپ چت رسمی تیم',
+    description: 'گروه چت رسمی تیم',
+    username: '@Anime_FaarsiChat',
+    url: 'https://t.me/Anime_FaarsiChat'
+  },
+  {
+    name: 'کانال انیمیشن رسمی تیم',
+    description: 'کانال انیمیشن رسمی تیم',
+    username: '@AnimitionFaarsi',
+    url: 'https://t.me/AnimitionFaarsi'
+  },
+  {
+    name: 'کانال اطلاعات و معرفی انیمه',
+    description: 'کانال اطلاعات و معرفی انیمه',
+    username: '@Anime_Loveri',
+    url: 'https://t.me/Anime_Loveri'
+  },
+  {
+    name: 'کانال ادیت انیمه فارسی',
+    description: 'کانال ادیت انیمه فارسی تیم',
+    username: '@Anime_FaarsiEdits',
+    url: 'https://t.me/Anime_FaarsiEdits'
+  },
+  {
+    name: 'کانال زاپاس',
+    description: 'کانال زاپاس تیم',
+    username: '@animefaarsi',
+    url: 'https://t.me/animefaarsi'
+  },
+  {
+    name: 'کانال زاپاس دوبله',
+    description: 'کانال زاپاس تیم',
+    username: '@Dubb_Anime',
+    url: 'https://t.me/Dubb_Anime'
+  }
+];
+
 function nfNormalizeArchiveText(
   value
 ) {
@@ -4185,78 +4253,7 @@ Return JSON ONLY:
   }
 }
 
-async function nfReadTelegramArchivePost(
-  ctx,
-  record
-) {
-  const link =
-    String(
-      record?.link || ''
-    ).trim();
 
-  const target =
-    messageLinkTarget(link);
-
-  if (!target) {
-    return null;
-  }
-
-  let copied;
-
-  try {
-    copied =
-      await ctx.telegram.copyMessage(
-        ctx.chat.id,
-        target.chatId,
-        target.messageId
-      );
-  } catch (error) {
-    console.error(
-      'NF ARCHIVE POST FETCH ERROR:',
-      error?.message || error
-    );
-
-    return null;
-  }
-
-  try {
-    const text =
-      String(
-        copied?.text ||
-        copied?.caption ||
-        ''
-      );
-
-    const entities =
-      copied?.entities ||
-      copied?.caption_entities ||
-      [];
-
-    return {
-      name:
-        String(
-          record?.name ||
-          ''
-        ),
-      link,
-      text,
-      entities,
-      messageId:
-        Number(
-          target.messageId
-        ),
-      chatId:
-        target.chatId
-    };
-  } finally {
-    try {
-      await ctx.telegram.deleteMessage(
-        ctx.chat.id,
-        copied.message_id
-      );
-    } catch {}
-  }
-}
 
 async function nfBuildArchiveContext(
   ctx,
@@ -4295,88 +4292,54 @@ async function nfBuildArchiveContext(
       return '';
     }
 
-    const posts = [];
-
-    for (
-      const record of matched.slice(0, 5)
-    ) {
-      const post =
-        await nfReadTelegramArchivePost(
-          ctx,
-          record
-        );
-
-      posts.push({
-        record,
-        post
-      });
-    }
-
-    const usable =
-      posts.filter(
-        item =>
-          item.record ||
-          item.post
-      );
-
-    if (!usable.length) {
-      return '';
-    }
-
-    const output = [];
-
-    output.push(
-      'REAL ARCHIVE CONTEXT'
-    );
-
-    output.push(
-      `Channel name: ${NF_CHANNEL_NAME}`
-    );
-
-    output.push(
-      `Channel username: ${NF_CHANNEL_USERNAME}`
-    );
-
-    output.push(
-      `Channel URL: ${NF_CHANNEL_URL}`
-    );
-
-    output.push(
+    const output = [
+      'REAL ARCHIVE CONTEXT',
+      `Channel: ${NF_CHANNEL_NAME}`,
+      `Username: ${NF_CHANNEL_USERNAME}`,
+      `URL: ${NF_CHANNEL_URL}`,
       `Team: ${NF_TEAM_NAME}`
-    );
+    ];
 
     for (
-      const item of usable
+      const record of matched.slice(0, 8)
     ) {
-      const record =
-        item.record || {};
-
-      const post =
-        item.post || {};
-
       output.push(
         '\n--- ARCHIVE ITEM ---'
       );
 
       output.push(
         `Name: ${String(
-          record.name || ''
+          record?.name || ''
         )}`
       );
 
       output.push(
         `Link: ${String(
-          record.link || ''
+          record?.link || ''
         )}`
       );
 
-      if (post.text) {
+      if (record?.text) {
         output.push(
-          `Real Telegram post text:\n${post.text}`
+          `Post text:\n${String(
+            record.text
+          )}`
         );
-      } else {
+      }
+
+      if (record?.caption) {
         output.push(
-          'Real Telegram post text: unavailable'
+          `Post caption:\n${String(
+            record.caption
+          )}`
+        );
+      }
+
+      if (record?.description) {
+        output.push(
+          `Description:\n${String(
+            record.description
+          )}`
         );
       }
     }
@@ -4384,16 +4347,17 @@ async function nfBuildArchiveContext(
     return output
       .join('\n')
       .slice(0, 45000);
+
   } catch (error) {
     console.error(
       'NF ARCHIVE CONTEXT ERROR:',
-      error?.message || error
+      error?.message ||
+        error
     );
 
     return '';
   }
 }
-
 
 
 
@@ -4409,43 +4373,54 @@ async function nfAskAI(
     );
   }
 
-  const system =
-    [
-      `تو ${NF_BOT_NAME} هستی.`,
-      `نام کانال: ${NF_CHANNEL_NAME}.`,
-      `لینک کانال: ${NF_CHANNEL_URL}.`,
-      `یوزرنیم کانال: ${NF_CHANNEL_USERNAME}.`,
-      `نام تیم: ${NF_TEAM_NAME}.`,
-      'کاربر فعلی مالک ربات است.',
+  const channels =
+    NF_TEAM_CHANNELS
+      .map(
+        item =>
+          `- ${item.name} | ${item.description} | ${item.username} | ${item.url}`
+      )
+      .join('\n');
 
-      'تو یک دستیار هوشمند و طبیعی هستی.',
-      'نباید فقط بر اساس چند دستور ثابت پاسخ بدهی.',
-      'مفهوم واقعی هر پیام را بفهم.',
-      'کاربر ممکن است فارسی، انگلیسی، فینگلیش یا ترکیبی صحبت کند.',
-      'غلط‌های رایج تایپی و نام‌های غیررسمی انیمه‌ها را تا حد ممکن بفهم.',
+  const system = [
+    `تو ${NF_BOT_NAME} هستی.`,
+    `نام تیم: ${NF_TEAM_NAME}.`,
+    `کانال اصلی: ${NF_CHANNEL_NAME}.`,
+    `یوزرنیم کانال اصلی: ${NF_CHANNEL_USERNAME}.`,
+    `لینک کانال اصلی: ${NF_CHANNEL_URL}.`,
 
-      'اگر پیام درباره آرشیو، انیمه، فیلم، سریال، دوبله، فصل، قسمت، موجود بودن محتوا یا پست کانال است، از REAL ARCHIVE CONTEXT استفاده کن.',
-      'اطلاعات آرشیو واقعی است و نباید برخلاف آن چیزی را جعل کنی.',
-      'اگر اطلاعات واقعی آرشیو می‌گوید دوبله فقط تا یک قسمت مشخص موجود است، همان را مبنا قرار بده.',
-      'اگر اطلاعات کافی نیست، صادقانه بگو اطلاعات کافی در آرشیو پیدا نشد.',
-      'هرگز صرفاً به خاطر اینکه عنوانی در archive record وجود دارد، ادعا نکن که تمام قسمت‌ها یا تمام فصل‌ها موجود هستند.',
-      'برای تعداد فصل‌ها، قسمت‌ها یا وضعیت دوبله فقط از متن واقعی پست استفاده کن.',
+    '',
+    'کانال‌های رسمی تیم:',
+    channels,
 
-      'اگر کاربر فقط گفت سلام، خوبی، ممنون و موارد مشابه، طبیعی و کوتاه جواب بده و لازم نیست درباره آرشیو صحبت کنی.',
+    '',
+    'هویت:',
+    'تو یک ربات هستی و سن انسانی نداری.',
+    'برای خودت سن، تاریخ تولد، خانواده، محل زندگی یا مشخصات انسانی نساز.',
 
-      'اگر کاربر درباره ربات سؤال کرد، نام صحیح ربات Anime Faarsi Bot است.',
-      'اگر درباره کانال سؤال کرد، نام صحیح کانال Anime Faarsi و لینک صحیح آن https://t.me/Anime_Faarsi است.',
-      'اگر درباره تیم سؤال کرد، نام صحیح تیم تیم انیمه فارسی است.',
+    '',
+    'رفتار:',
+    'مفهوم واقعی پیام را بفهم.',
+    'فارسی، انگلیسی، فینگلیش، غلط تایپی و نام‌های غیررسمی را درک کن.',
+    'گفت‌وگوی عادی را طبیعی و کوتاه پاسخ بده.',
 
-      'اگر سؤال درباره کد، قابلیت، دستور یا منطق واقعی ربات است، فقط بر اساس اطلاعاتی که واقعاً در context یا conversation داری پاسخ بده.',
-      'ادعا نکن کاری انجام شده مگر اینکه واقعاً انجام شده باشد.',
+    '',
+    'آرشیو:',
+    'برای سؤال درباره کانال، انیمه، فیلم، سریال، موجود بودن، فصل، قسمت، دوبله یا لینک از REAL ARCHIVE CONTEXT استفاده کن.',
+    'اگر لینک واقعی رکورد وجود دارد، همان را بده.',
+    'هرگز لینک Telegram را حدس نزن.',
+    'برای درخواست لینک انیمه، لینک واقعی Anime Faarsi را بده.',
+    'لینک Crunchyroll، Netflix یا سایت‌های دیگر را جایگزین لینک Anime Faarsi نکن.',
+    'وجود عنوان به معنی وجود تمام قسمت‌ها یا فصل‌ها نیست.',
+    'برای وضعیت دوبله و تعداد قسمت‌ها فقط از اطلاعات موجود استفاده کن.',
 
-      'پاسخ‌ها طبیعی، کوتاه و متناسب با پیام کاربر باشند.',
-      'لازم نیست همیشه ساختار ثابت داشته باشی.',
-      'اگر کاربر چند درخواست را در یک پیام مطرح کرد، همه موارد قابل بررسی را بررسی و در یک پاسخ جمع‌بندی کن.',
-      'اگر اطلاعات واقعی پیدا شد، آن را واضح و قابل فهم برای مالک توضیح بده.',
-      'زبان پیش‌فرض پاسخ فارسی است.'
-    ].join('\n');
+    '',
+    'پاسخ:',
+    'مستقیم جواب بده.',
+    'مقدمه غیرضروری نگو.',
+    'اگر چند مورد در پیام وجود دارد، همه را بررسی کن.',
+    'هیچ عملیات انجام‌شده‌ای را جعل نکن.',
+    'زبان پیش‌فرض فارسی است.'
+  ].join('\n');
 
   const messages = [
     {
@@ -4457,8 +4432,7 @@ async function nfAskAI(
   if (archiveContext) {
     messages.push({
       role: 'system',
-      content:
-        archiveContext
+      content: archiveContext
     });
   }
 
@@ -4547,16 +4521,15 @@ async function nfProcess(
         direct
       );
 
-      const sent =
-        await nfSendResult(
-          ctx,
-          direct
-        );
+      await nfSendResult(
+        ctx,
+        direct
+      );
 
-      return sent;
+      return;
     }
 
-    let thinking;
+    let thinking = null;
 
     try {
       thinking =
@@ -4580,8 +4553,9 @@ async function nfProcess(
         );
     } catch (error) {
       console.error(
-        'NF ARCHIVE BUILD ERROR:',
-        error?.message || error
+        'NF ARCHIVE ERROR:',
+        error?.message ||
+          error
       );
     }
 
@@ -4631,8 +4605,11 @@ async function nfProcess(
       answer,
       thinking?.message_id
     );
+
   } finally {
-    nfLocks.delete(key);
+    nfLocks.delete(
+      key
+    );
   }
 }
 
@@ -10439,18 +10416,94 @@ async function handleChannelAddLink(
     return;
   }
 
-  if (
-    !/^https?:\/\//i.test(
-      link
-    )
+  const input =
+    String(link || '').trim();
+
+  const items = [];
+
+  const markdownRegex =
+    /\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/gi;
+
+  let match;
+
+  while (
+    (match =
+      markdownRegex.exec(input))
   ) {
+    items.push({
+      name:
+        String(match[1] || '')
+          .trim(),
+      link:
+        String(match[2] || '')
+          .trim()
+    });
+  }
+
+  const hRegex =
+    /(?:^|\n|\r)\s*(?:H|h)\s*\(\s*(https?:\/\/[^)\s]+)\s*\)/gi;
+
+  while (
+    (match =
+      hRegex.exec(input))
+  ) {
+    items.push({
+      name: '',
+      link:
+        String(match[1] || '')
+          .trim()
+    });
+  }
+
+  if (!items.length) {
+    const plainUrls =
+      input.match(
+        /https?:\/\/[^\s<>()]+/gi
+      ) || [];
+
+    for (
+      const url of plainUrls
+    ) {
+      items.push({
+        name: '',
+        link:
+          String(url)
+            .replace(
+              /[.,!?،؛]+$/g,
+              ''
+            )
+            .trim()
+      });
+    }
+  }
+
+  const unique =
+    new Map();
+
+  for (
+    const item of items
+  ) {
+    if (!item.link) {
+      continue;
+    }
+
+    unique.set(
+      item.link,
+      item
+    );
+  }
+
+  const extracted =
+    [...unique.values()];
+
+  if (!extracted.length) {
     await safeDelete(
       ctx,
       ctx.message.message_id
     );
 
     await ctx.reply(
-      '<b>❌ لینک معتبر ارسال کنید.</b>',
+      '<b>❌ هیچ لینک معتبری پیدا نشد.</b>',
       {
         parse_mode: 'HTML',
         reply_markup:
@@ -10464,45 +10517,89 @@ async function handleChannelAddLink(
   const cache =
     await githubReadChannelPosts();
 
-  const normalizedName =
-    normalizeChannelName(
-      state.name
-    );
-
   const now =
     new Date().toISOString();
 
-  const index =
-    cache.records.findIndex(
-      item =>
-        normalizeChannelName(
-          item.name
-        ) === normalizedName
-    );
+  let added = 0;
 
-  const record = {
-    name: state.name,
-    nameNormalized:
-      normalizedName,
-    link: link.trim(),
-    createdAt:
+  let updated = 0;
+
+  for (
+    const item of extracted
+  ) {
+    let name =
+      item.name;
+
+    const source =
+      messageLinkTarget(
+        item.link
+      );
+
+    if (
+      !name &&
+      source
+    ) {
+      name =
+        `Post ${source.messageId}`;
+    }
+
+    if (!name) {
+      continue;
+    }
+
+    const normalizedName =
+      normalizeChannelName(
+        name
+      );
+
+    const index =
+      cache.records.findIndex(
+        record =>
+          normalizeChannelName(
+            record.name
+          ) === normalizedName
+      );
+
+    const old =
       index >= 0
         ? cache.records[index]
-            ?.createdAt ||
-          now
-        : now,
-    updatedAt: now
-  };
+        : {};
 
-  if (index >= 0) {
-    cache.records[index] = {
-      ...cache.records[index],
-      ...record
+    const record = {
+      name,
+      nameNormalized:
+        normalizedName,
+      link:
+        item.link,
+      text:
+        String(
+          old.text || ''
+        ),
+      caption:
+        String(
+          old.caption || ''
+        ),
+      createdAt:
+        old.createdAt ||
+        now,
+      updatedAt:
+        now
     };
-  } else {
-    cache.records.push(
-      record
-    );
+
+    if (index >= 0) {
+      cache.records[index] = {
+        ...old,
+        ...record
+      };
+
+      updated++;
+    } else {
+      cache.records.push(
+        record
+      );
+
+      added++;
+    }
   }
 
   const saved =
@@ -10533,10 +10630,11 @@ async function handleChannelAddLink(
   }
 
   await ctx.reply(
-    `<b>Anime or X Successfuly Added to Archive.</b>
+    `<b>✅ آرشیو با موفقیت بروزرسانی شد.</b>
 
-Name: ${escapeHtml(state.name)}
-Link: ${escapeHtml(link)}`,
+➕ اضافه شده: ${added}
+♻️ بروزرسانی شده: ${updated}
+🔗 لینک‌های شناسایی شده: ${extracted.length}`,
     {
       parse_mode: 'HTML',
       reply_markup:
