@@ -1,5 +1,98 @@
 [
   {
+    "id": "faarsimovie:444",
+    "name": "500 مایل",
+    "nameNormalized": "500 مایل",
+    "link": "https://t.me/FaarsiMovie/444",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 444,
+    "text": "📼 فیلم « 500 مایل »\n\n📹 500 Miles 2026\n⭐️ IMDB : 7.2\n\n🎭 ژانر : درام\n🌐 محصول : انگلستان, ایرلند\n👤 ستارگان : Deirdre Monaghan, Loré Adewusi, Dexter Sol Ansell\n\n💬 خلاصه داستان : یک خانواده از هم پاشیده، زمانی مجبور به اتحاد دوباره می‌شود که فینِ ۱۶ ساله و برادر کوچکتر و پرانرژی‌اش، چارلی، برای فرار از مشکلات خانه در انگلستان، راهی سفری می‌شوند تا به پدربزرگشان که با او قطع رابطه کرده‌اند، در سواحل خیره‌کننده و وحشی غرب ایرلند برسند.\n\n🚫 بدون سانسور و حذفیات\n\n✍زیرنویس چسبیده:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « 500 مایل »\n\n📹 500 Miles 2026\n⭐️ IMDB : 7.2\n\n🎭 ژانر : درام\n🌐 محصول : انگلستان, ایرلند\n👤 ستارگان : Deirdre Monaghan, Loré Adewusi, Dexter Sol Ansell\n\n💬 خلاصه داستان : یک خانواده از هم پاشیده، زمانی مجبور به اتحاد دوباره می‌شود که فینِ ۱۶ ساله و برادر کوچکتر و پرانرژی‌اش، چارلی، برای فرار از مشکلات خانه در انگلستان، راهی سفری می‌شوند تا به پدربزرگشان که با او قطع رابطه کرده‌اند، در سواحل خیره‌کننده و وحشی غرب ایرلند برسند.\n\n🚫 بدون سانسور و حذفیات\n\n✍زیرنویس چسبیده:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 3,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 8,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 24,
+        "length": 15,
+        "type": "bold"
+      },
+      {
+        "offset": 43,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 58,
+        "length": 11,
+        "type": "bold"
+      },
+      {
+        "offset": 73,
+        "length": 24,
+        "type": "bold"
+      },
+      {
+        "offset": 101,
+        "length": 60,
+        "type": "bold"
+      },
+      {
+        "offset": 165,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 180,
+        "length": 258,
+        "type": "bold"
+      },
+      {
+        "offset": 443,
+        "length": 20,
+        "type": "bold"
+      },
+      {
+        "offset": 466,
+        "length": 15,
+        "type": "bold"
+      },
+      {
+        "offset": 485,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_694742092"
+      },
+      {
+        "offset": 485,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 520,
+        "length": 12,
+        "type": "mention"
+      },
+      {
+        "offset": 520,
+        "length": 1,
+        "type": "bold"
+      }
+    ],
+    "date": 1790983530,
+    "createdAt": "2026-10-02T23:25:31.214Z",
+    "updatedAt": "2026-10-02T23:25:31.214Z"
+  },
+  {
     "id": "anime_faarsi:1007",
     "name": "مارس قرمز",
     "nameNormalized": "مارس قرمز",
