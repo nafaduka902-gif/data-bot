@@ -12072,6 +12072,37 @@ async function handleChannelAddLink(
 
   const items = [];
 
+  const forwarded =
+    ctx.message?.forward_origin;
+
+  if (
+    forwarded?.type === 'channel'
+  ) {
+    const chat =
+      forwarded.chat || {};
+
+    const messageId =
+      Number(
+        forwarded.message_id || 0
+      );
+
+    if (
+      chat.id &&
+      messageId
+    ) {
+      items.push({
+        name: '',
+        link:
+          `https://t.me/${String(
+            chat.username || ''
+          ).replace(/^@/, '')}/${messageId}`,
+        forwarded: true,
+        chat,
+        messageId
+      });
+    }
+  }
+
   const markdownRegex =
     /\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/gi;
 
@@ -12165,73 +12196,109 @@ async function handleChannelAddLink(
     return;
   }
 
-  const records =
-    await nfReadArchive();
+  const cache =
+    await githubReadChannelPosts();
 
   const now =
     new Date().toISOString();
 
   let added = 0;
-  let skipped = 0;
+  let updated = 0;
+  let archiveAdded = 0;
+  let archiveUpdated = 0;
 
   for (
     const item of extracted
   ) {
-    const linkValue =
-      String(item.link || '')
-        .trim();
+    let name =
+      String(item.name || '').trim();
 
-    if (!linkValue) {
-      continue;
+    let fullText = '';
+    let fullCaption = '';
+    let entities = [];
+    let channel = '';
+    let channelUsername = '';
+    let messageId = 0;
+    let channelType = 'channel';
+    let category = '';
+    let kind = '';
+
+    if (
+      item.forwarded &&
+      item.chat
+    ) {
+      const forwardedMessage =
+        ctx.message;
+
+      const sourceChat =
+        item.chat;
+
+      channelUsername =
+        String(
+          sourceChat.username || ''
+        )
+          .replace(/^@/, '')
+          .trim();
+
+      channel =
+        channelUsername ||
+        String(
+          sourceChat.title || ''
+        ).trim();
+
+      messageId =
+        Number(
+          item.messageId || 0
+        );
+
+      fullText =
+        String(
+          forwardedMessage.text ||
+          forwardedMessage.caption ||
+          ''
+        );
+
+      fullCaption =
+        String(
+          forwardedMessage.caption ||
+          ''
+        );
+
+      entities =
+        forwardedMessage.entities ||
+        forwardedMessage.caption_entities ||
+        [];
+
+      if (!name) {
+        const titleMatch =
+          fullText.match(
+            /(?:انیمه|انیمیشن)\s+(?:سریالی|سینمایی)\s*[«"]\s*([^»"]+)[»"]/i
+          );
+
+        if (titleMatch?.[1]) {
+          name =
+            String(
+              titleMatch[1]
+            ).trim();
+        }
+      }
     }
 
     const source =
       messageLinkTarget(
-        linkValue
+        item.link
       );
 
-    const messageId =
-      source?.messageId
-        ? Number(source.messageId)
-        : null;
-
-    const existing =
-      records.find(
-        record =>
-          String(
-            record.link || ''
-          ).trim() === linkValue ||
-          (
-            messageId &&
-            Number(
-              record.messageId
-            ) === messageId &&
-            normalizeChannelName(
-              record.channel ||
-                ''
-            ) ===
-              normalizeChannelName(
-                source?.username ||
-                  source?.channel ||
-                  ''
-              )
-          )
-      );
-
-    if (existing) {
-      skipped++;
-      continue;
+    if (
+      !name &&
+      source
+    ) {
+      name =
+        `Post ${source.messageId}`;
     }
 
-    let name =
-      String(item.name || '')
-        .trim();
-
     if (!name) {
-      name =
-        messageId
-          ? `Post ${messageId}`
-          : linkValue;
+      continue;
     }
 
     const normalizedName =
@@ -12239,58 +12306,168 @@ async function handleChannelAddLink(
         name
       );
 
-    records.push({
-      id:
-        source?.username
-          ? `${String(
-              source.username
-            ).replace(
-              /^@/,
-              ''
-            ).toLowerCase()}_${messageId || Date.now()}`
-          : `manual_${Date.now()}_${added + 1}`,
+    const index =
+      cache.records.findIndex(
+        record =>
+          normalizeChannelName(
+            record.name
+          ) === normalizedName
+      );
+
+    const old =
+      index >= 0
+        ? cache.records[index]
+        : {};
+
+    const record = {
+      ...old,
       name,
-      title: name,
       nameNormalized:
         normalizedName,
       link:
-        linkValue,
-      channel:
-        source?.username
-          ? String(
-              source.username
-            ).replace(/^@/, '')
-          : '',
-      channelNormalized:
-        source?.username
-          ? String(
-              source.username
-            ).replace(/^@/, '')
-            .toLowerCase()
-          : '',
-      channelType:
-        source?.username
-          ? 'channel'
-          : 'manual',
-      messageId:
-        messageId || '',
-      category: 'anime',
-      kind: 'series',
-      text: '',
-      caption: '',
-      createdAt: now,
-      updatedAt: now
-    });
+        item.link,
+      text:
+        fullText ||
+        String(
+          old.text || ''
+        ),
+      caption:
+        fullCaption ||
+        String(
+          old.caption || ''
+        ),
+      createdAt:
+        old.createdAt ||
+        now,
+      updatedAt:
+        now
+    };
 
-    added++;
+    if (index >= 0) {
+      cache.records[index] = {
+        ...old,
+        ...record
+      };
+
+      updated++;
+    } else {
+      cache.records.push(
+        record
+      );
+
+      added++;
+    }
+
+    if (
+      item.forwarded &&
+      messageId
+    ) {
+      const archiveRecords =
+        await nfReadArchive();
+
+      const archiveId =
+        `${channelUsername || channel}:${messageId}`;
+
+      const archiveIndex =
+        archiveRecords.findIndex(
+          record =>
+            String(
+              record?.id || ''
+            ) ===
+            String(archiveId)
+        );
+
+      const oldArchive =
+        archiveIndex >= 0
+          ? archiveRecords[
+              archiveIndex
+            ]
+          : {};
+
+      const archiveRecord = {
+        ...oldArchive,
+        id:
+          archiveId,
+        name,
+        nameNormalized:
+          normalizedName,
+        link:
+          item.link,
+        channel:
+          channelUsername ||
+          channel,
+        channelNormalized:
+          normalizeChannelName(
+            channelUsername ||
+            channel
+          ),
+        channelType:
+          oldArchive.channelType ||
+          channelType,
+        category:
+          oldArchive.category ||
+          category,
+        kind:
+          oldArchive.kind ||
+          kind,
+        messageId,
+        text:
+          fullText ||
+          String(
+            oldArchive.text || ''
+          ),
+        caption:
+          fullCaption ||
+          String(
+            oldArchive.caption || ''
+          ),
+        entities:
+          entities.length
+            ? entities
+            : (
+                oldArchive.entities ||
+                []
+              ),
+        createdAt:
+          oldArchive.createdAt ||
+          now,
+        updatedAt:
+          now
+      };
+
+      if (archiveIndex >= 0) {
+        archiveRecords[
+          archiveIndex
+        ] = {
+          ...oldArchive,
+          ...archiveRecord
+        };
+
+        archiveUpdated++;
+      } else {
+        archiveRecords.push(
+          archiveRecord
+        );
+
+        archiveAdded++;
+      }
+
+      archiveRecords.sort(
+        (a, b) =>
+          Number(b?.date || 0) -
+          Number(a?.date || 0)
+      );
+
+      await nfWriteArchive(
+        archiveRecords
+      );
+    }
   }
 
   const saved =
-    added > 0
-      ? await nfWriteArchive(
-          records
-        )
-      : true;
+    await githubWriteChannelPosts(
+      cache.records
+    );
 
   channelAddStates.delete(
     ctx.chat.id
@@ -12303,7 +12480,7 @@ async function handleChannelAddLink(
 
   if (!saved) {
     await ctx.reply(
-      '<b>❌ ذخیره در channelarchive.json انجام نشد.</b>',
+      '<b>❌ ذخیره در channelpost.json انجام نشد.</b>',
       {
         parse_mode: 'HTML',
         reply_markup:
@@ -12315,10 +12492,12 @@ async function handleChannelAddLink(
   }
 
   await ctx.reply(
-    `<b>✅ آرشیو جدید بروزرسانی شد.</b>
+    `<b>✅ آرشیو با موفقیت بروزرسانی شد.</b>
 
 ➕ اضافه شده: ${added}
-⏭️ قبلاً موجود بود: ${skipped}
+♻️ بروزرسانی شده: ${updated}
+🤖 آرشیو AI اضافه شده: ${archiveAdded}
+♻️ آرشیو AI بروزرسانی شده: ${archiveUpdated}
 🔗 لینک‌های شناسایی شده: ${extracted.length}`,
     {
       parse_mode: 'HTML',
@@ -19508,6 +19687,72 @@ bot.on(
     return next();
   }
 );
+
+
+bot.on(
+  'message',
+  async (ctx, next) => {
+    const addState =
+      channelAddStates.get(
+        ctx.chat.id
+      );
+
+    if (
+      !addState ||
+      addState.step !== 'link' ||
+      !isAdmin(ctx)
+    ) {
+      return next();
+    }
+
+    const forwardOrigin =
+      ctx.message?.forward_origin;
+
+    if (
+      forwardOrigin?.type !== 'channel'
+    ) {
+      return next();
+    }
+
+    const username =
+      String(
+        forwardOrigin.chat?.username ||
+        ''
+      )
+        .replace(/^@/, '')
+        .trim();
+
+    const messageId =
+      Number(
+        forwardOrigin.message_id || 0
+      );
+
+    if (
+      !username ||
+      !messageId
+    ) {
+      await ctx.reply(
+        '<b>❌ این فوروارد لینک قابل استخراج ندارد.</b>',
+        {
+          parse_mode: 'HTML',
+          reply_markup:
+            searchToolsKeyboard()
+        }
+      );
+
+      return;
+    }
+
+    const link =
+      `https://t.me/${username}/${messageId}`;
+
+    await handleChannelAddLink(
+      ctx,
+      link
+    );
+  }
+);
+
 
 bot.on(
   'message',
