@@ -1,5 +1,5 @@
 const ADMIN_ID = 2048310529;
-const OMDB_API_KEY = 'c984bcec';
+const OMDB_API_KEY = process.env.OMDB_API_KEY;
 let DEFAULT_DOWNLOAD_URL = 'https://t.me/dubb_anime';
 
 
@@ -502,6 +502,9 @@ const UPLOAD_BRIDGE_CHAT_ID = -1004328029117
 const uploadFlowStates = new Map()
 
 let uploadResultWatcherStarted = false
+let uploadResultWatcherInFlight = false
+let uploadResultWatcherFailureCount = 0
+let uploadResultWatcherNextRunAt = 0
 let uploadGithubWriteQueue = Promise.resolve()
 
 const UPLOAD_REQUESTS_FILE = 'upload/requests.json'
@@ -509,6 +512,8 @@ const UPLOAD_RESULTS_FILE = 'upload/results.json'
 
 const UPLOAD_GITHUB_RETRY_COUNT = 8
 const UPLOAD_GITHUB_RETRY_DELAY = 500
+const UPLOAD_RESULT_WATCHER_BACKOFF_BASE_MS = 3000
+const UPLOAD_RESULT_WATCHER_BACKOFF_MAX_MS = 60000
 
 function uploadSleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
@@ -1491,12 +1496,24 @@ bot.on(
 )
 
 async function uploadCheckResults() {
+    if (
+        uploadResultWatcherInFlight ||
+        Date.now() < uploadResultWatcherNextRunAt
+    ) {
+        return
+    }
+
+    uploadResultWatcherInFlight = true
+    let pollSucceeded = false
+
     try {
         const results =
             await uploadGithubRead(
                 UPLOAD_RESULTS_FILE,
                 []
             )
+
+        pollSucceeded = true
 
         if (
             !Array.isArray(
@@ -1611,13 +1628,40 @@ async function uploadCheckResults() {
                     'UPLOAD RESULT MARK ERROR:',
                     error.message
                 )
+
+                throw error
             }
         }
     } catch (error) {
+        pollSucceeded = false
+        uploadResultWatcherFailureCount =
+            Math.min(
+                uploadResultWatcherFailureCount + 1,
+                6
+            )
+
+        const backoffMs =
+            Math.min(
+                UPLOAD_RESULT_WATCHER_BACKOFF_BASE_MS *
+                    (2 ** (uploadResultWatcherFailureCount - 1)),
+                UPLOAD_RESULT_WATCHER_BACKOFF_MAX_MS
+            )
+
+        uploadResultWatcherNextRunAt =
+            Date.now() + backoffMs
+
         console.error(
             'UPLOAD RESULT WATCHER ERROR:',
-            error.message
+            error.message,
+            `retry in ${backoffMs}ms`
         )
+    } finally {
+        if (pollSucceeded) {
+            uploadResultWatcherFailureCount = 0
+            uploadResultWatcherNextRunAt = 0
+        }
+
+        uploadResultWatcherInFlight = false
     }
 }
 
@@ -3069,9 +3113,7 @@ const nfLocks = new Map();
 const nfCodeStore = new Map();
 
 function nfKey(ctx) {
-  return String(
-    ctx.from?.id || 0
-  );
+  return `${Number(ctx.chat?.id || 0)}:${Number(ctx.from?.id || 0)}`;
 }
 
 function nfIsOwner(ctx) {
@@ -3104,6 +3146,32 @@ function nfRemember(ctx, role, content) {
     state.history =
       state.history.slice(-16);
   }
+}
+
+function nfConversationHistory(
+  ctx,
+  currentText,
+  limit = 10
+) {
+  const history =
+    nfState(ctx)
+      .history
+      .slice(-limit);
+  const last =
+    history[history.length - 1];
+  const current =
+    String(currentText || '')
+      .slice(0, 5000);
+
+  if (
+    last?.role === 'user' &&
+    String(last.content || '') ===
+      current
+  ) {
+    history.pop();
+  }
+
+  return history;
 }
 
 function nfEscapeHtml(value) {
@@ -4183,6 +4251,12 @@ const NF_TEAM_NAME =
 
 const NF_ARCHIVE_FILE = 'channelarchive.json';
 
+let nfAddedArchivePostsCache = {
+  expiresAt: 0,
+  records: []
+};
+let nfAddedArchivePostsPending = null;
+
 const NF_ARCHIVE_CHANNELS = [
   {
     username: '@Anime_Faarsi',
@@ -4460,7 +4534,7 @@ function nfArchiveRecordFromChannelPost(
 
   const title =
     nfArchiveExtractTitle(
-      post
+      text
     );
 
   const now =
@@ -4557,6 +4631,10 @@ async function nfReadArchive() {
       ) {
         records =
           parsed.records;
+      } else {
+        throw new Error(
+          'NF_ARCHIVE_INVALID_FORMAT'
+        );
       }
     }
 
@@ -4567,15 +4645,17 @@ async function nfReadArchive() {
         error?.response?.status
       );
 
-    if (status !== 404) {
-      console.error(
-        'NF ARCHIVE READ ERROR:',
-        error?.message ||
-          error
-      );
+    if (status === 404) {
+      return [];
     }
 
-    return [];
+    console.error(
+      'NF ARCHIVE READ ERROR:',
+      error?.message ||
+        error
+    );
+
+    throw error;
   }
 }
 
@@ -4809,16 +4889,108 @@ function nfArchiveIntentText(
     .trim();
 }
 
+function nfArchiveQueryVariants(text) {
+  const source =
+    String(text || '').trim();
+  const normalized =
+    nfArchiveNormalize(source);
+  const variants =
+    new Set([source]);
+
+  if (
+    /\bone\s*piece\b/i.test(normalized) ||
+    /وان\s*پیس|وانپیس/.test(normalized)
+  ) {
+    variants.add('One Piece');
+    variants.add('وان پیس');
+    variants.add('وانپیس');
+  }
+
+  if (
+    /\bone\s*punch(?:\s*man)?\b/i.test(normalized) ||
+    /مرد\s*تک\s*مشتی/.test(normalized)
+  ) {
+    variants.add('One Punch Man');
+    variants.add('مرد تک مشتی');
+  }
+
+  return [...variants].filter(Boolean);
+}
+
+async function nfReadAddedArchivePosts() {
+  if (
+    nfAddedArchivePostsCache.expiresAt >
+    Date.now()
+  ) {
+    return nfAddedArchivePostsCache.records;
+  }
+
+  if (nfAddedArchivePostsPending) {
+    return nfAddedArchivePostsPending;
+  }
+
+  nfAddedArchivePostsPending =
+    (async () => {
+      const result =
+        await githubReadChannelPosts();
+      const records =
+        result.available &&
+        Array.isArray(result.records)
+          ? result.records
+              .map(item => {
+                const name =
+                  String(
+                    item?.name ||
+                    item?.title ||
+                    ''
+                  ).trim();
+                const link =
+                  String(
+                    item?.link ||
+                    item?.postUrl ||
+                    ''
+                  ).trim();
+
+                if (!name || !link) {
+                  return null;
+                }
+
+                return {
+                  ...item,
+                  id:
+                    item.id ||
+                    `channelpost:${nfArchiveNormalize(name)}`,
+                  name,
+                  link,
+                  sourceFile:
+                    GITHUB_CHANNEL_FILE
+                };
+              })
+              .filter(Boolean)
+          : [];
+
+      nfAddedArchivePostsCache = {
+        expiresAt:
+          Date.now() + 60000,
+        records
+      };
+
+      return records;
+    })();
+
+  try {
+    return await nfAddedArchivePostsPending;
+  } finally {
+    nfAddedArchivePostsPending = null;
+  }
+}
+
 async function nfSearchRealArchive(
   ctx,
   userText
 ) {
   const records =
     await nfReadArchive();
-
-  if (!records.length) {
-    return [];
-  }
 
   const query =
     String(userText || '')
@@ -4844,19 +5016,38 @@ async function nfSearchRealArchive(
       query
     );
 
-  if (
-    cleaned &&
-    cleaned !== query
-  ) {
-    const cleanedResults =
+  const queries =
+    new Set([
+      ...nfArchiveQueryVariants(query),
+      ...nfArchiveQueryVariants(cleaned)
+    ]);
+
+  for (const candidate of queries) {
+    const directResults =
       nfArchiveSearch(
         records,
-        cleaned,
+        candidate,
         12
       );
 
-    if (cleanedResults.length) {
-      return cleanedResults;
+    if (directResults.length) {
+      return directResults;
+    }
+  }
+
+  const addedPosts =
+    await nfReadAddedArchivePosts();
+
+  for (const candidate of queries) {
+    const addedResults =
+      nfArchiveSearch(
+        addedPosts,
+        candidate,
+        12
+      );
+
+    if (addedResults.length) {
+      return addedResults;
     }
   }
 
@@ -5165,16 +5356,6 @@ async function nfBuildArchiveContext(
   userText
 ) {
   try {
-    const records =
-      await nfReadArchive();
-
-    if (!records.length) {
-      return [
-        'REAL TELEGRAM CHANNEL ARCHIVE',
-        'NO ARCHIVE RECORDS ARE CURRENTLY AVAILABLE.'
-      ].join('\n');
-    }
-
     const query =
       String(userText || '').trim();
 
@@ -5193,7 +5374,7 @@ async function nfBuildArchiveContext(
 
     const output = [
       'REAL TELEGRAM CHANNEL ARCHIVE',
-      'SOURCE: ACTUAL TELEGRAM CHANNEL POSTS SAVED IN channelarchive.json',
+      'SOURCE: channelarchive.json and verified Add X records from channelpost.json.',
       'RULE: Use only the records below for archive-related claims.',
       'RULE: Never invent titles, links, episode counts, season counts or dub status.',
       'RULE: If a record has a link, use that exact link.',
@@ -5257,6 +5438,13 @@ async function nfBuildArchiveContext(
           record.link ||
           record.postUrl ||
           ''
+        ).trim()}`
+      );
+
+      output.push(
+        `Source File: ${String(
+          record.sourceFile ||
+          NF_ARCHIVE_FILE
         ).trim()}`
       );
 
@@ -5423,9 +5611,11 @@ async function nfAskAI(
   }
 
   messages.push(
-    ...nfState(ctx)
-      .history
-      .slice(-10)
+    ...nfConversationHistory(
+      ctx,
+      text,
+      10
+    )
   );
 
   messages.push({
@@ -5593,9 +5783,11 @@ async function nfProcess(
         directText;
 
       const history =
-        nfState(ctx)
-          .history
-          .slice(-10);
+        nfConversationHistory(
+          ctx,
+          directText,
+          10
+        );
 
       const resolverMessages = [
         {
@@ -5688,7 +5880,7 @@ async function nfProcess(
 
         const output = [
           'REAL TELEGRAM CHANNEL ARCHIVE',
-          'SOURCE: ACTUAL TELEGRAM CHANNEL POSTS SAVED IN channelarchive.json',
+          'SOURCE: channelarchive.json and verified Add X records from channelpost.json.',
           'RULE: Use only the records below for archive-related claims.',
           'RULE: Never invent titles, links, episode counts, season counts or dub status.',
           'RULE: If a record has a link, use that exact link.',
@@ -5740,6 +5932,13 @@ async function nfProcess(
               record.link ||
               record.postUrl ||
               ''
+            ).trim()}`
+          );
+
+          output.push(
+            `Source File: ${String(
+              record.sourceFile ||
+              NF_ARCHIVE_FILE
             ).trim()}`
           );
 
@@ -6557,7 +6756,7 @@ async function githubReadFileV1(file) {
       return {
         records: [],
         sha: response.data?.sha || null,
-        available: true
+        available: false
       };
     }
 
@@ -6574,8 +6773,17 @@ async function githubReadFileV1(file) {
 
     try {
       parsed = JSON.parse(decoded);
-    } catch {
-      parsed = [];
+    } catch (error) {
+      console.error(
+        `GitHub JSON parse error (${file}):`,
+        error?.message || error
+      );
+
+      return {
+        records: [],
+        sha: response.data?.sha || null,
+        available: false
+      };
     }
 
     if (
@@ -6587,7 +6795,15 @@ async function githubReadFileV1(file) {
     }
 
     if (!Array.isArray(parsed)) {
-      parsed = [];
+      console.error(
+        `GitHub JSON format error (${file}): expected an array`
+      );
+
+      return {
+        records: [],
+        sha: response.data?.sha || null,
+        available: false
+      };
     }
 
     return {
@@ -6644,6 +6860,14 @@ async function githubWriteFileV1(
   const runWrite = async () => {
     const current =
       await githubReadFileV1(file);
+
+    if (!current.available) {
+      console.error(
+        `GitHub write skipped (${file}): current contents could not be read safely`
+      );
+
+      return false;
+    }
 
     const content =
       JSON.stringify(
@@ -6705,6 +6929,14 @@ async function githubWriteFileV1(
               file
             );
 
+          if (!retry.available) {
+            console.error(
+              `GitHub retry skipped (${file}): current contents could not be read safely`
+            );
+
+            return false;
+          }
+
           const retryRecords =
             [...retry.records];
 
@@ -6746,18 +6978,69 @@ async function githubWriteFileV1(
                         item.name
                       )
                 );
-            } else {
+            } else if (
+              file === NF_ARCHIVE_FILE
+            ) {
               index =
                 retryRecords.findIndex(
                   existing =>
-                    existing.kind ===
-                      item.kind &&
-                    String(
-                      existing.userId || ''
-                    ) ===
-                      String(
-                        item.userId || ''
-                      )
+                    (
+                      item.id &&
+                      String(existing.id || '') ===
+                        String(item.id)
+                    ) ||
+                    (
+                      item.link &&
+                      String(existing.link || '') ===
+                        String(item.link)
+                    )
+                );
+            } else {
+              index =
+                retryRecords.findIndex(
+                  existing => {
+                    if (
+                      existing.kind !==
+                      item.kind
+                    ) {
+                      return false;
+                    }
+
+                    if (
+                      item.chatId !==
+                        undefined &&
+                      item.chatId !== null
+                    ) {
+                      return (
+                        String(existing.chatId) ===
+                        String(item.chatId)
+                      );
+                    }
+
+                    if (
+                      item.userId !==
+                        undefined &&
+                      item.userId !== null
+                    ) {
+                      return (
+                        String(existing.userId) ===
+                        String(item.userId)
+                      );
+                    }
+
+                    if (
+                      item.id !==
+                        undefined &&
+                      item.id !== null
+                    ) {
+                      return (
+                        String(existing.id) ===
+                        String(item.id)
+                      );
+                    }
+
+                    return true;
+                  }
                 );
             }
 
@@ -6838,8 +7121,16 @@ async function githubWriteFileV1(
   if (queueType === 'channel') {
     githubChannelQueueV1 =
       githubChannelQueueV1.then(
+        runWrite,
         runWrite
-      );
+      ).catch(error => {
+        console.error(
+          `GitHub channel queue error (${file}):`,
+          error?.message || error
+        );
+
+        return false;
+      });
 
     return githubChannelQueueV1;
   }
@@ -6847,16 +7138,32 @@ async function githubWriteFileV1(
   if (queueType === 'welcome') {
     githubWelcomeQueueV1 =
       githubWelcomeQueueV1.then(
+        runWrite,
         runWrite
-      );
+      ).catch(error => {
+        console.error(
+          `GitHub welcome queue error (${file}):`,
+          error?.message || error
+        );
+
+        return false;
+      });
 
     return githubWelcomeQueueV1;
   }
 
   githubQueueV1 =
     githubQueueV1.then(
+      runWrite,
       runWrite
-    );
+    ).catch(error => {
+      console.error(
+        `GitHub write queue error (${file}):`,
+        error?.message || error
+      );
+
+      return false;
+    });
 
   return githubQueueV1;
 }
@@ -6881,10 +7188,12 @@ async function readJsonStoreV1(file) {
       ? result.records
       : [];
 
-  jsonStoreCacheV1.set(
-    file,
-    records
-  );
+  if (result.available) {
+    jsonStoreCacheV1.set(
+      file,
+      records
+    );
+  }
 
   return records;
 }
@@ -8108,10 +8417,8 @@ async function finishChannelAdd(ctx) {
     }
 
     const saved =
-      await githubWriteFileV1(
-        GITHUB_CHANNEL_FILE,
-        records,
-        'channel'
+      await githubWriteChannelPosts(
+        records
       );
 
     if (!saved) {
@@ -8538,7 +8845,8 @@ function linkIsAllowed(text, allowedLinks) {
   const safeList =
     allowedLinks.map(normalizeAllowedLink);
 
-  return tokens.some(token => {
+  return tokens.length > 0 &&
+    tokens.every(token => {
     const value =
       normalizeAllowedLink(token);
 
@@ -8547,7 +8855,7 @@ function linkIsAllowed(text, allowedLinks) {
         value === allowed ||
         value.endsWith(`.${allowed}`)
     );
-  });
+    });
 }
 
 async function handleLinkFilterMessageV1(ctx) {
@@ -11317,11 +11625,18 @@ async function githubReadChannelPosts() {
 async function githubWriteChannelPosts(
   records
 ) {
-  return githubWriteFileV1(
-    GITHUB_CHANNEL_FILE,
-    records,
-    'channel'
-  );
+  const saved =
+    await githubWriteFileV1(
+      GITHUB_CHANNEL_FILE,
+      records,
+      'channel'
+    );
+
+  if (saved) {
+    nfAddedArchivePostsCache.expiresAt = 0;
+  }
+
+  return saved;
 }
 
 function findChannelPost(
@@ -12432,9 +12747,23 @@ async function handleNewMembers(
       ctx.chat.id
     );
 
+  if (!welcome.available) {
+    console.error(
+      'WELCOME DATA UNAVAILABLE; NEW-MEMBER VERIFICATION SKIPPED'
+    );
+
+    return;
+  }
+
+  const welcomeEnabled =
+    Boolean(
+      welcome.settings.enabled &&
+      groupSettings.welcomeEnabled
+    );
+
   if (
-    !welcome.settings.enabled ||
-    !groupSettings.welcomeEnabled
+    !welcomeEnabled &&
+    !groupSettings.captchaEnabled
   ) {
     return;
   }
@@ -12472,11 +12801,17 @@ async function handleNewMembers(
       );
 
     const welcomeMessageText =
-      welcomeGroupText(
-        welcome.settings.welcomeText,
-        user,
-        ctx.chat
-      );
+      welcomeEnabled
+        ? welcomeGroupText(
+            welcome.settings.welcomeText,
+            user,
+            ctx.chat
+          )
+        : welcomeGroupText(
+            '👋 {user}، برای ورود به {chat} لطفاً قوانین گروه را از دکمهٔ زیر بخوانید و تأیید کنید.',
+            user,
+            ctx.chat
+          );
 
     const captchaToken =
       `${Date.now().toString(36)}_${Math.random()
@@ -12535,10 +12870,46 @@ async function handleNewMembers(
       pending;
 
     if (groupSettings.captchaEnabled) {
-      await saveWelcomeData(
-        welcome.settings,
-        welcome.pending
-      );
+      let saved = false;
+
+      try {
+        saved =
+          await saveWelcomeData(
+            welcome.settings,
+            welcome.pending
+          );
+      } catch (error) {
+        console.error(
+          'WELCOME CAPTCHA SAVE ERROR:',
+          error?.message || error
+        );
+      }
+
+      if (!saved) {
+        try {
+          await ctx.telegram.deleteMessage(
+            ctx.chat.id,
+            sent.message_id
+          );
+        } catch {}
+
+        const unmuted =
+          await unmuteUser(
+          ctx,
+          ctx.chat.id,
+          user.id
+        );
+
+        try {
+          await ctx.reply(
+            unmuted
+              ? '⚠️ ذخیرهٔ وضعیت تأیید انجام نشد؛ برای جلوگیری از محدودشدن، عضو موقتاً آزاد شد. مدیر گروه باید اتصال GitHub را بررسی کند.'
+              : '⚠️ ذخیرهٔ وضعیت تأیید انجام نشد و رفع محدودیت خودکار هم ناموفق بود. مدیر گروه باید دسترسی این عضو را دستی بررسی و آزاد کند.'
+          );
+        } catch {}
+
+        continue;
+      }
     }
 
     setTimeout(
@@ -12608,43 +12979,38 @@ async function findPendingCaptcha(
 
 async function sendRulesToUser(
   ctx,
-  data
+  data,
+  captchaToken
 ) {
+  if (!data?.available) {
+    await ctx.reply(
+      '⚠️ وضعیت تأیید از GitHub خوانده نشد. چند دقیقهٔ دیگر دوباره تلاش کنید.'
+    );
+
+    return false;
+  }
+
   const userId =
     Number(ctx.from?.id);
+  const token =
+    String(captchaToken || '').trim();
 
-  let pendingItem =
+  const pendingItem =
     data.pending.find(
       x =>
         Number(x.userId) ===
-        userId
+          userId &&
+        String(x.captchaToken || '') ===
+          token
     );
 
   if (!pendingItem) {
-    const captchaToken =
-      `${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
-
-    pendingItem = {
-      userId,
-      captchaToken,
-      chatId: '',
-      welcomeMessageId: ''
-    };
-
-    data.pending.push(
-      pendingItem
+    await ctx.reply(
+      'این لینک تأیید معتبر نیست یا درخواست آن دیگر فعال نیست. از گروه، لینک جدید بگیرید.'
     );
 
-    await saveWelcomeData(
-      data.settings,
-      data.pending
-    );
+    return false;
   }
-
-  const captchaToken =
-    String(
-      pendingItem.captchaToken || ''
-    ).trim();
 
   const rulesText =
     String(
@@ -12679,6 +13045,8 @@ async function sendRulesToUser(
       }
     }
   );
+
+  return true;
 }
 
 
@@ -12700,26 +13068,46 @@ bot.start(
         'captcha_'
       )
     ) {
-      const parts =
-        payload.split('_');
-
+      const captchaMatch =
+        payload.match(
+          /^captcha_(\d+)_(.+)$/
+        );
       const targetId =
-        Number(parts[1]);
+        Number(captchaMatch?.[1]);
+      const captchaToken =
+        String(
+          captchaMatch?.[2] || ''
+        ).trim();
 
       if (
+        !captchaMatch ||
         !Number.isFinite(targetId) ||
+        !captchaToken ||
         targetId !==
           Number(ctx.from?.id)
       ) {
+        await ctx.reply(
+          'این لینک تأیید نامعتبر است.'
+        );
+
         return;
       }
 
       const data =
         await getWelcomeData();
 
+      if (!data.available) {
+        await ctx.reply(
+          '⚠️ وضعیت تأیید از GitHub خوانده نشد. چند دقیقهٔ دیگر دوباره تلاش کنید.'
+        );
+
+        return;
+      }
+
       await sendRulesToUser(
         ctx,
-        data
+        data,
+        captchaToken
       );
 
       return;
@@ -12778,6 +13166,17 @@ bot.action(
         captchaToken
       );
 
+    if (!result.data.available) {
+      try {
+        await ctx.answerCbQuery(
+          'خطا در خواندن وضعیت تأیید؛ چند دقیقهٔ دیگر دوباره تلاش کنید.',
+          { show_alert: true }
+        );
+      } catch {}
+
+      return;
+    }
+
     if (!result.item) {
       try {
         await ctx.answerCbQuery(
@@ -12833,21 +13232,34 @@ bot.action(
           userId
       );
 
-    await saveWelcomeData(
-      result.data.settings,
-      newPending
-    );
+    let saved = false;
+
+    try {
+      saved =
+        await saveWelcomeData(
+          result.data.settings,
+          newPending
+        );
+    } catch (error) {
+      console.error(
+        'CAPTCHA STATE CLEANUP ERROR:',
+        error?.message || error
+      );
+    }
 
     try {
       await ctx.answerCbQuery(
-        'تأیید شد ✅'
+        saved
+          ? 'تأیید شد ✅'
+          : 'تأیید انجام شد؛ ذخیرهٔ پاک‌سازی ناموفق بود. اگر دکمه باقی ماند دوباره بزنید.'
       );
     } catch {}
 
     try {
       await ctx.editMessageText(
-        '<b>عضویت شما تأیید شد ✅</b>\n\n' +
-        'اکنون می‌توانید از گروه استفاده کنید.',
+        saved
+          ? '<b>عضویت شما تأیید شد ✅</b>\n\nاکنون می‌توانید از گروه استفاده کنید.'
+          : '<b>عضویت شما تأیید شد ✅</b>\n\nاکنون می‌توانید از گروه استفاده کنید. ثبت پاک‌سازی درخواست با مشکل روبه‌رو شد؛ اگر دکمه باقی ماند دوباره آن را بزنید.',
         {
           parse_mode: 'HTML'
         }
@@ -13530,15 +13942,35 @@ bot.command(
     if (!(await requireGroupModerator(ctx))) {
       return;
     }
-    const enabled =
-      /^on|فعال$/i.test(
-        ctx.message.text
-          .replace(
-            /^\/captcha(?:@\w+)?\s*/i,
-            ''
-          )
-          .trim()
+    const value =
+      ctx.message.text
+        .replace(
+          /^\/captcha(?:@\w+)?\s*/i,
+          ''
+        )
+        .trim()
+        .toLowerCase();
+
+    let enabled;
+
+    if (
+      value === 'on' ||
+      value === 'فعال'
+    ) {
+      enabled = true;
+    } else if (
+      value === 'off' ||
+      value === 'غیرفعال'
+    ) {
+      enabled = false;
+    } else {
+      await ctx.reply(
+        'فرمت: /captcha on یا /captcha off'
       );
+
+      return;
+    }
+
     const saved =
       await saveGroupSettingsV1(
         ctx.chat.id,
@@ -13612,7 +14044,7 @@ for (const action of [
       const argument =
         ctx.message.text
           .replace(
-            new RegExp(`^/${action}(?:@\\\\w+)?\\\\s*`, 'i'),
+            new RegExp(`^/${action}(?:@\\w+)?\\s*`, 'i'),
             ''
           )
           .trim();
@@ -16499,7 +16931,14 @@ const MEMBERSHIP_CHECK_ACTION =
 const MEMBERSHIP_NOTICE_COLLECTION =
   'membershipnotices';
 
-function isMembershipAllowedStatus(status) {
+function isMembershipAllowedStatus(
+  status,
+  isMember = false
+) {
+  if (status === 'restricted') {
+    return isMember === true;
+  }
+
   return [
     'creator',
     'administrator',
@@ -16527,12 +16966,10 @@ async function checkRequiredChannels(ctx) {
       );
 
       if (
-        ![
-          'creator',
-          'administrator',
-          'member',
-          'restricted'
-        ].includes(member.status)
+        !isMembershipAllowedStatus(
+          member.status,
+          member.is_member
+        )
       ) {
         console.log(
           `MEMBERSHIP FAILED | ${channel} | STATUS: ${member.status}`
