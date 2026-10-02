@@ -705,5 +705,15 @@
     "processingStartedAt": 1790880199080,
     "error": "Uploader confirmation timeout: 2/3",
     "failedAt": 1790880833215
+  },
+  {
+    "id": "up_1790911102399_6apwhx",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": "group",
+    "status": "waiting_files",
+    "files": [],
+    "createdAt": 1790911102399,
+    "updatedAt": 1790911102399
   }
 ]
