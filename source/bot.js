@@ -9342,20 +9342,42 @@ function channelSearchReply(record) {
   const name =
     escapeHtml(record.name || 'نامشخص');
 
-  return `<b><u>🎬 ${name}</u></b>
+  const rating =
+    escapeHtml(
+      record.rating ||
+      record.imdb ||
+      'برای دیدن کلیک کنید'
+    );
 
-این <u>انیمه</u> در <u> بزرگترین آرشیو</u> کانال انیمه فارسی تلگرام موجود است.`;
+  const country =
+    escapeHtml(
+      record.country ||
+      record.product ||
+      'برای دیدن کلیک کنید'
+    );
+
+  const status =
+    escapeHtml(
+      record.status ||
+      'برای دیدن کلیک کنید'
+    );
+
+  return `<b>❕اسم: ${name}
+
+⭐️ امتیاز : ${rating}
+🌐 محصول : ${country}
+⌨ وضعیت : ${status}
+
+✅ @Anime_Faarsi</b>`;
 }
 
 function channelSearchKeyboard(record) {
-  const name =
-    escapeHtml(record.name || 'نامشخص');
-
   return {
     inline_keyboard: [
       [
         {
-          text: `📥 دانلود: ${name}`,
+          text:
+            '📥 [ برای دانلود کلیک کنید ]',
           url: record.link
         }
       ]
