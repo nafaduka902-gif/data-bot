@@ -3698,6 +3698,50 @@ function nfIsDeleteReply(
   );
 }
 
+async function nfDeletePreviousMessages(
+  ctx,
+  count
+) {
+  const chatId =
+    ctx.chat?.id;
+
+  const currentMessageId =
+    Number(
+      ctx.message?.message_id
+    );
+
+  if (
+    !chatId ||
+    !currentMessageId ||
+    count < 1
+  ) {
+    return 0;
+  }
+
+  let deleted = 0;
+
+  for (
+    let i = 1;
+    i <= count;
+    i++
+  ) {
+    const messageId =
+      currentMessageId - i;
+
+    try {
+      await ctx.telegram.deleteMessage(
+        chatId,
+        messageId
+      );
+
+      deleted++;
+    } catch {}
+  }
+
+  return deleted;
+}
+
+
 async function nfDirect(
   ctx,
   text
@@ -3709,12 +3753,24 @@ async function nfDirect(
     return null;
   }
 
+  const canUseAITools =
+    isAdmin(
+      ctx,
+      'aiTools'
+    );
+
   if (
     nfIsDeleteReply(
       value,
       ctx
     )
   ) {
+    if (!canUseAITools) {
+      return (
+        '❌ این قابلیت فقط برای مالک و ادمین‌های دارای دسترسی AI Tools است.'
+      );
+    }
+
     try {
       await ctx.telegram.deleteMessage(
         ctx.chat.id,
@@ -3722,7 +3778,7 @@ async function nfDirect(
           .message_id
       );
 
-      return '🗑 پیام حذف شد.';
+      return '🗑 پیام ریپلای‌شده حذف شد.';
     } catch {
       return (
         '❌ نتوانستم پیام ریپلای‌شده را حذف کنم.'
@@ -3730,9 +3786,94 @@ async function nfDirect(
     }
   }
 
+  const deleteCount =
+    value.match(
+      /(?:حذف|پاک|پاک کن|حذف کن).*(?:تعداد\s*)?(\d+)\s*(?:پیام|پیام‌ها|پیامها)/i
+    ) ||
+    value.match(
+      /(?:تعداد\s*)?(\d+)\s*(?:پیام|پیام‌ها|پیامها).*(?:بالا|قبلی).*(?:حذف|پاک)/i
+    );
+
+  if (deleteCount) {
+    if (!canUseAITools) {
+      return (
+        '❌ این قابلیت فقط برای مالک و ادمین‌های دارای دسترسی AI Tools است.'
+      );
+    }
+
+    const count =
+      Math.min(
+        Number(deleteCount[1]),
+        100
+      );
+
+    const deleted =
+      await nfDeletePreviousMessages(
+        ctx,
+        count
+      );
+
+    try {
+      const result =
+        await ctx.reply(
+          `🗑 ${deleted} پیام از پیام‌های قبلی حذف شد.`
+        );
+
+      setTimeout(
+        async () => {
+          try {
+            await ctx.telegram.deleteMessage(
+              ctx.chat.id,
+              result.message_id
+            );
+          } catch {}
+        },
+        3000
+      );
+    } catch {}
+
+    return null;
+  }
+
+  if (
+    /^(?:این پیام|همین پیام|این رو|همینو).*(?:حذف|پاک)/i.test(
+      value
+    )
+  ) {
+    if (!canUseAITools) {
+      return (
+        '❌ این قابلیت فقط برای مالک و ادمین‌های دارای دسترسی AI Tools است.'
+      );
+    }
+
+    try {
+      await ctx.telegram.deleteMessage(
+        ctx.chat.id,
+        ctx.message.message_id
+      );
+
+      return null;
+    } catch {
+      return (
+        '❌ نتوانستم این پیام را حذف کنم.'
+      );
+    }
+  }
+
   if (
     nfWantsMemberCount(value)
   ) {
+    if (
+      !isAdmin(
+        ctx,
+        'searchTools'
+      )
+    ) {
+      return (
+        '❌ برای استفاده از جستجوی اطلاعات کانال دسترسی لازم را نداری.'
+      );
+    }
+
     const channel =
       nfChannelFromText(value);
 
@@ -3754,6 +3895,12 @@ async function nfDirect(
     );
 
   if (functionRequest) {
+    if (!canUseAITools) {
+      return (
+        '❌ مشاهده سورس ربات فقط برای مالک و ادمین‌های دارای دسترسی AI Tools است.'
+      );
+    }
+
     try {
       const source =
         await nfReadSource();
@@ -3788,9 +3935,13 @@ async function nfDirect(
       /(?:کد|code|سورس|source)\s+(?:دستور|command)?\s*\/?([A-Za-z0-9_]+)/i
     );
 
-  if (
-    commandRequest
-  ) {
+  if (commandRequest) {
+    if (!canUseAITools) {
+      return (
+        '❌ مشاهده سورس ربات فقط برای مالک و ادمین‌های دارای دسترسی AI Tools است.'
+      );
+    }
+
     try {
       const source =
         await nfReadSource();
@@ -3818,7 +3969,7 @@ async function nfDirect(
       );
     } catch {
       return (
-        '❌ دریافت bot.js انجام نشد.'
+        '❌ دریافت کد دستور انجام نشد.'
       );
     }
   }
@@ -3831,6 +3982,12 @@ async function nfDirect(
       value
     )
   ) {
+    if (!canUseAITools) {
+      return (
+        '❌ این قابلیت فقط برای مالک و ادمین‌های دارای دسترسی AI Tools است.'
+      );
+    }
+
     try {
       const source =
         await nfReadSource();
@@ -3858,6 +4015,12 @@ async function nfDirect(
       value
     )
   ) {
+    if (!canUseAITools) {
+      return (
+        '❌ این قابلیت فقط برای مالک و ادمین‌های دارای دسترسی AI Tools است.'
+      );
+    }
+
     try {
       const source =
         await nfReadSource();
@@ -4483,6 +4646,14 @@ async function nfAskAI(
   ).trim();
 }
 
+
+function nfCanUseAI(ctx) {
+  return Boolean(
+    ctx.from?.id
+  );
+}
+
+
 async function nfProcess(
   ctx,
   text
@@ -4508,6 +4679,34 @@ async function nfProcess(
       text
     );
 
+    let thinking = null;
+
+    const directText =
+      String(text || '').trim();
+
+    const isDeleteRequest =
+      nfIsDeleteReply(
+        directText,
+        ctx
+      ) ||
+      /(?:حذف|پاک|پاک کن|حذف کن)/i.test(
+        directText
+      );
+
+    if (!isDeleteRequest) {
+      try {
+        thinking =
+          await ctx.reply(
+            '🤖 Thinking...'
+          );
+
+        nfTrackBotMessage(
+          ctx,
+          thinking.message_id
+        );
+      } catch {}
+    }
+
     const direct =
       await nfDirect(
         ctx,
@@ -4523,25 +4722,16 @@ async function nfProcess(
 
       await nfSendResult(
         ctx,
-        direct
+        direct,
+        thinking?.message_id
       );
 
       return;
     }
 
-    let thinking = null;
-
-    try {
-      thinking =
-        await ctx.reply(
-          '🤖 Thinking...'
-        );
-
-      nfTrackBotMessage(
-        ctx,
-        thinking.message_id
-      );
-    } catch {}
+    if (isDeleteRequest) {
+      return;
+    }
 
     let archiveContext = '';
 
@@ -4613,42 +4803,32 @@ async function nfProcess(
   }
 }
 
-bot.command(
-  'nfon',
-  async ctx => {
-    if (!nfIsOwner(ctx)) {
-      return;
-    }
+bot.command('nfon', async ctx => {
+  if (!nfIsOwner(ctx)) return;
 
-    nfEnabled.set(
-      nfKey(ctx),
-      true
-    );
+  nfEnabled.set(
+    'GLOBAL',
+    true
+  );
 
-    nfResetState(ctx);
+  nfResetState(ctx);
 
-    await ctx.reply(
-      '🟢 AI Agent فعال شد.'
-    );
-  }
-);
+  await ctx.reply(
+    '🟢 AI Agent برای همه کاربران فعال شد.'
+  );
+});
 
-bot.command(
-  'nfoff',
-  async ctx => {
-    if (!nfIsOwner(ctx)) {
-      return;
-    }
+bot.command('nfoff', async ctx => {
+  if (!nfIsOwner(ctx)) return;
 
-    nfEnabled.delete(
-      nfKey(ctx)
-    );
+  nfEnabled.delete(
+    'GLOBAL'
+  );
 
-    await ctx.reply(
-      '🔴 AI Agent خاموش شد.'
-    );
-  }
-);
+  await ctx.reply(
+    '🔴 AI Agent برای همه کاربران خاموش شد.'
+  );
+});
 
 bot.command(
   'nfstatus',
@@ -4686,17 +4866,14 @@ bot.use(
         return next();
       }
 
-      const key =
-        nfKey(ctx);
-
       if (
-        !nfEnabled.has(key)
+        !nfEnabled.has('GLOBAL')
       ) {
         return next();
       }
 
       if (
-        !nfIsOwner(ctx)
+        !nfCanUseAI(ctx)
       ) {
         return next();
       }
@@ -4722,6 +4899,7 @@ bot.use(
         ctx,
         text
       );
+
     } catch (error) {
       console.error(
         'NF MIDDLEWARE ERROR:',
@@ -5592,7 +5770,8 @@ function adminPermissionList() {
     'searchTools',
     'set',
     'sequence',
-    'manageAdmins'
+    'manageAdmins',
+    'aiTools'
   ];
 }
 
