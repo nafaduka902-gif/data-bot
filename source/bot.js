@@ -4666,22 +4666,6 @@ async function nfUpsertArchivePost(
   }
 }
 
-async function nfArchiveQueueUpsert(
-  ctx
-) {
-  try {
-    return await nfUpsertArchivePost(
-      ctx
-    );
-  } catch (error) {
-    console.error(
-      'NF ARCHIVE QUEUE ERROR:',
-      error
-    );
-
-    return false;
-  }
-}
 
 function nfArchiveSearchScore(
   query,
