@@ -9304,71 +9304,103 @@ function findChannelPost(
     return null;
   }
 
-  const exact =
+  return (
     records.find(
       item =>
         normalizeChannelName(
           item.name
         ) === normalizedQuery
-    );
-
-  if (exact) {
-    return exact;
-  }
-
-  const contains =
-    records.find(
-      item => {
-        const name =
-          normalizeChannelName(
-            item.name
-          );
-
-        return (
-          name.includes(
-            normalizedQuery
-          ) ||
-          normalizedQuery.includes(
-            name
-          )
-        );
-      }
-    );
-
-  return contains || null;
+    ) ||
+    null
+  );
 }
 
 function channelSearchReply(record) {
   const name =
-    escapeHtml(record.name || 'نامشخص');
+    record.name || 'نامشخص';
 
-  const rating =
-    escapeHtml(
-      record.rating ||
-      record.imdb ||
-      'برای دیدن کلیک کنید'
+  const ratingText =
+    'برای دیدن کلیک کنید';
+
+  const productText =
+    'برای دیدن کلیک کنید';
+
+  const statusText =
+    'برای دیدن کلیک کنید';
+
+  const text =
+    `❕اسم: ${name}
+⭐️ امتیاز : ${ratingText}
+🌐 محصول : ${productText}
+⌨ وضعیت : ${statusText}
+
+✅ @Anime_Faarsi`;
+
+  const entities = [
+    {
+      type: 'bold',
+      offset: 0,
+      length: text.length
+    }
+  ];
+
+  const ratingIndex =
+    text.indexOf(ratingText);
+
+  const productIndex =
+    text.indexOf(
+      productText,
+      ratingIndex +
+        ratingText.length
     );
 
-  const country =
-    escapeHtml(
-      record.country ||
-      record.product ||
-      'برای دیدن کلیک کنید'
+  const statusIndex =
+    text.indexOf(
+      statusText,
+      productIndex +
+        productText.length
     );
 
-  const status =
-    escapeHtml(
-      record.status ||
-      'برای دیدن کلیک کنید'
-    );
+  if (
+    record.ratingLink &&
+    ratingIndex !== -1
+  ) {
+    entities.push({
+      type: 'text_link',
+      offset: ratingIndex,
+      length: ratingText.length,
+      url: record.ratingLink
+    });
+  }
 
-  return `<b>❕اسم: ${name}
+  if (
+    record.productLink &&
+    productIndex !== -1
+  ) {
+    entities.push({
+      type: 'text_link',
+      offset: productIndex,
+      length: productText.length,
+      url: record.productLink
+    });
+  }
 
-⭐️ امتیاز : ${rating}
-🌐 محصول : ${country}
-⌨ وضعیت : ${status}
+  if (
+    record.statusLink &&
+    statusIndex !== -1
+  ) {
+    entities.push({
+      type: 'text_link',
+      offset: statusIndex,
+      length: statusText.length,
+      url: record.statusLink
+    });
+  }
 
-✅ @Anime_Faarsi</b>`;
+  return {
+    text,
+    entities
+  };
 }
 
 function channelSearchKeyboard(record) {
@@ -9403,15 +9435,26 @@ async function searchChannelPostForUser(
       return false;
     }
 
+    const result =
+      channelSearchReply(
+        record
+      );
+
     await ctx.reply(
-      channelSearchReply(record),
+      result.text,
       {
-        parse_mode: 'HTML',
+        entities:
+          result.entities,
+
         link_preview_options: {
           is_disabled: true
         },
+
         reply_markup:
-          channelSearchKeyboard(record),
+          channelSearchKeyboard(
+            record
+          ),
+
         reply_parameters: {
           message_id:
             ctx.message.message_id
@@ -16721,26 +16764,48 @@ bot.on(
       normalizeChannelName(
         text
       );
-
+    
+    let searchQuery =
+      normalized;
+    
     if (
-      /^انیمه\s+/i.test(
-        text
-      ) ||
-      /^anime\s+/i.test(
-        text
-      )
+      /^انیمه\s+/i.test(text)
     ) {
-      const found =
-        await searchChannelPostForUser(
-          ctx,
-          normalized
+      searchQuery =
+        normalizeChannelName(
+          text.replace(
+            /^انیمه\s+/i,
+            ''
+          )
         );
-
-      if (found) {
-        return;
-      }
     }
-
+    
+    if (
+      /^anime\s+/i.test(text)
+    ) {
+      searchQuery =
+        normalizeChannelName(
+          text.replace(
+            /^anime\s+/i,
+            ''
+          )
+        );
+    }
+    
+    if (!searchQuery) {
+      return next();
+    }
+    
+    const found =
+      await searchChannelPostForUser(
+        ctx,
+        searchQuery
+      );
+    
+    if (found) {
+      return;
+    }
+    
     return next();
   }
 );
@@ -18858,7 +18923,10 @@ async function sendPhotoAlbum(ctx, photos, caption = '', entities = []) {
   );
 }
 
-function replaceMentionsWithEntities(text, entities = []) {
+function replaceMentionsWithEntities(
+  text,
+  entities = []
+) {
   if (!text) {
     return {
       text: text || '',
@@ -18866,55 +18934,100 @@ function replaceMentionsWithEntities(text, entities = []) {
     };
   }
 
-  const regex = /@[A-Za-z0-9_]{1,64}/g;
-  const matches = [...text.matchAll(regex)];
+  const regex =
+    /@[A-Za-z0-9_]{1,64}|#[A-Za-z0-9_]{1,64}/g;
 
-  if (!matches.length) {
-    return {
-      text,
-      entities: entities || []
-    };
-  }
+  const matches =
+    [...text.matchAll(regex)];
 
-  let newText = '';
-  let lastIndex = 0;
   const changes = [];
   const boldEntities = [];
 
+  let newText = '';
+  let lastIndex = 0;
+
   for (const match of matches) {
     const start = match.index;
-    const end = start + match[0].length;
+    const end =
+      start + match[0].length;
 
-    newText += text.slice(lastIndex, start);
+    const value = match[0];
 
-    const newStart = newText.length;
-    newText += POST_NEWS_REPLACE;
+    newText +=
+      text.slice(
+        lastIndex,
+        start
+      );
 
-    boldEntities.push({
-      type: 'bold',
-      offset: newStart,
-      length: POST_NEWS_REPLACE.length
-    });
+    const newStart =
+      newText.length;
 
-    changes.push({
-      start,
-      end,
-      newLength: POST_NEWS_REPLACE.length
-    });
+    if (value.startsWith('@')) {
+      newText += POST_NEWS_REPLACE;
+
+      boldEntities.push({
+        type: 'bold',
+        offset: newStart,
+        length:
+          POST_NEWS_REPLACE.length
+      });
+
+      changes.push({
+        start,
+        end,
+        newLength:
+          POST_NEWS_REPLACE.length,
+        removed: false
+      });
+    } else {
+      changes.push({
+        start,
+        end,
+        newLength: 0,
+        removed: true
+      });
+    }
 
     lastIndex = end;
   }
 
-  newText += text.slice(lastIndex);
+  newText +=
+    text.slice(lastIndex);
+
+  const footer =
+    `\n\n@Anime_FaarsiNews | #Mr`;
+
+  const footerStart =
+    newText.length;
+
+  newText += footer;
+
+  const mrStart =
+    newText.length -
+    '#Mr'.length;
+
+  boldEntities.push({
+    type: 'bold',
+    offset: mrStart,
+    length: '#Mr'.length
+  });
 
   function mapOffset(offset) {
     let result = offset;
 
     for (const change of changes) {
       if (offset >= change.end) {
-        result += change.newLength - (change.end - change.start);
-      } else if (offset > change.start) {
-        result += change.newLength - (offset - change.start);
+        result +=
+          change.newLength -
+          (change.end - change.start);
+      } else if (
+        offset > change.start &&
+        offset < change.end
+      ) {
+        result =
+          change.start +
+          change.newLength;
+
         break;
       } else {
         break;
@@ -18924,23 +19037,62 @@ function replaceMentionsWithEntities(text, entities = []) {
     return result;
   }
 
-  const newEntities = (entities || []).map(entity => {
-    const oldStart = entity.offset;
-    const oldEnd = entity.offset + entity.length;
+  const newEntities =
+    (entities || [])
+      .filter(entity => {
+        const start =
+          entity.offset;
 
-    const newStart = mapOffset(oldStart);
-    const newEnd = mapOffset(oldEnd);
+        const end =
+          entity.offset +
+          entity.length;
 
-    return {
-      ...entity,
-      offset: newStart,
-      length: Math.max(0, newEnd - newStart)
-    };
-  });
+        for (const change of changes) {
+          if (!change.removed) {
+            continue;
+          }
+
+          if (
+            start < change.end &&
+            end > change.start
+          ) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+      .map(entity => {
+        const oldStart =
+          entity.offset;
+
+        const oldEnd =
+          entity.offset +
+          entity.length;
+
+        const newStart =
+          mapOffset(oldStart);
+
+        const newEnd =
+          mapOffset(oldEnd);
+
+        return {
+          ...entity,
+          offset: newStart,
+          length:
+            Math.max(
+              0,
+              newEnd - newStart
+            )
+        };
+      });
 
   return {
     text: newText,
-    entities: [...newEntities, ...boldEntities]
+    entities: [
+      ...newEntities,
+      ...boldEntities
+    ]
   };
 }
 
