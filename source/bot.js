@@ -5471,17 +5471,13 @@ async function nfAskAI(
 
 
 function nfCanUseAI(ctx) {
-  if (
-    !ctx.from
-  ) {
-    return false;
+  if (!ctx.from) return false;
+
+  if (nfIsOwner(ctx)) {
+    return true;
   }
 
-  if (
-    !ctx.chat
-  ) {
-    return false;
-  }
+  if (!ctx.chat) return false;
 
   if (
     !['group', 'supergroup'].includes(
@@ -5492,9 +5488,7 @@ function nfCanUseAI(ctx) {
   }
 
   const username =
-    String(
-      ctx.chat.username || ''
-    )
+    String(ctx.chat.username || '')
       .replace(/^@/, '')
       .toLowerCase();
 
