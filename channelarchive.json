@@ -8,60 +8,85 @@
     "channelNormalized": "animitionfaarsi",
     "channelType": "animation",
     "messageId": 59,
-    "text": "🎞 کالکشن « موانا »\n📷 Moana Collection\n\n🎭 ژانر: انیمیشن | ماجراجویی | خانوادگی | فانتزی\n🌐 محصول کشور: آمریکا\n\n🚫 بدون سانسور و حذفیات\n\n📥 دانلود فیلم 01 | Moana (2016)\n📥 دانلود فیلم 02 | Moana 2 (2024)\n\n✅ @Anime_Faarsi",
-    "caption": "🎞 کالکشن « موانا »\n📷 Moana Collection\n\n🎭 ژانر: انیمیشن | ماجراجویی | خانوادگی | فانتزی\n🌐 محصول کشور: آمریکا\n\n🚫 بدون سانسور و حذفیات\n\n📥 دانلود فیلم 01 | Moana (2016)\n📥 دانلود فیلم 02 | Moana 2 (2024)\n\n✅ @Anime_Faarsi",
+    "text": "🎞 کالکشن « موانا »\n📷 Moana Collection\n\n🎭 ژانر: انیمیشن | ماجراجویی | خانوادگی | فانتزی\n🌐 محصول کشور: آمریکا\n\n🚫 بدون سانسور و حذفیات\n\n#دوبله_فارسی\n📥 Moana 1 (2016) (سورن)\n📥 Moana 2 (2024) (سورن)\n\n✅ @Anime_Faarsi",
+    "caption": "🎞 کالکشن « موانا »\n📷 Moana Collection\n\n🎭 ژانر: انیمیشن | ماجراجویی | خانوادگی | فانتزی\n🌐 محصول کشور: آمریکا\n\n🚫 بدون سانسور و حذفیات\n\n#دوبله_فارسی\n📥 Moana 1 (2016) (سورن)\n📥 Moana 2 (2024) (سورن)\n\n✅ @Anime_Faarsi",
     "entities": [
       {
         "offset": 0,
-        "length": 158,
+        "length": 138,
         "type": "bold"
       },
       {
-        "offset": 158,
+        "offset": 138,
         "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 138,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 150,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 154,
+        "length": 14,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_466151479"
       },
       {
-        "offset": 158,
-        "length": 12,
+        "offset": 154,
+        "length": 14,
         "type": "bold"
       },
       {
-        "offset": 171,
-        "length": 19,
+        "offset": 170,
+        "length": 4,
         "type": "bold"
       },
       {
-        "offset": 191,
+        "offset": 176,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 179,
         "length": 14,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_879185438"
       },
       {
-        "offset": 191,
+        "offset": 179,
         "length": 14,
         "type": "bold"
       },
       {
-        "offset": 207,
+        "offset": 195,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 202,
         "length": 2,
         "type": "bold"
       },
       {
-        "offset": 209,
+        "offset": 204,
         "length": 13,
         "type": "mention"
       },
       {
-        "offset": 209,
+        "offset": 204,
         "length": 13,
         "type": "bold"
       }
     ],
     "date": 1791031029,
     "createdAt": "2026-10-03T12:37:10.108Z",
-    "updatedAt": "2026-10-03T12:37:10.108Z"
+    "updatedAt": "2026-10-03T12:38:25.261Z"
   },
   {
     "id": "animitionfaarsi:58",
