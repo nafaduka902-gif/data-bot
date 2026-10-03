@@ -1,5 +1,141 @@
 [
   {
+    "id": "animitionfaarsi:68",
+    "name": "ماداگاسکار",
+    "nameNormalized": "ماداگاسکار",
+    "link": "https://t.me/AnimitionFaarsi/68",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 68,
+    "text": "🎞 کالکشن انیمیشن « ماداگاسکار »\n\n📷 Madagascar\n\n🎭 ژانر: کمدی | ماجراجویی | خانوادگی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : گروهی از حیوانات اهلی و لوس باغ‌وحش مرکزی نیویورک که تمام عمر خود را در رفاه مفرط گذرانده‌اند، بر اثر یک اتفاق ناگهانی به حیات وحش جزیره سرسبز و عجیب ماداگاسکار منتقل می‌شوند. حالا این حیوانات شهری مجبورند با غرایز واقعی خود روبرو شده و برای بقا در طبیعت وحشی تلاش کنند.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Madagascar 1 2005 (گلوری)\n📥 Madagascar 2 2008(گلوری)\n📥 Madagascar 3 2012(گلوری)\n\n📥 Penguins of Madagascar 2014 (گلوری)\n\n✅ @Anime_Faarsi",
+    "caption": "🎞 کالکشن انیمیشن « ماداگاسکار »\n\n📷 Madagascar\n\n🎭 ژانر: کمدی | ماجراجویی | خانوادگی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : گروهی از حیوانات اهلی و لوس باغ‌وحش مرکزی نیویورک که تمام عمر خود را در رفاه مفرط گذرانده‌اند، بر اثر یک اتفاق ناگهانی به حیات وحش جزیره سرسبز و عجیب ماداگاسکار منتقل می‌شوند. حالا این حیوانات شهری مجبورند با غرایز واقعی خود روبرو شده و برای بقا در طبیعت وحشی تلاش کنند.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Madagascar 1 2005 (گلوری)\n📥 Madagascar 2 2008(گلوری)\n📥 Madagascar 3 2012(گلوری)\n\n📥 Penguins of Madagascar 2014 (گلوری)\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 426,
+        "type": "bold"
+      },
+      {
+        "offset": 426,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 426,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 438,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 442,
+        "length": 17,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_636013384"
+      },
+      {
+        "offset": 442,
+        "length": 17,
+        "type": "bold"
+      },
+      {
+        "offset": 459,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 471,
+        "length": 17,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_242646288"
+      },
+      {
+        "offset": 471,
+        "length": 17,
+        "type": "bold"
+      },
+      {
+        "offset": 488,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 499,
+        "length": 17,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_455103527"
+      },
+      {
+        "offset": 499,
+        "length": 17,
+        "type": "bold"
+      },
+      {
+        "offset": 516,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 523,
+        "length": 5,
+        "type": "underline"
+      },
+      {
+        "offset": 523,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 528,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_582860596"
+      },
+      {
+        "offset": 528,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 557,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 563,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 563,
+        "length": 4,
+        "type": "underline"
+      },
+      {
+        "offset": 567,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 567,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 567,
+        "length": 13,
+        "type": "underline"
+      }
+    ],
+    "date": 1791040981,
+    "createdAt": "2026-10-03T15:23:01.589Z",
+    "updatedAt": "2026-10-03T15:23:01.589Z"
+  },
+  {
     "id": "animitionfaarsi:66",
     "name": "شگفت‌انگیزان",
     "nameNormalized": "شگفت انگیزان",
