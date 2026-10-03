@@ -973,6 +973,65 @@
     "updatedAt": "2026-10-03T06:56:52.488Z"
   },
   {
+    "id": "anime_faarsi:967",
+    "name": "روبوتک",
+    "nameNormalized": "روبوتک",
+    "link": "https://t.me/Anime_Faarsi/967",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 967,
+    "text": "📼 انیمه سریالی « روبوتک »\n\n📹 Robotech\n⭐️ IMDB : 8.5\n\n🎭 ژانر : اکشن | ماجراجویی | علمی‌تخیلی | درام\n🌐 محصول : آمریکا | ژاپن\n⌨ وضعیت : 1 فصل 16 قسمت\n👤ستارگان : Steve Kramer, Tom Wyner, Robert Axelrod\n\n💬 خلاصه داستان : پس از سقوط یک سفینه فضایی بیگانه روی زمین، انسان‌ها به فناوری پیشرفته‌ای دست پیدا می‌کنند؛ اما این فناوری باعث آغاز سه جنگ بزرگ میان انسان‌ها و نژادهای بیگانه می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | صدا و سیما | 720p\n📥 فصل 02 دوبله فارسی | صدا و سیما | 720p\n\nنوت: فصل 1 قسمت های 9,17,21,33,34 و فصل 2 قسمت های 1,2 دوبله نشده.\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « روبوتک »\n\n📹 Robotech\n⭐️ IMDB : 8.5\n\n🎭 ژانر : اکشن | ماجراجویی | علمی‌تخیلی | درام\n🌐 محصول : آمریکا | ژاپن\n⌨ وضعیت : 1 فصل 16 قسمت\n👤ستارگان : Steve Kramer, Tom Wyner, Robert Axelrod\n\n💬 خلاصه داستان : پس از سقوط یک سفینه فضایی بیگانه روی زمین، انسان‌ها به فناوری پیشرفته‌ای دست پیدا می‌کنند؛ اما این فناوری باعث آغاز سه جنگ بزرگ میان انسان‌ها و نژادهای بیگانه می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | صدا و سیما | 720p\n📥 فصل 02 دوبله فارسی | صدا و سیما | 720p\n\nنوت: فصل 1 قسمت های 9,17,21,33,34 و فصل 2 قسمت های 1,2 دوبله نشده.\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 453,
+        "type": "bold"
+      },
+      {
+        "offset": 454,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_745458348"
+      },
+      {
+        "offset": 454,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 459,
+        "length": 36,
+        "type": "bold"
+      },
+      {
+        "offset": 496,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_142833936"
+      },
+      {
+        "offset": 496,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 502,
+        "length": 71,
+        "type": "bold"
+      },
+      {
+        "offset": 573,
+        "length": 13,
+        "type": "mention"
+      }
+    ],
+    "date": 1790241525,
+    "createdAt": "2026-10-03T06:56:57.534Z",
+    "updatedAt": "2026-10-03T06:56:57.534Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
