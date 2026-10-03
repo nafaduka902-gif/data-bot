@@ -929,6 +929,28 @@
     "updatedAt": "2026-10-03T06:56:34.035Z"
   },
   {
+    "id": "anime_faarsi:969",
+    "name": "Bungo Stray Dogs",
+    "nameNormalized": "bungo stray dogs",
+    "link": "https://t.me/Anime_Faarsi/969",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 969,
+    "text": "فصل 2,3 انیمه « Bungo Stray Dogs » با دوبله فارسی(نماوا) اضافه شد.",
+    "caption": "",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 66,
+        "type": "bold"
+      }
+    ],
+    "date": 1790246738,
+    "createdAt": "2026-10-03T06:56:41.127Z",
+    "updatedAt": "2026-10-03T06:56:41.127Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
