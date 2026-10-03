@@ -1,5 +1,38 @@
 [
   {
+    "id": "faarsimovie:449",
+    "name": "چشمه",
+    "nameNormalized": "چشمه",
+    "link": "https://t.me/FaarsiMovie/449",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 449,
+    "text": "📼 فیلم « چشمه »\n\n📹 The Fountain 2006\n✨ IMDb: 7.1\n\n🎭 ژانر: درام | علمی‌تخیلی | عاشقانه | رازآلود\n🪙 محصول: آمریکا | کانادا\n🍿 بازیگران: Hugh Jackman | Rachel Weisz | Ellen Burstyn | Mark Margolis | Sean Patrick Thomas | Cliff Curtis\n\n📝 خلاصه داستان : داستان فیلم در سه دوره زمانی روایت می‌شود و درباره مردی است که در دوره‌های مختلف زندگی، در جست‌وجوی راهی برای غلبه بر مرگ و جاودانگی است. در زمان حال، تام، دانشمندی است که تلاش می‌کند درمانی برای بیماری همسرش ایزی پیدا کند؛ در حالی که داستان‌های گذشته و آینده نیز به‌تدریج با زندگی او پیوند می‌خورند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « چشمه »\n\n📹 The Fountain 2006\n✨ IMDb: 7.1\n\n🎭 ژانر: درام | علمی‌تخیلی | عاشقانه | رازآلود\n🪙 محصول: آمریکا | کانادا\n🍿 بازیگران: Hugh Jackman | Rachel Weisz | Ellen Burstyn | Mark Margolis | Sean Patrick Thomas | Cliff Curtis\n\n📝 خلاصه داستان : داستان فیلم در سه دوره زمانی روایت می‌شود و درباره مردی است که در دوره‌های مختلف زندگی، در جست‌وجوی راهی برای غلبه بر مرگ و جاودانگی است. در زمان حال، تام، دانشمندی است که تلاش می‌کند درمانی برای بیماری همسرش ایزی پیدا کند؛ در حالی که داستان‌های گذشته و آینده نیز به‌تدریج با زندگی او پیوند می‌خورند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 603,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_353223596"
+      },
+      {
+        "offset": 603,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 638,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791031970,
+    "createdAt": "2026-10-03T12:52:50.519Z",
+    "updatedAt": "2026-10-03T12:52:50.519Z"
+  },
+  {
     "id": "faarsimovie:448",
     "name": "پارکر",
     "nameNormalized": "پارکر",
