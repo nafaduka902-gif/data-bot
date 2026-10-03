@@ -8,8 +8,8 @@
     "channelNormalized": "animitionfaarsi",
     "channelType": "animation",
     "messageId": 55,
-    "text": "🎞 کالکشن انیمیشن « برادران سوپر ماریو »\n\n📷 The Super Mario\n\n🎭 ژانر: انیمیشن، ماجراجویی، کمدی، فانتزی، خانوادگی\n🌐 محصول کشور: آمریکا ژاپن \n👤 ستارگان : Chris Pratt، Anya Taylor-Joy، Charlie Day\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 The Super Mario 1 2023\n📥 The Super Mario 2 2026\n\n✅ @AnimationFaarsi",
-    "caption": "🎞 کالکشن انیمیشن « برادران سوپر ماریو »\n\n📷 The Super Mario\n\n🎭 ژانر: انیمیشن، ماجراجویی، کمدی، فانتزی، خانوادگی\n🌐 محصول کشور: آمریکا ژاپن \n👤 ستارگان : Chris Pratt، Anya Taylor-Joy، Charlie Day\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 The Super Mario 1 2023\n📥 The Super Mario 2 2026\n\n✅ @AnimationFaarsi",
+    "text": "🎞 کالکشن انیمیشن « برادران سوپر ماریو »\n\n📷 The Super Mario\n\n🎭 ژانر: انیمیشن، ماجراجویی، کمدی، فانتزی، خانوادگی\n🌐 محصول کشور: آمریکا ژاپن \n👤 ستارگان : Chris Pratt، Anya Taylor-Joy، Charlie Day\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 The Super Mario 1 2023 (سورن)\n📥 The Super Mario 2 2026 (سورن)\n\n✅ @AnimationFaarsi",
+    "caption": "🎞 کالکشن انیمیشن « برادران سوپر ماریو »\n\n📷 The Super Mario\n\n🎭 ژانر: انیمیشن، ماجراجویی، کمدی، فانتزی، خانوادگی\n🌐 محصول کشور: آمریکا ژاپن \n👤 ستارگان : Chris Pratt، Anya Taylor-Joy، Charlie Day\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 The Super Mario 1 2023 (سورن)\n📥 The Super Mario 2 2026 (سورن)\n\n✅ @AnimationFaarsi",
     "entities": [
       {
         "offset": 3,
@@ -54,34 +54,44 @@
       },
       {
         "offset": 264,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 271,
         "length": 2,
         "type": "bold"
       },
       {
-        "offset": 267,
+        "offset": 274,
         "length": 22,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_249599533"
       },
       {
-        "offset": 267,
+        "offset": 274,
         "length": 22,
         "type": "bold"
       },
       {
-        "offset": 293,
+        "offset": 297,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 307,
         "length": 16,
         "type": "mention"
       },
       {
-        "offset": 293,
+        "offset": 307,
         "length": 16,
         "type": "bold"
       }
     ],
     "date": 1791028757,
     "createdAt": "2026-10-03T11:59:18.139Z",
-    "updatedAt": "2026-10-03T11:59:18.139Z"
+    "updatedAt": "2026-10-03T12:03:23.540Z"
   },
   {
     "id": "animitionfaarsi:54",
