@@ -817,6 +817,48 @@
     "updatedAt": "2026-10-03T06:55:37.110Z"
   },
   {
+    "id": "anime_faarsi:974",
+    "name": "World Trigger",
+    "nameNormalized": "world trigger",
+    "link": "https://t.me/Anime_Faarsi/974",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 974,
+    "text": "فصل 1,2,3 انیمه « World Trigger » به صورت کامل با زیرنویس فارسی اضافه شد.\nفصل اول قسمت 1 تا 15 دوبله فارسی میباشد.ر",
+    "caption": "",
+    "entities": [
+      {
+        "offset": 10,
+        "length": 23,
+        "type": "bold"
+      },
+      {
+        "offset": 37,
+        "length": 9,
+        "type": "underline"
+      },
+      {
+        "offset": 50,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 74,
+        "length": 7,
+        "type": "underline"
+      },
+      {
+        "offset": 95,
+        "length": 11,
+        "type": "bold"
+      }
+    ],
+    "date": 1790399824,
+    "createdAt": "2026-10-03T06:55:52.519Z",
+    "updatedAt": "2026-10-03T06:55:52.519Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
