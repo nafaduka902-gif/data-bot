@@ -1,5 +1,84 @@
 [
   {
+    "id": "animitionfaarsi:66",
+    "name": "شگفت‌انگیزان",
+    "nameNormalized": "شگفت انگیزان",
+    "link": "https://t.me/AnimitionFaarsi/66",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 66,
+    "text": "🎞 کالکشن انیمیشن « شگفت‌انگیزان »\n\n📷 The Incredibles\n\n🎭 ژانر: اکشن | ماجراجویی | کمدی | علمی تخیلی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : خانواده‌ای از ابرقهرمانان که به دستور دولت مجبور شده‌اند زندگی عادی و مخفیانه‌ای داشته باشند، وقتی یک ابرشرور خطرناک جهان را تهدید می‌کند، دوباره لباس‌های قهرمانی خود را به تن می‌کنند تا دنیا را نجات دهند.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 The Incredibles 1 2004 (کوالیما)\n📥 The Incredibles 2 2018 (کوالیما)\n\n✅ @Anime_Faarsi",
+    "caption": "🎞 کالکشن انیمیشن « شگفت‌انگیزان »\n\n📷 The Incredibles\n\n🎭 ژانر: اکشن | ماجراجویی | کمدی | علمی تخیلی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : خانواده‌ای از ابرقهرمانان که به دستور دولت مجبور شده‌اند زندگی عادی و مخفیانه‌ای داشته باشند، وقتی یک ابرشرور خطرناک جهان را تهدید می‌کند، دوباره لباس‌های قهرمانی خود را به تن می‌کنند تا دنیا را نجات دهند.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 The Incredibles 1 2004 (کوالیما)\n📥 The Incredibles 2 2018 (کوالیما)\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 377,
+        "type": "bold"
+      },
+      {
+        "offset": 377,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 377,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 393,
+        "length": 22,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_481613460"
+      },
+      {
+        "offset": 393,
+        "length": 22,
+        "type": "bold"
+      },
+      {
+        "offset": 415,
+        "length": 10,
+        "type": "bold"
+      },
+      {
+        "offset": 429,
+        "length": 22,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_230606877"
+      },
+      {
+        "offset": 429,
+        "length": 22,
+        "type": "bold"
+      },
+      {
+        "offset": 451,
+        "length": 10,
+        "type": "bold"
+      },
+      {
+        "offset": 463,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 465,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 465,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1791040231,
+    "createdAt": "2026-10-03T15:10:31.786Z",
+    "updatedAt": "2026-10-03T15:10:31.786Z"
+  },
+  {
     "id": "faarsimovie:452",
     "name": "ادیسه",
     "nameNormalized": "ادیسه",
