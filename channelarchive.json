@@ -1,5 +1,129 @@
 [
   {
+    "id": "anime_faarsi:1013",
+    "name": "نام انیمه: Black Clover",
+    "nameNormalized": "نام انیمه black clover",
+    "link": "https://t.me/Anime_Faarsi/1013",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1013,
+    "text": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویساختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت زیرنویس فارسی ]\n🔻 [ منبع: زیرنویس از انیمه فارسی ]\n\nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
+    "caption": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویساختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت زیرنویس فارسی ]\n🔻 [ منبع: زیرنویس از انیمه فارسی ]\n\nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 108,
+        "type": "bold"
+      },
+      {
+        "offset": 108,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 113,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 114,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 121,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 122,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 127,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 128,
+        "length": 10,
+        "type": "hashtag"
+      },
+      {
+        "offset": 138,
+        "length": 103,
+        "type": "bold"
+      },
+      {
+        "offset": 242,
+        "length": 22,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Loveri/300"
+      },
+      {
+        "offset": 265,
+        "length": 50,
+        "type": "bold"
+      },
+      {
+        "offset": 320,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_293105094"
+      },
+      {
+        "offset": 320,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 355,
+        "length": 30,
+        "type": "bold"
+      },
+      {
+        "offset": 387,
+        "length": 25,
+        "type": "bold"
+      },
+      {
+        "offset": 412,
+        "length": 13,
+        "type": "hashtag"
+      },
+      {
+        "offset": 425,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 426,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 433,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 434,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 447,
+        "length": 1,
+        "type": "bold"
+      }
+    ],
+    "date": 1791049773,
+    "createdAt": "2026-10-03T17:49:33.774Z",
+    "updatedAt": "2026-10-03T17:49:33.774Z"
+  },
+  {
     "id": "animitionfaarsi:74",
     "name": "کارخانه هیولاها",
     "nameNormalized": "کارخانه هیولاها",
