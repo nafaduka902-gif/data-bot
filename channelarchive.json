@@ -623,6 +623,54 @@
     "updatedAt": "2026-10-03T06:54:47.927Z"
   },
   {
+    "id": "anime_faarsi:984",
+    "name": "پادشاه غارتگران مقبره",
+    "nameNormalized": "پادشاه غارتگران مقبره",
+    "link": "https://t.me/Anime_Faarsi/984",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 984,
+    "text": "📼 انیمه سریالی « پادشاه غارتگران مقبره »\n\n📹 Tomb Raider King\n⭐️ IMDB : 7.1\n\n🎭 ژانر : اکشن | ماجراجویی\n🌐 محصول : کره جنوبی\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Nobuhiko Okamoto | Yoshimasa Hosoya | Masaaki Mizunaka\n\n💬 خلاصه داستان : مقبره‌های خداگونه در سراسر جهان پدیدار می‌شوند و آثار جادویی به جا می‌گذارند. جوهان، شکارچی نخبه، که به او خیانت شده و رها شده تا بمیرد، ۱۵ سال به گذشته سفر می‌کند تا تمام مقبره‌ها را غارت کند، آثار باستانی را جمع‌آوری کند و انتقام بگیرد.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « پادشاه غارتگران مقبره »\n\n📹 Tomb Raider King\n⭐️ IMDB : 7.1\n\n🎭 ژانر : اکشن | ماجراجویی\n🌐 محصول : کره جنوبی\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Nobuhiko Okamoto | Yoshimasa Hosoya | Masaaki Mizunaka\n\n💬 خلاصه داستان : مقبره‌های خداگونه در سراسر جهان پدیدار می‌شوند و آثار جادویی به جا می‌گذارند. جوهان، شکارچی نخبه، که به او خیانت شده و رها شده تا بمیرد، ۱۵ سال به گذشته سفر می‌کند تا تمام مقبره‌ها را غارت کند، آثار باستانی را جمع‌آوری کند و انتقام بگیرد.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 537,
+        "type": "bold"
+      },
+      {
+        "offset": 537,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_867907734"
+      },
+      {
+        "offset": 537,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 541,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 546,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 546,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790574715,
+    "createdAt": "2026-10-03T06:55:01.778Z",
+    "updatedAt": "2026-10-03T06:55:01.778Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
