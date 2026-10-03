@@ -114,6 +114,85 @@
     "updatedAt": "2026-10-03T17:47:51.001Z"
   },
   {
+    "id": "animitionfaarsi:72",
+    "name": "کارخانه هیولاها",
+    "nameNormalized": "کارخانه هیولاها",
+    "link": "https://t.me/AnimitionFaarsi/72",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 72,
+    "text": "🎞 کالکشن انیمیشن « کارخانه هیولاها »\n\n📷 Monsters University\n\n🎭 ژانر: انیمیشن | کمدی | ماجراجویی | فانتزی | خانوادگی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : مایک وازوفسکی از کودکی آرزو دارد یک هیولا‌ی ترساننده شود و برای رسیدن به این هدف وارد دانشگاه هیولاها می‌شود. او در آنجا با جیمز پی. سالیوان، هیولایی بااستعداد و مغرور، آشنا می‌شود و رقابت میان آن‌ها به دوستی عمیقی تبدیل می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Monsters University 1 2001 (گلوری)\n📥 Monsters University 2 2013 (گلوری)\n\n✅ @Anime_Faarsi",
+    "caption": "🎞 کالکشن انیمیشن « کارخانه هیولاها »\n\n📷 Monsters University\n\n🎭 ژانر: انیمیشن | کمدی | ماجراجویی | فانتزی | خانوادگی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : مایک وازوفسکی از کودکی آرزو دارد یک هیولا‌ی ترساننده شود و برای رسیدن به این هدف وارد دانشگاه هیولاها می‌شود. او در آنجا با جیمز پی. سالیوان، هیولایی بااستعداد و مغرور، آشنا می‌شود و رقابت میان آن‌ها به دوستی عمیقی تبدیل می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Monsters University 1 2001 (گلوری)\n📥 Monsters University 2 2013 (گلوری)\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 417,
+        "type": "bold"
+      },
+      {
+        "offset": 417,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 417,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 433,
+        "length": 26,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_210609412"
+      },
+      {
+        "offset": 433,
+        "length": 26,
+        "type": "bold"
+      },
+      {
+        "offset": 459,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 471,
+        "length": 26,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_504779290"
+      },
+      {
+        "offset": 471,
+        "length": 26,
+        "type": "bold"
+      },
+      {
+        "offset": 497,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 507,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 509,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 509,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1791049432,
+    "createdAt": "2026-10-03T17:48:20.966Z",
+    "updatedAt": "2026-10-03T17:48:20.966Z"
+  },
+  {
     "id": "anime_faarsi:1012",
     "name": "ریکشن بالای 50 هرچی زودتر!",
     "nameNormalized": "ریکشن بالای 50 هرچی زودتر",
