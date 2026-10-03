@@ -1,5 +1,89 @@
 [
   {
+    "id": "animitionfaarsi:55",
+    "name": "برادران سوپر ماریو",
+    "nameNormalized": "برادران سوپر ماریو",
+    "link": "https://t.me/AnimitionFaarsi/55",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 55,
+    "text": "🎞 کالکشن انیمیشن « برادران سوپر ماریو »\n\n📷 The Super Mario\n\n🎭 ژانر: انیمیشن، ماجراجویی، کمدی، فانتزی، خانوادگی\n🌐 محصول کشور: آمریکا ژاپن \n👤 ستارگان : Chris Pratt، Anya Taylor-Joy، Charlie Day\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 The Super Mario 1 2023\n📥 The Super Mario 2 2026\n\n✅ @AnimationFaarsi",
+    "caption": "🎞 کالکشن انیمیشن « برادران سوپر ماریو »\n\n📷 The Super Mario\n\n🎭 ژانر: انیمیشن، ماجراجویی، کمدی، فانتزی، خانوادگی\n🌐 محصول کشور: آمریکا ژاپن \n👤 ستارگان : Chris Pratt، Anya Taylor-Joy، Charlie Day\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 The Super Mario 1 2023\n📥 The Super Mario 2 2026\n\n✅ @AnimationFaarsi",
+    "entities": [
+      {
+        "offset": 3,
+        "length": 139,
+        "type": "bold"
+      },
+      {
+        "offset": 145,
+        "length": 51,
+        "type": "bold"
+      },
+      {
+        "offset": 198,
+        "length": 25,
+        "type": "bold"
+      },
+      {
+        "offset": 225,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 225,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 238,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 241,
+        "length": 22,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_34814854"
+      },
+      {
+        "offset": 241,
+        "length": 22,
+        "type": "bold"
+      },
+      {
+        "offset": 264,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 267,
+        "length": 22,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_249599533"
+      },
+      {
+        "offset": 267,
+        "length": 22,
+        "type": "bold"
+      },
+      {
+        "offset": 293,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 293,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791028757,
+    "createdAt": "2026-10-03T11:59:18.139Z",
+    "updatedAt": "2026-10-03T11:59:18.139Z"
+  },
+  {
     "id": "animitionfaarsi:54",
     "name": "کونگ فو پاندا",
     "nameNormalized": "کونگ فو پاندا",
