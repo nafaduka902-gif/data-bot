@@ -33,6 +33,39 @@
     "updatedAt": "2026-10-03T12:52:15.659Z"
   },
   {
+    "id": "faarsimovie:446",
+    "name": "کرانک: ولتاژ بالا",
+    "nameNormalized": "کرانک ولتاژ بالا",
+    "link": "https://t.me/FaarsiMovie/446",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 446,
+    "text": "📼 فیلم « کرانک: ولتاژ بالا »\n\n📹 Crank: High Voltage 2009\n✨ IMDb: 6.1\n\n🎭 ژانر: اکشن | کمدی سیاه | جنایی | هیجان‌انگیز\n🪙 محصول: آمریکا\n🍿 بازیگران: Jason Statham | Amy Smart | Clifton Collins Jr. | Dwight Yoakam | Efren Ramirez | Jose Pablo Cantillo\n\n📝 خلاصه داستان : چِو چلیوس پس از اتفاقات قسمت اول، با شرایطی عجیب و خطرناک روبه‌رو می‌شود؛ یک گانگستر چینی قلب او را ربوده و قلبی مصنوعی و باتری‌دار جایگزین آن کرده است. چلیوس باید مرتب برق دریافت کند تا قلبش به کار ادامه دهد و در همین حال به دنبال کسانی می‌رود که این کار را با او انجام داده‌اند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « کرانک: ولتاژ بالا »\n\n📹 Crank: High Voltage 2009\n✨ IMDb: 6.1\n\n🎭 ژانر: اکشن | کمدی سیاه | جنایی | هیجان‌انگیز\n🪙 محصول: آمریکا\n🍿 بازیگران: Jason Statham | Amy Smart | Clifton Collins Jr. | Dwight Yoakam | Efren Ramirez | Jose Pablo Cantillo\n\n📝 خلاصه داستان : چِو چلیوس پس از اتفاقات قسمت اول، با شرایطی عجیب و خطرناک روبه‌رو می‌شود؛ یک گانگستر چینی قلب او را ربوده و قلبی مصنوعی و باتری‌دار جایگزین آن کرده است. چلیوس باید مرتب برق دریافت کند تا قلبش به کار ادامه دهد و در همین حال به دنبال کسانی می‌رود که این کار را با او انجام داده‌اند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 600,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_304027593"
+      },
+      {
+        "offset": 600,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 635,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791031935,
+    "createdAt": "2026-10-03T12:52:17.504Z",
+    "updatedAt": "2026-10-03T12:52:17.504Z"
+  },
+  {
     "id": "animitionfaarsi:60",
     "name": "آواتار: آخرین بادافزار",
     "nameNormalized": "آواتار آخرین بادافزار",
