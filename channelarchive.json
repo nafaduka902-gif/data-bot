@@ -2962,6 +2962,113 @@
     "updatedAt": "2026-10-03T17:14:33.136Z"
   },
   {
+    "id": "anime_faarsi:556",
+    "name": "➖ Black Clover Season 1 Episode 01 ~ 60",
+    "nameNormalized": "black clover season 1 episode 01 60",
+    "link": "https://t.me/Anime_Faarsi/556",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 556,
+    "text": "➖ Black Clover Season 1 Episode 01 ~ 60\n\n➖ Black Clover Season 1 Episode 61 ~ 170\n\n➖ Black Clover Season 2 Episode 1 ~ 25\n\n➖ Black Clover Movie: Sword of the Wizard King Movie 1\n\n#دسترسی_سریع\n#کالکشن\n#شبدر_سیاه\n🆔 @Anime_Faarsi",
+    "caption": "➖ Black Clover Season 1 Episode 01 ~ 60\n\n➖ Black Clover Season 1 Episode 61 ~ 170\n\n➖ Black Clover Season 2 Episode 1 ~ 25\n\n➖ Black Clover Movie: Sword of the Wizard King Movie 1\n\n#دسترسی_سریع\n#کالکشن\n#شبدر_سیاه\n🆔 @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 2,
+        "length": 37,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/553"
+      },
+      {
+        "offset": 43,
+        "length": 38,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/554"
+      },
+      {
+        "offset": 85,
+        "length": 36,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/1013"
+      },
+      {
+        "offset": 125,
+        "length": 52,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/555"
+      },
+      {
+        "offset": 177,
+        "length": 2,
+        "type": "text_link",
+        "url": "https://t.me/animworlddl/18705"
+      },
+      {
+        "offset": 177,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 179,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 179,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 191,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 192,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 192,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 199,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 200,
+        "length": 10,
+        "type": "hashtag"
+      },
+      {
+        "offset": 200,
+        "length": 10,
+        "type": "bold"
+      },
+      {
+        "offset": 210,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 214,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 214,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1743403203,
+    "createdAt": "2026-10-03T17:52:34.841Z",
+    "updatedAt": "2026-10-03T17:52:34.841Z"
+  },
+  {
     "id": "anime_faarsi:554",
     "name": "نام انیمه: Black Clover",
     "nameNormalized": "نام انیمه black clover",
