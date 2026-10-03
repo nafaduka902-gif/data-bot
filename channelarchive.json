@@ -1,5 +1,100 @@
 [
   {
+    "id": "animitionfaarsi:69",
+    "name": "ماشین‌ها",
+    "nameNormalized": "ماشین ها",
+    "link": "https://t.me/AnimitionFaarsi/69",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 69,
+    "text": "🎞 کالکشن انیمیشن « ماشین‌ها »\n\n📷 Cars\n\n🎭 ژانر: انیمیشن | کمدی | ماجراجویی | ورزشی | خانوادگی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : لایتنینگ مک‌کوئین، یک ماشین مسابقه مغرور و تازه کار، در راه سفر به کالیفرنیا برای شرکت در مسابقه نهایی جام پیستون، به طور اتفاقی وارد یک شهر کوچک و قدیمی به نام رادیاتور اسپرینگز می‌شود. او در این شهر با ارزش‌های واقعی زندگی، دوستی و کار تیمی آشنا می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Cars 1 2006 (کوالیما)\n📥 Cars 2 2011 (کوالیما)\n📥 Cars 3 2017 (کوالیما)\n\n✅ @Anime_Faarsi",
+    "caption": "🎞 کالکشن انیمیشن « ماشین‌ها »\n\n📷 Cars\n\n🎭 ژانر: انیمیشن | کمدی | ماجراجویی | ورزشی | خانوادگی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : لایتنینگ مک‌کوئین، یک ماشین مسابقه مغرور و تازه کار، در راه سفر به کالیفرنیا برای شرکت در مسابقه نهایی جام پیستون، به طور اتفاقی وارد یک شهر کوچک و قدیمی به نام رادیاتور اسپرینگز می‌شود. او در این شهر با ارزش‌های واقعی زندگی، دوستی و کار تیمی آشنا می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Cars 1 2006 (کوالیما)\n📥 Cars 2 2011 (کوالیما)\n📥 Cars 3 2017 (کوالیما)\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 421,
+        "type": "bold"
+      },
+      {
+        "offset": 421,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 421,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 433,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 437,
+        "length": 11,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_747541078"
+      },
+      {
+        "offset": 437,
+        "length": 11,
+        "type": "bold"
+      },
+      {
+        "offset": 449,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 462,
+        "length": 11,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_146900577"
+      },
+      {
+        "offset": 462,
+        "length": 11,
+        "type": "bold"
+      },
+      {
+        "offset": 474,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 487,
+        "length": 11,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_401581479"
+      },
+      {
+        "offset": 487,
+        "length": 11,
+        "type": "bold"
+      },
+      {
+        "offset": 498,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 512,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 512,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1791041348,
+    "createdAt": "2026-10-03T15:29:09.302Z",
+    "updatedAt": "2026-10-03T15:29:09.302Z"
+  },
+  {
     "id": "animitionfaarsi:68",
     "name": "ماداگاسکار",
     "nameNormalized": "ماداگاسکار",
