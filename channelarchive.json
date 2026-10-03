@@ -272,6 +272,54 @@
     "updatedAt": "2026-10-03T05:58:47.955Z"
   },
   {
+    "id": "anime_faarsi:996",
+    "name": "لیویوس",
+    "nameNormalized": "لیویوس",
+    "link": "https://t.me/Anime_Faarsi/996",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 996,
+    "text": "📼 انیمه سریالی « لیویوس »\n\n📹 Levius\n⭐️ IMDB : 7.0\n\n🎭 ژانر : اکشن | علمی‌تخیلی | درام\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Nobunaga Shimazaki, Junichi Suwabe, Takahiro Sakurai\n\n💬 خلاصه داستان : لیویوس، جوانی که والدینش را در جنگ از دست داده، زیر نظر عمویش زک وارد دنیای خشن «بوکس فلزی» می‌شود. او با استفاده از دست مصنوعی خود به‌تدریج در مسابقات پیشرفت می‌کند و وارد نبردهایی خطرناک می‌شود.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « لیویوس »\n\n📹 Levius\n⭐️ IMDB : 7.0\n\n🎭 ژانر : اکشن | علمی‌تخیلی | درام\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Nobunaga Shimazaki, Junichi Suwabe, Takahiro Sakurai\n\n💬 خلاصه داستان : لیویوس، جوانی که والدینش را در جنگ از دست داده، زیر نظر عمویش زک وارد دنیای خشن «بوکس فلزی» می‌شود. او با استفاده از دست مصنوعی خود به‌تدریج در مسابقات پیشرفت می‌کند و وارد نبردهایی خطرناک می‌شود.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 466,
+        "type": "bold"
+      },
+      {
+        "offset": 467,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_709829051"
+      },
+      {
+        "offset": 467,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 474,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 476,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 476,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790881066,
+    "createdAt": "2026-10-03T06:00:19.969Z",
+    "updatedAt": "2026-10-03T06:00:19.969Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
