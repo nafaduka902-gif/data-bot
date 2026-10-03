@@ -1,5 +1,95 @@
 [
   {
+    "id": "animitionfaarsi:77",
+    "name": "سونیک پرایم",
+    "nameNormalized": "سونیک پرایم",
+    "link": "https://t.me/AnimitionFaarsi/77",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 77,
+    "text": "📼 انیمیشن سریالی « سونیک پرایم »\n\n📹 Sonic Prime 2022\n⭐️ IMDB : 7.2\n\n🎭 ژانر : انیمیشن | اکشن | ماجراجویی | کمدی | فانتزی | علمی‌تخیلی\n🌐 محصول : آمریکا | کانادا | ژاپن\n⌨ وضعیت : 3 فصل 23 قسمت\n👤ستارگان : Deven Christian Mack, Ashleigh Ball, Brian Drummond\n\n💬 خلاصه داستان : در جریان نبردی با دکتر اگمن، سونیک به‌طور تصادفی یک شیء باستانی قدرتمند را نابود می‌کند و باعث شکسته شدن جهان و ایجاد چندین دنیای موازی می‌شود. او برای بازگرداندن دوستانش و نجات جهان‌های مختلف، وارد ماجراجویی بزرگی می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n📥 فصل 02 دوبله فارسی | گپ فیلم | 720p\n📥 فصل 03 دوبله فارسی | گپ فیلم | 720p\n\n✅ @AnimationFaarsi",
+    "caption": "📼 انیمیشن سریالی « سونیک پرایم »\n\n📹 Sonic Prime 2022\n⭐️ IMDB : 7.2\n\n🎭 ژانر : انیمیشن | اکشن | ماجراجویی | کمدی | فانتزی | علمی‌تخیلی\n🌐 محصول : آمریکا | کانادا | ژاپن\n⌨ وضعیت : 3 فصل 23 قسمت\n👤ستارگان : Deven Christian Mack, Ashleigh Ball, Brian Drummond\n\n💬 خلاصه داستان : در جریان نبردی با دکتر اگمن، سونیک به‌طور تصادفی یک شیء باستانی قدرتمند را نابود می‌کند و باعث شکسته شدن جهان و ایجاد چندین دنیای موازی می‌شود. او برای بازگرداندن دوستانش و نجات جهان‌های مختلف، وارد ماجراجویی بزرگی می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n📥 فصل 02 دوبله فارسی | گپ فیلم | 720p\n📥 فصل 03 دوبله فارسی | گپ فیلم | 720p\n\n✅ @AnimationFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 561,
+        "type": "bold"
+      },
+      {
+        "offset": 562,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_456278867"
+      },
+      {
+        "offset": 562,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 567,
+        "length": 15,
+        "type": "bold"
+      },
+      {
+        "offset": 583,
+        "length": 17,
+        "type": "bold"
+      },
+      {
+        "offset": 601,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_200843538"
+      },
+      {
+        "offset": 601,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 608,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 622,
+        "length": 15,
+        "type": "bold"
+      },
+      {
+        "offset": 640,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_337674705"
+      },
+      {
+        "offset": 640,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 646,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 648,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 648,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791051410,
+    "createdAt": "2026-10-03T18:16:50.939Z",
+    "updatedAt": "2026-10-03T18:16:50.939Z"
+  },
+  {
     "id": "animitionfaarsi:76",
     "name": "طلسم شدگان",
     "nameNormalized": "طلسم شدگان",
