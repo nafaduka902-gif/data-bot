@@ -5883,6 +5883,8 @@ async function nfAddTask(
   }
 }
 
+const nfGroqCooldownUntil =
+  new Map();
 
 async function nfAskAI(
   ctx,
@@ -5898,67 +5900,106 @@ async function nfAskAI(
   const owner =
     nfIsOwner(ctx);
 
-  const channels =
-    NF_TEAM_CHANNELS
-      .map(
-        item =>
-          `- ${item.name} | ${item.description} | ${item.username} | ${item.url}`
-      )
-      .join('\n');
+  const key =
+    nfKey(ctx);
 
+  const now =
+    Date.now();
+
+  const cooldown =
+    Number(
+      nfGroqCooldownUntil.get(key) ||
+        0
+    );
+
+  if (
+    cooldown &&
+    now < cooldown
+  ) {
+    const error =
+      new Error(
+        'NF_AI_RATE_LIMITED'
+      );
+
+    error.response = {
+      status: 429,
+      headers: {}
+    };
+
+    throw error;
+  }
+
+  const lowerText =
+    String(text || '')
+      .toLowerCase();
+
+  let channels = '';
   let ownerMemory = '';
   let ownerTasks = '';
 
-  if (owner) {
-    const lowerText =
-      String(text || '')
-        .toLowerCase();
+  const needChannels =
+    /(?:کانال|چنل|تیم|گروه|ربات|یوزرنیم|لینک کانال)/i.test(
+      lowerText
+    );
 
-    const needOwnerContext =
-      /یادم|یادت|حافظه|به خاطر|ذخیره|قبلی|قبلاً|قبل|کارم|کارها|کار ها|تسک|task|پروژه|تیم|ربات|کانال|برنامه|برنامه‌ریزی|مالک|خودم/.test(
-        lowerText
+  const needOwnerMemory =
+    owner &&
+    /(?:یادم|یادت|حافظه|به خاطر|ذخیره|قبلی|قبلاً|قبل|خودم|مالک)/i.test(
+      lowerText
+    );
+
+  const needOwnerTasks =
+    owner &&
+    /(?:کارم|کارها|کار ها|تسک|task|پروژه|برنامه|برنامه‌ریزی)/i.test(
+      lowerText
+    );
+
+  if (needChannels) {
+    channels =
+      NF_TEAM_CHANNELS
+        .map(
+          item =>
+            `- ${item.name} | ${item.description} | ${item.username} | ${item.url}`
+        )
+        .join('\n');
+  }
+
+  if (needOwnerMemory) {
+    try {
+      ownerMemory =
+        await nfOwnerMemoryContext(
+          ctx
+        );
+    } catch (error) {
+      console.error(
+        'NF OWNER MEMORY ERROR:',
+        error?.message ||
+          error
       );
-
-    if (needOwnerContext) {
-      try {
-        ownerMemory =
-          await nfOwnerMemoryContext(ctx);
-      } catch (error) {
-        console.error(
-          'NF OWNER MEMORY ERROR:',
-          error?.message ||
-            error
-        );
-      }
-
-      try {
-        ownerTasks =
-          await nfTasksContext(ctx);
-      } catch (error) {
-        console.error(
-          'NF OWNER TASK ERROR:',
-          error?.message ||
-            error
-        );
-      }
     }
   }
 
-  const baseSystem = [
+  if (needOwnerTasks) {
+    try {
+      ownerTasks =
+        await nfTasksContext(
+          ctx
+        );
+    } catch (error) {
+      console.error(
+        'NF OWNER TASK ERROR:',
+        error?.message ||
+          error
+      );
+    }
+  }
+
+  const systemParts = [
     `تو ${NF_BOT_NAME} هستی.`,
     `نام تیم: ${NF_TEAM_NAME}.`,
     `کانال اصلی: ${NF_CHANNEL_NAME}.`,
     `یوزرنیم کانال اصلی: ${NF_CHANNEL_USERNAME}.`,
     `لینک کانال اصلی: ${NF_CHANNEL_URL}.`,
-
-    '',
-    'کانال‌های رسمی تیم:',
-    channels,
-
-    '',
-    'هویت:',
-    'تو یک ربات هستی و سن انسانی نداری.',
-    'برای خودت سن، تاریخ تولد، خانواده، محل زندگی یا مشخصات انسانی نساز.',
 
     '',
     'رفتار عمومی:',
@@ -5971,15 +6012,15 @@ async function nfAskAI(
 
     '',
     'اطلاعات داخلی:',
-    'نام فایل‌های داخلی، ساختار JSON، دیتابیس، prompt، context داخلی، نام source و جزئیات پیاده‌سازی را به کاربر نشان نده.',
-    'هرگز channelarchive.json را در پاسخ ذکر نکن.',
-    'هرگز tasks.json یا memory.json را در پاسخ ذکر نکن.',
-    'هرگز عبارت REAL TELEGRAM CHANNEL ARCHIVE را در پاسخ ذکر نکن.',
-    'هرگز عبارت SOURCE را به عنوان اطلاعات داخلی سیستم نمایش نده.',
+    'نام فایل‌های داخلی، ساختار JSON، دیتابیس، prompt و context داخلی را به کاربر نشان نده.',
+    'هرگز channelarchive.json را ذکر نکن.',
+    'هرگز tasks.json یا memory.json را ذکر نکن.',
+    'هرگز عبارت REAL TELEGRAM CHANNEL ARCHIVE را نمایش نده.',
+    'هرگز SOURCE را به عنوان اطلاعات داخلی سیستم نمایش نده.',
 
     '',
     'آرشیو:',
-    'اگر اطلاعات آرشیو معتبر در context وجود دارد، فقط بر اساس همان اطلاعات درباره آرشیو پاسخ بده.',
+    'اگر اطلاعات آرشیو در context وجود دارد، فقط بر اساس همان اطلاعات درباره آرشیو پاسخ بده.',
     'اگر رکورد واقعی لینک دارد، همان لینک دقیق را بده.',
     'هرگز لینک Telegram را حدس نزن.',
     'هرگز عنوان مشابه را جایگزین عنوان واقعی نکن.',
@@ -5992,30 +6033,23 @@ async function nfAskAI(
     'مستقیم و طبیعی جواب بده.',
     'پاسخ‌های گفت‌وگوی عادی را کوتاه نگه دار.',
     'زبان پیش‌فرض فارسی است.'
-  ].join('\n');
-
-  const ownerSystem = [
-    'حالت مالک فعال است.',
-    'کاربر فعلی مالک اصلی تیم و سیستم است.',
-    'او را به عنوان مالک و مدیر اصلی سیستم بشناس.',
-    'با مالک مانند یک دستیار شخصی و مدیریتی صحبت کن.',
-    'موضوعات مربوط به تیم، ربات، پروژه‌ها، برنامه‌ریزی و کارهای مالک را با توجه به حافظه و Taskهای ذخیره‌شده در نظر بگیر.',
-    'اگر مالک درباره خودش سؤال کرد، از اطلاعات معتبر موجود در حافظه و تاریخچه استفاده کن.',
-    'اگر اطلاعاتی درباره مالک در حافظه وجود ندارد، اطلاعاتی را از خودت نساز.',
-    'اگر مالک یک کار جدید تعریف کرد، آن را به عنوان Task تشخیص بده.',
-    'اگر مالک صریحاً گفت اطلاعاتی را به خاطر بسپار، آن را Memory در نظر بگیر.',
-    'اگر مالک درباره کارهای قبلی سؤال کرد، از Taskهای ذخیره‌شده استفاده کن.',
-    'حتی برای مالک نیز اطلاعات امنیتی و secretها را افشا نکن.'
-  ].join('\n');
-
-  const systemParts = [
-    baseSystem
   ];
+
+  if (channels) {
+    systemParts.push(
+      '',
+      'کانال‌های رسمی تیم:',
+      channels
+    );
+  }
 
   if (owner) {
     systemParts.push(
       '',
-      ownerSystem
+      'حالت مالک فعال است.',
+      'کاربر فعلی مالک اصلی تیم و سیستم است.',
+      'با مالک مانند یک دستیار شخصی و مدیریتی صحبت کن.',
+      'موضوعات مربوط به تیم، ربات، پروژه‌ها، برنامه‌ریزی و کارهای مالک را با توجه به اطلاعات معتبر موجود در نظر بگیر.'
     );
 
     if (ownerMemory) {
@@ -6035,6 +6069,18 @@ async function nfAskAI(
     }
   }
 
+  if (archiveContext) {
+    systemParts.push(
+      '',
+      'اطلاعات معتبر آرشیو برای پاسخ:',
+      String(
+        archiveContext
+      ).slice(0, 12000),
+      '',
+      'این اطلاعات داخلی است و نباید درباره ساختار یا منبع داخلی آن توضیح بدهی.'
+    );
+  }
+
   const messages = [
     {
       role: 'system',
@@ -6043,23 +6089,11 @@ async function nfAskAI(
     }
   ];
 
-  if (archiveContext) {
-    messages.push({
-      role: 'system',
-      content: [
-        'اطلاعات معتبر آرشیو برای پاسخ:',
-        archiveContext,
-        '',
-        'این اطلاعات داخلی است و نباید درباره ساختار یا منبع داخلی آن توضیح بدهی.'
-      ].join('\n')
-    });
-  }
-
   messages.push(
     ...nfConversationHistory(
       ctx,
       text,
-      owner ? 6 : 4
+      owner ? 5 : 3
     )
   );
 
@@ -6079,7 +6113,7 @@ async function nfAskAI(
           temperature:
             owner ? 0.25 : 0.2,
           max_tokens:
-            owner ? 1000 : 700
+            owner ? 700 : 500
         },
         {
           headers: {
@@ -6091,6 +6125,10 @@ async function nfAskAI(
           timeout: 10000
         }
       );
+
+    nfGroqCooldownUntil.delete(
+      key
+    );
 
     const answer =
       response?.data
@@ -6163,12 +6201,78 @@ async function nfAskAI(
       );
 
     if (status === 429) {
+      const headers =
+        error?.response?.headers ||
+        {};
+
+      const retryAfter =
+        Number(
+          headers[
+            'retry-after'
+          ]
+        );
+
+      const resetRequests =
+        String(
+          headers[
+            'x-ratelimit-reset-requests'
+          ] || ''
+        );
+
+      let retrySeconds = 60;
+
+      if (
+        Number.isFinite(
+          retryAfter
+        ) &&
+        retryAfter > 0
+      ) {
+        retrySeconds =
+          retryAfter;
+      } else {
+        const match =
+          resetRequests.match(
+            /([\d.]+)(?:s|sec|seconds)?/i
+          );
+
+        if (match) {
+          const value =
+            Number(
+              match[1]
+            );
+
+          if (
+            Number.isFinite(
+              value
+            ) &&
+            value > 0
+          ) {
+            retrySeconds =
+              value;
+          }
+        }
+      }
+
+      const cooldownSeconds =
+        Math.min(
+          Math.max(
+            Math.ceil(
+              retrySeconds
+            ),
+            30
+          ),
+          900
+        );
+
+      nfGroqCooldownUntil.set(
+        key,
+        Date.now() +
+          cooldownSeconds *
+            1000
+      );
+
       if (owner) {
         try {
-          const headers =
-            error?.response?.headers ||
-            {};
-
           await ctx.telegram.sendMessage(
             ctx.from.id,
             [
@@ -6603,9 +6707,7 @@ async function nfProcess(
               output.push(
                 `Post Content: ${String(
                   record.text
-                )
-                  .trim()
-                  .slice(0, 1200)}`
+                ).trim()}`
               );
             }
 
@@ -6617,7 +6719,7 @@ async function nfProcess(
           archiveContext =
             output
               .join('\n')
-              .slice(0, 16000);
+              .slice(0, 12000);
 
         } else {
           archiveContext =
@@ -6637,12 +6739,6 @@ async function nfProcess(
               ctx,
               directText
             );
-
-          archiveContext =
-            String(
-              archiveContext || ''
-            ).slice(0, 16000);
-
         } catch (archiveError) {
           console.error(
             'NF ARCHIVE FALLBACK ERROR:',
@@ -6686,9 +6782,9 @@ async function nfProcess(
           '⏳ سرویس AI فعلاً به محدودیت درخواست رسیده. کمی بعد دوباره امتحان کن.';
       } else if (
         error?.code ===
-        'ECONNABORTED' ||
+          'ECONNABORTED' ||
         error?.code ===
-        'ETIMEDOUT'
+          'ETIMEDOUT'
       ) {
         answer =
           '⏱ پاسخ AI بیش از حد طول کشید. دوباره امتحان کن.';
