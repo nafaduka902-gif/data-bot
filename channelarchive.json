@@ -92,8 +92,8 @@
     "channelNormalized": "animitionfaarsi",
     "channelType": "animation",
     "messageId": 54,
-    "text": "🎞 کالکشن انیمیشن « کونگ فو پاندا »\n\n📷 Kung Fu Panda\n\n🎭 ژانر: کمدی | اکشن | ماجراجویی | فانتزی\n🌐 محصول کشور: آمریکا | چین | ژاپن\n\n💬 خلاصه داستان : پو، یک پاندای دست‌وپاچلفتی و عاشق کونگ‌فو، برخلاف انتظار به‌عنوان جنگجوی اژدها انتخاب می‌شود و باید با تمرین و مبارزه، از دره صلح در برابر دشمنان خطرناک محافظت کند.\n\n🚫 بدون سانسور و حذفیات\n\n#دوبله_فارسی\n📥 Kung Fu Panda 1 2008\n📥 Kung Fu Panda 2 2011\n📥 Kung Fu Panda 3 2016\n📥 Kung Fu Panda 4 2024\n\n📥 Kung Fu Panda: Secrets of Furious 2008\n📥 Kung Fu Panda: Holiday 2010\n📥 Kung Fu Panda: Secrets of Masters 2011\n📥 Kung Fu Panda: Secrets of Scroll 2016\n\n✅ @Anime_Faarsi",
-    "caption": "🎞 کالکشن انیمیشن « کونگ فو پاندا »\n\n📷 Kung Fu Panda\n\n🎭 ژانر: کمدی | اکشن | ماجراجویی | فانتزی\n🌐 محصول کشور: آمریکا | چین | ژاپن\n\n💬 خلاصه داستان : پو، یک پاندای دست‌وپاچلفتی و عاشق کونگ‌فو، برخلاف انتظار به‌عنوان جنگجوی اژدها انتخاب می‌شود و باید با تمرین و مبارزه، از دره صلح در برابر دشمنان خطرناک محافظت کند.\n\n🚫 بدون سانسور و حذفیات\n\n#دوبله_فارسی\n📥 Kung Fu Panda 1 2008\n📥 Kung Fu Panda 2 2011\n📥 Kung Fu Panda 3 2016\n📥 Kung Fu Panda 4 2024\n\n📥 Kung Fu Panda: Secrets of Furious 2008\n📥 Kung Fu Panda: Holiday 2010\n📥 Kung Fu Panda: Secrets of Masters 2011\n📥 Kung Fu Panda: Secrets of Scroll 2016\n\n✅ @Anime_Faarsi",
+    "text": "🎞 کالکشن انیمیشن « کونگ فو پاندا »\n\n📷 Kung Fu Panda\n\n🎭 ژانر: کمدی | اکشن | ماجراجویی | فانتزی\n🌐 محصول کشور: آمریکا | چین | ژاپن\n\n💬 خلاصه داستان : پو، یک پاندای دست‌وپاچلفتی و عاشق کونگ‌فو، برخلاف انتظار به‌عنوان جنگجوی اژدها انتخاب می‌شود و باید با تمرین و مبارزه، از دره صلح در برابر دشمنان خطرناک محافظت کند.\n\n🚫 بدون سانسور و حذفیات\n\n#دوبله_فارسی\n📥 Kung Fu Panda 1 2008 (کوالیما)\n📥 Kung Fu Panda 2 2011 (کوالیما)\n📥 Kung Fu Panda 3 2016 (کوالیما)\n📥 Kung Fu Panda 4 2024 (کوالیما)\n\n📥 Kung Fu Panda: Secrets of Furious 2008 (کوالیما)\n📥 Kung Fu Panda: Holiday 2010 (کوالیما)\n📥 Kung Fu Panda: Secrets of Masters 2011 (کوالیما)\n📥 Kung Fu Panda: Secrets of Scroll 2016 (کوالیما)\n\n✅ @Anime_Faarsi",
+    "caption": "🎞 کالکشن انیمیشن « کونگ فو پاندا »\n\n📷 Kung Fu Panda\n\n🎭 ژانر: کمدی | اکشن | ماجراجویی | فانتزی\n🌐 محصول کشور: آمریکا | چین | ژاپن\n\n💬 خلاصه داستان : پو، یک پاندای دست‌وپاچلفتی و عاشق کونگ‌فو، برخلاف انتظار به‌عنوان جنگجوی اژدها انتخاب می‌شود و باید با تمرین و مبارزه، از دره صلح در برابر دشمنان خطرناک محافظت کند.\n\n🚫 بدون سانسور و حذفیات\n\n#دوبله_فارسی\n📥 Kung Fu Panda 1 2008 (کوالیما)\n📥 Kung Fu Panda 2 2011 (کوالیما)\n📥 Kung Fu Panda 3 2016 (کوالیما)\n📥 Kung Fu Panda 4 2024 (کوالیما)\n\n📥 Kung Fu Panda: Secrets of Furious 2008 (کوالیما)\n📥 Kung Fu Panda: Holiday 2010 (کوالیما)\n📥 Kung Fu Panda: Secrets of Masters 2011 (کوالیما)\n📥 Kung Fu Panda: Secrets of Scroll 2016 (کوالیما)\n\n✅ @Anime_Faarsi",
     "entities": [
       {
         "offset": 0,
@@ -122,106 +122,146 @@
         "type": "bold"
       },
       {
-        "offset": 382,
+        "offset": 379,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 392,
         "length": 20,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_850593693"
       },
       {
-        "offset": 382,
+        "offset": 392,
         "length": 20,
         "type": "bold"
       },
       {
-        "offset": 406,
+        "offset": 413,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 426,
         "length": 20,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_666834874"
       },
       {
-        "offset": 406,
+        "offset": 426,
         "length": 20,
         "type": "bold"
       },
       {
-        "offset": 430,
+        "offset": 447,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 460,
         "length": 20,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_583726672"
       },
       {
-        "offset": 430,
+        "offset": 460,
         "length": 20,
         "type": "bold"
       },
       {
-        "offset": 455,
+        "offset": 481,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 495,
         "length": 38,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_391958297"
       },
       {
-        "offset": 455,
+        "offset": 495,
         "length": 38,
         "type": "bold"
       },
       {
-        "offset": 497,
+        "offset": 534,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 547,
         "length": 27,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_461990298"
       },
       {
-        "offset": 497,
+        "offset": 547,
         "length": 27,
         "type": "bold"
       },
       {
-        "offset": 525,
+        "offset": 575,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 585,
         "length": 2,
         "type": "bold"
       },
       {
-        "offset": 528,
+        "offset": 588,
         "length": 38,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_902907926"
       },
       {
-        "offset": 528,
+        "offset": 588,
         "length": 38,
         "type": "bold"
       },
       {
-        "offset": 570,
+        "offset": 627,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 640,
         "length": 37,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_946464704"
       },
       {
-        "offset": 570,
+        "offset": 640,
         "length": 37,
         "type": "bold"
       },
       {
-        "offset": 609,
+        "offset": 678,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 689,
         "length": 2,
         "type": "bold"
       },
       {
-        "offset": 611,
+        "offset": 691,
         "length": 13,
         "type": "mention"
       },
       {
-        "offset": 611,
+        "offset": 691,
         "length": 13,
         "type": "bold"
       }
     ],
     "date": 1791028291,
     "createdAt": "2026-10-03T11:51:31.483Z",
-    "updatedAt": "2026-10-03T11:51:31.483Z"
+    "updatedAt": "2026-10-03T12:00:40.312Z"
   },
   {
     "id": "animitionfaarsi:53",
