@@ -6005,9 +6005,8 @@ async function nfAskAI(
     'رفتار عمومی:',
     'مفهوم واقعی پیام را بفهم.',
     'فارسی، انگلیسی، فینگلیش، غلط تایپی و نام‌های غیررسمی را درک کن.',
-    'گفت‌وگوی عادی را طبیعی و کوتاه پاسخ بده.',
-    'در پیام‌های دنبال‌دار، ضمیرهایی مثل ش، این، اون، همون و قبلی را با توجه به تاریخچه گفتگو بفهم.',
-    'اگر اطلاعات کافی نداری، حدس نزن.',
+    'پاسخ طبیعی، مستقیم و کوتاه بده.',
+    'اگر اطلاعات کافی نداری حدس نزن.',
     'هیچ عملیات انجام‌شده‌ای را جعل نکن.',
 
     '',
@@ -6020,7 +6019,7 @@ async function nfAskAI(
 
     '',
     'آرشیو:',
-    'اگر اطلاعات آرشیو در context وجود دارد، فقط بر اساس همان اطلاعات درباره آرشیو پاسخ بده.',
+    'اگر اطلاعات آرشیو در context وجود دارد، فقط بر اساس همان اطلاعات پاسخ بده.',
     'اگر رکورد واقعی لینک دارد، همان لینک دقیق را بده.',
     'هرگز لینک Telegram را حدس نزن.',
     'هرگز عنوان مشابه را جایگزین عنوان واقعی نکن.',
@@ -6031,7 +6030,7 @@ async function nfAskAI(
     '',
     'پاسخ:',
     'مستقیم و طبیعی جواب بده.',
-    'پاسخ‌های گفت‌وگوی عادی را کوتاه نگه دار.',
+    'پاسخ گفت‌وگوی عادی را کوتاه نگه دار.',
     'زبان پیش‌فرض فارسی است.'
   ];
 
@@ -6048,14 +6047,13 @@ async function nfAskAI(
       '',
       'حالت مالک فعال است.',
       'کاربر فعلی مالک اصلی تیم و سیستم است.',
-      'با مالک مانند یک دستیار شخصی و مدیریتی صحبت کن.',
-      'موضوعات مربوط به تیم، ربات، پروژه‌ها، برنامه‌ریزی و کارهای مالک را با توجه به اطلاعات معتبر موجود در نظر بگیر.'
+      'با مالک مانند یک دستیار شخصی و مدیریتی صحبت کن.'
     );
 
     if (ownerMemory) {
       systemParts.push(
         '',
-        'حافظه دائمی مالک:',
+        'حافظه معتبر مالک:',
         ownerMemory
       );
     }
@@ -6072,12 +6070,12 @@ async function nfAskAI(
   if (archiveContext) {
     systemParts.push(
       '',
-      'اطلاعات معتبر آرشیو برای پاسخ:',
+      'رکورد مرتبط آرشیو:',
       String(
         archiveContext
-      ).slice(0, 12000),
+      ).slice(0, 6000),
       '',
-      'این اطلاعات داخلی است و نباید درباره ساختار یا منبع داخلی آن توضیح بدهی.'
+      'فقط بر اساس این رکورد پاسخ بده.'
     );
   }
 
@@ -6086,22 +6084,18 @@ async function nfAskAI(
       role: 'system',
       content:
         systemParts.join('\n')
-    }
-  ];
-
-  messages.push(
+    },
     ...nfConversationHistory(
       ctx,
       text,
       owner ? 5 : 3
-    )
-  );
-
-  messages.push({
-    role: 'user',
-    content:
-      String(text || '')
-  });
+    ),
+    {
+      role: 'user',
+      content:
+        String(text || '')
+    }
+  ];
 
   try {
     const response =
@@ -6212,46 +6206,13 @@ async function nfAskAI(
           ]
         );
 
-      const resetRequests =
-        String(
-          headers[
-            'x-ratelimit-reset-requests'
-          ] || ''
-        );
-
-      let retrySeconds = 60;
-
-      if (
+      const retrySeconds =
         Number.isFinite(
           retryAfter
         ) &&
         retryAfter > 0
-      ) {
-        retrySeconds =
-          retryAfter;
-      } else {
-        const match =
-          resetRequests.match(
-            /([\d.]+)(?:s|sec|seconds)?/i
-          );
-
-        if (match) {
-          const value =
-            Number(
-              match[1]
-            );
-
-          if (
-            Number.isFinite(
-              value
-            ) &&
-            value > 0
-          ) {
-            retrySeconds =
-              value;
-          }
-        }
-      }
+          ? retryAfter
+          : 60;
 
       const cooldownSeconds =
         Math.min(
@@ -6599,156 +6560,204 @@ async function nfProcess(
       }
     }
 
-    let archiveContext = '';
-
     const archiveIntent =
       /(?:آرشیو|چنل|کانال|پست|موجوده|موجود است|هست|هستش|دار[یی]|داره|دارد|لینک|لینکش|لینک[شو]|قسمت|قسمت‌ها|قسمت ها|فصل|فصل‌ها|فصل ها|دوبله|فارسی|انیمه|انیمیشن|فیلم|سریال|عنوان)/i.test(
         directText
       );
 
+    let archiveContext = '';
+
     if (archiveIntent) {
       try {
-        const archiveResults =
-          await nfSearchRealArchive(
-            ctx,
-            directText
+        const extractionPrompt = [
+          'فقط نام عنوان موردنظر کاربر را استخراج کن.',
+          'اگر انیمه، انیمیشن، فیلم یا سریال است فقط نام آن را بنویس.',
+          'هیچ توضیحی نده.',
+          'اگر عنوان مشخص نیست فقط UNKNOWN بنویس.',
+          '',
+          `پیام کاربر: ${directText}`
+        ].join('\n');
+
+        const extractionResponse =
+          await axios.post(
+            NF_API_URL,
+            {
+              model: NF_MODEL,
+              messages: [
+                {
+                  role: 'system',
+                  content:
+                    'فقط عنوان اثر را استخراج کن. فقط نام عنوان یا UNKNOWN.'
+                },
+                {
+                  role: 'user',
+                  content:
+                    extractionPrompt
+                }
+              ],
+              temperature: 0,
+              max_tokens: 30
+            },
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${NF_API_KEY}`,
+                'Content-Type':
+                  'application/json'
+              },
+              timeout: 8000
+            }
           );
 
-        if (
-          Array.isArray(
-            archiveResults
-          ) &&
-          archiveResults.length
-        ) {
-          const output = [];
-
-          for (
-            const record of archiveResults.slice(
-              0,
-              12
-            )
-          ) {
-            const title =
-              String(
-                record.name ||
-                record.title ||
-                ''
-              ).trim();
-
-            const link =
-              String(
-                record.link ||
-                record.postUrl ||
-                ''
-              ).trim();
-
-            const channel =
-              String(
-                record.channel ||
-                ''
-              ).trim();
-
-            const messageId =
-              String(
-                record.messageId ||
-                record.id ||
-                ''
-              ).trim();
-
-            if (title) {
-              output.push(
-                `Title: ${title}`
-              );
-            }
-
-            if (channel) {
-              output.push(
-                `Channel: ${channel}`
-              );
-            }
-
-            if (messageId) {
-              output.push(
-                `Message ID: ${messageId}`
-              );
-            }
-
-            if (link) {
-              output.push(
-                `Telegram Link: ${link}`
-              );
-            }
-
-            if (record.category) {
-              output.push(
-                `Category: ${String(
-                  record.category
-                ).trim()}`
-              );
-            }
-
-            if (record.kind) {
-              output.push(
-                `Kind: ${String(
-                  record.kind
-                ).trim()}`
-              );
-            }
-
-            if (record.seasons) {
-              output.push(
-                `Seasons: ${String(
-                  record.seasons
-                ).trim()}`
-              );
-            }
-
-            if (record.text) {
-              output.push(
-                `Post Content: ${String(
-                  record.text
-                ).trim()}`
-              );
-            }
-
-            output.push(
-              '---'
+        const extractedTitle =
+          String(
+            extractionResponse
+              ?.data
+              ?.choices?.[0]
+              ?.message
+              ?.content || ''
+          )
+            .trim()
+            .replace(
+              /^["'«»]+|["'«»]+$/g,
+              ''
             );
-          }
 
-          archiveContext =
-            output
-              .join('\n')
-              .slice(0, 12000);
+        if (
+          extractedTitle &&
+          extractedTitle
+            .toUpperCase() !==
+            'UNKNOWN'
+        ) {
+          const archiveResults =
+            await nfSearchRealArchive(
+              ctx,
+              extractedTitle
+            );
+
+          if (
+            Array.isArray(
+              archiveResults
+            ) &&
+            archiveResults.length
+          ) {
+            const output = [];
+
+            for (
+              const record of archiveResults.slice(
+                0,
+                1
+              )
+            ) {
+              const title =
+                String(
+                  record.name ||
+                  record.title ||
+                  ''
+                ).trim();
+
+              const link =
+                String(
+                  record.link ||
+                  record.postUrl ||
+                  ''
+                ).trim();
+
+              const channel =
+                String(
+                  record.channel ||
+                  ''
+                ).trim();
+
+              const messageId =
+                String(
+                  record.messageId ||
+                  record.id ||
+                  ''
+                ).trim();
+
+              if (title) {
+                output.push(
+                  `Title: ${title}`
+                );
+              }
+
+              if (channel) {
+                output.push(
+                  `Channel: ${channel}`
+                );
+              }
+
+              if (messageId) {
+                output.push(
+                  `Message ID: ${messageId}`
+                );
+              }
+
+              if (link) {
+                output.push(
+                  `Telegram Link: ${link}`
+                );
+              }
+
+              if (record.category) {
+                output.push(
+                  `Category: ${String(
+                    record.category
+                  ).trim()}`
+                );
+              }
+
+              if (record.kind) {
+                output.push(
+                  `Kind: ${String(
+                    record.kind
+                  ).trim()}`
+                );
+              }
+
+              if (record.seasons) {
+                output.push(
+                  `Seasons: ${String(
+                    record.seasons
+                  ).trim()}`
+                );
+              }
+
+              if (record.text) {
+                output.push(
+                  `Post Content: ${String(
+                    record.text
+                  ).trim()}`
+                );
+              }
+            }
+
+            archiveContext =
+              output
+                .join('\n')
+                .slice(0, 6000);
+
+          } else {
+            archiveContext =
+              'No matching archive record was found. Do not assume that the requested title exists.';
+          }
 
         } else {
           archiveContext =
-            'No matching archive record was found. Do not assume that the requested title exists.';
+            'No clear title could be extracted from the user message.';
         }
 
       } catch (error) {
         console.error(
-          'NF ARCHIVE ERROR:',
-          error?.message ||
+          'NF ARCHIVE AI SEARCH ERROR:',
+          error?.response
+            ?.data ||
+            error?.message ||
             error
         );
 
-        try {
-          archiveContext =
-            await nfBuildArchiveContext(
-              ctx,
-              directText
-            );
-        } catch (archiveError) {
-          console.error(
-            'NF ARCHIVE FALLBACK ERROR:',
-            archiveError?.message ||
-              archiveError
-          );
-
-          archiveContext =
-            '';
-        }
+        archiveContext = '';
       }
     }
 
