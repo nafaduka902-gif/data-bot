@@ -753,6 +753,70 @@
     "updatedAt": "2026-10-03T06:55:28.482Z"
   },
   {
+    "id": "anime_faarsi:979",
+    "name": "آشپزی در دنیایی دیگر با مهارت مضهک من",
+    "nameNormalized": "آشپزی در دنیایی دیگر با مهارت مضهک من",
+    "link": "https://t.me/Anime_Faarsi/979",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 979,
+    "text": "📼 انیمه سریالی « آشپزی در دنیایی دیگر با مهارت مضهک من »\n\n📹 Campfire Cooking in Another World with My Absurd Skill\n⭐️ IMDB : 7.6\n\n🎭 ژانر : ماجراجویی | کمدی | فانتزی | ایسکای\n🌐 محصول : ژاپن\n⌨ وضعیت : 2 فصل 24 قسمت\n👤ستارگان : Yuma Uchida, Satoshi Hino, Hina Kino, Maaya Uchida\n\n💬 خلاصه داستان : تسویوشی موکودا به همراه سه قهرمان دیگر به دنیایی فانتزی احضار می‌شود، اما مهارت او تنها «سوپرمارکت آنلاین» است. او پس از ترک قصر، با استفاده از این توانایی غذاهای مدرن ژاپنی تهیه می‌کند و در کنار همراهان قدرتمندش وارد ماجراهای مختلفی می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n📥 فصل 02 دوبله فارسی | گپ فیلم | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « آشپزی در دنیایی دیگر با مهارت مضهک من »\n\n📹 Campfire Cooking in Another World with My Absurd Skill\n⭐️ IMDB : 7.6\n\n🎭 ژانر : ماجراجویی | کمدی | فانتزی | ایسکای\n🌐 محصول : ژاپن\n⌨ وضعیت : 2 فصل 24 قسمت\n👤ستارگان : Yuma Uchida, Satoshi Hino, Hina Kino, Maaya Uchida\n\n💬 خلاصه داستان : تسویوشی موکودا به همراه سه قهرمان دیگر به دنیایی فانتزی احضار می‌شود، اما مهارت او تنها «سوپرمارکت آنلاین» است. او پس از ترک قصر، با استفاده از این توانایی غذاهای مدرن ژاپنی تهیه می‌کند و در کنار همراهان قدرتمندش وارد ماجراهای مختلفی می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n📥 فصل 02 دوبله فارسی | گپ فیلم | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 602,
+        "type": "bold"
+      },
+      {
+        "offset": 603,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_17404095"
+      },
+      {
+        "offset": 603,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 608,
+        "length": 33,
+        "type": "bold"
+      },
+      {
+        "offset": 642,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_651265216"
+      },
+      {
+        "offset": 642,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 649,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 651,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 651,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790423354,
+    "createdAt": "2026-10-03T06:55:37.110Z",
+    "updatedAt": "2026-10-03T06:55:37.110Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
