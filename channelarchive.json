@@ -1,5 +1,53 @@
 [
   {
+    "id": "animitionfaarsi:43",
+    "name": "بز",
+    "nameNormalized": "بز",
+    "link": "https://t.me/AnimitionFaarsi/43",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 43,
+    "text": "📼 انیمیشن سینمایی « بز »\n\n📹 GOAT 2026\n⭐️ IMDB : 6.6\n\n🎭 ژانر : ماجراجویی | ورزشی | خانوادگی\n🌐 محصول : آمریکا | سنگاپور | ژاپن | برزیل\n👤 ستارگان : Caleb McLaughlin, Gabrielle Union, Stephen Curry, Aaron Pierre, Nicola Coughlan\n\n💬 خلاصه داستان : ویل، یک بز کوچک با آرزوهای بزرگ، فرصتی غیرمنتظره پیدا می‌کند تا به لیگ حرفه‌ای ورزش «Roarball» بپیوندد؛ ورزشی خشن و پرهیجان که تحت سلطه حیوانات قدرتمند است. ویل باید با هم‌تیمی‌های مخالفش روبه‌رو شود و ثابت کند که کوچک بودن مانعی برای رسیدن به رویاهای بزرگ نیست.\n\n🚫 بدون سانسور و حذفیات !\n\n🎤 دوبله فارسی(سورن):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @AnimitionFaarsi",
+    "caption": "📼 انیمیشن سینمایی « بز »\n\n📹 GOAT 2026\n⭐️ IMDB : 6.6\n\n🎭 ژانر : ماجراجویی | ورزشی | خانوادگی\n🌐 محصول : آمریکا | سنگاپور | ژاپن | برزیل\n👤 ستارگان : Caleb McLaughlin, Gabrielle Union, Stephen Curry, Aaron Pierre, Nicola Coughlan\n\n💬 خلاصه داستان : ویل، یک بز کوچک با آرزوهای بزرگ، فرصتی غیرمنتظره پیدا می‌کند تا به لیگ حرفه‌ای ورزش «Roarball» بپیوندد؛ ورزشی خشن و پرهیجان که تحت سلطه حیوانات قدرتمند است. ویل باید با هم‌تیمی‌های مخالفش روبه‌رو شود و ثابت کند که کوچک بودن مانعی برای رسیدن به رویاهای بزرگ نیست.\n\n🚫 بدون سانسور و حذفیات !\n\n🎤 دوبله فارسی(سورن):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @AnimitionFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 565,
+        "type": "bold"
+      },
+      {
+        "offset": 565,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_203585913"
+      },
+      {
+        "offset": 565,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 592,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 600,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 600,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1790993816,
+    "createdAt": "2026-10-03T02:16:57.395Z",
+    "updatedAt": "2026-10-03T02:16:57.395Z"
+  },
+  {
     "id": "animitionfaarsi:42",
     "name": "کسلوانیا",
     "nameNormalized": "کسلوانیا",
