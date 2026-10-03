@@ -1701,7 +1701,7 @@ bot.command('testnewai', async ctx => {
           ''
         )
         .trim() ||
-      'سلام، خودت را معرفی کن و بگو آماده پاسخگویی هستی.';
+      'hi';
 
     const thinking =
       await ctx.reply(
@@ -1721,9 +1721,12 @@ bot.command('testnewai', async ctx => {
       );
 
     const answer =
-      response?.data?.data?.msg;
+      response?.data?.msg;
 
-    if (!answer) {
+    if (
+      !response?.data?.status ||
+      !answer
+    ) {
       throw new Error(
         'AI_EMPTY_RESPONSE'
       );
@@ -1748,7 +1751,6 @@ bot.command('testnewai', async ctx => {
     );
 
     const errorText =
-      error?.response?.data?.message ||
       error?.response?.data?.msg ||
       error?.message ||
       'Unknown error';
