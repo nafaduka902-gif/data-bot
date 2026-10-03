@@ -368,6 +368,54 @@
     "updatedAt": "2026-10-03T06:01:37.205Z"
   },
   {
+    "id": "anime_faarsi:989",
+    "name": "گناه اصلی تاکوپی",
+    "nameNormalized": "گناه اصلی تاکوپی",
+    "link": "https://t.me/Anime_Faarsi/989",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 989,
+    "text": "📼 انیمه سریالی « گناه اصلی تاکوپی »\n\n📹 Takopis Original Sin\n⭐️ IMDB : 8.7\n\n🎭 ژانر : درام | علمی‌تخیلی | تراژدی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 6 قسمت\n👤ستارگان : Kurumi Mamiya, Reina Ueda, Konomi Kohara, Anna Nagase\n\n💬 خلاصه داستان : تاکوپی موجودی بیگانه از سیاره شادی است که برای گسترش شادی به زمین می‌آید؛ اما با دختری به نام شیزوکا روبه‌رو می‌شود که زندگی سخت و غم‌انگیزی دارد. تاکوپی تصمیم می‌گیرد با استفاده از ابزارهای عجیب خود زندگی او را تغییر دهد، اما اتفاقات پیچیده‌ای رقم می‌خورد.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | الفا‌میدیا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « گناه اصلی تاکوپی »\n\n📹 Takopis Original Sin\n⭐️ IMDB : 8.7\n\n🎭 ژانر : درام | علمی‌تخیلی | تراژدی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 6 قسمت\n👤ستارگان : Kurumi Mamiya, Reina Ueda, Konomi Kohara, Anna Nagase\n\n💬 خلاصه داستان : تاکوپی موجودی بیگانه از سیاره شادی است که برای گسترش شادی به زمین می‌آید؛ اما با دختری به نام شیزوکا روبه‌رو می‌شود که زندگی سخت و غم‌انگیزی دارد. تاکوپی تصمیم می‌گیرد با استفاده از ابزارهای عجیب خود زندگی او را تغییر دهد، اما اتفاقات پیچیده‌ای رقم می‌خورد.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | الفا‌میدیا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 558,
+        "type": "bold"
+      },
+      {
+        "offset": 559,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_859773744"
+      },
+      {
+        "offset": 559,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 566,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 568,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 568,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790765662,
+    "createdAt": "2026-10-03T06:54:10.993Z",
+    "updatedAt": "2026-10-03T06:54:10.993Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
