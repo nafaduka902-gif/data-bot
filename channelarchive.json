@@ -1,5 +1,123 @@
 [
   {
+    "id": "animitionfaarsi:70",
+    "name": "ماشین ها در جاده",
+    "nameNormalized": "ماشین ها در جاده",
+    "link": "https://t.me/AnimitionFaarsi/70",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 70,
+    "text": "📼 انیمیشن سریالی « ماشین ها در جاده »\n\n📹 Cars on the Road 2022\n⭐️ IMDB : 6.9\n\n🎭 ژانر : انیمیشن ماجراجویی کمدی ورزشی \n🌐 محصول : آمریکا کانادا\n⌨ وضعیت : 1 فصل 9 قسمت \n👤ستارگان : Owen Wilson Larry the Cable Guy Toks Olagundoye Robin Atkin\n\n💬 خلاصه داستان : لایتنینگ مک کوئین و ماتر برای دیدن خواهر ماتر به یک سفر جاده ای می روند ...\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | کوالیما | 720p\n \n✅ @AnimationFaarsi",
+    "caption": "📼 انیمیشن سریالی « ماشین ها در جاده »\n\n📹 Cars on the Road 2022\n⭐️ IMDB : 6.9\n\n🎭 ژانر : انیمیشن ماجراجویی کمدی ورزشی \n🌐 محصول : آمریکا کانادا\n⌨ وضعیت : 1 فصل 9 قسمت \n👤ستارگان : Owen Wilson Larry the Cable Guy Toks Olagundoye Robin Atkin\n\n💬 خلاصه داستان : لایتنینگ مک کوئین و ماتر برای دیدن خواهر ماتر به یک سفر جاده ای می روند ...\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | کوالیما | 720p\n \n✅ @AnimationFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 10,
+        "type": "bold"
+      },
+      {
+        "offset": 11,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 18,
+        "length": 21,
+        "type": "bold"
+      },
+      {
+        "offset": 43,
+        "length": 21,
+        "type": "bold"
+      },
+      {
+        "offset": 68,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 83,
+        "length": 36,
+        "type": "bold"
+      },
+      {
+        "offset": 123,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 131,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 138,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 147,
+        "length": 21,
+        "type": "bold"
+      },
+      {
+        "offset": 171,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 181,
+        "length": 59,
+        "type": "bold"
+      },
+      {
+        "offset": 245,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 260,
+        "length": 75,
+        "type": "bold"
+      },
+      {
+        "offset": 340,
+        "length": 20,
+        "type": "bold"
+      },
+      {
+        "offset": 370,
+        "length": 28,
+        "type": "bold"
+      },
+      {
+        "offset": 398,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_413449087"
+      },
+      {
+        "offset": 398,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 407,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 407,
+        "length": 10,
+        "type": "bold"
+      }
+    ],
+    "date": 1791041596,
+    "createdAt": "2026-10-03T15:33:16.932Z",
+    "updatedAt": "2026-10-03T15:33:16.932Z"
+  },
+  {
     "id": "animitionfaarsi:69",
     "name": "ماشین‌ها",
     "nameNormalized": "ماشین ها",
