@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "id": "anime_faarsi:1007",
+    "name": "مارس قرمز",
+    "nameNormalized": "مارس قرمز",
+    "link": "https://t.me/Anime_Faarsi/1007",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1007,
+    "text": "📼 انیمه سریالی « مارس قرمز »\n\n📹 Mars Red\n⭐️ IMDB : 6.2\n\n🎭 ژانر : اکشن | فانتزی | تاریخی | درام | ترسناک\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 13 قسمت\n👤ستارگان : Junichi Suwabe, Kenichi Suzumura, Tasuku Hatanaka, Akira Ishida\n\n💬 خلاصه داستان : در سال ۱۹۲۳ و دوران تای‌شو، ظهور ناگهانی خون‌آشام‌ها زندگی مردم توکیو را تهدید می‌کند. دولت ژاپن برای مقابله با این موجودات، واحد ویژه‌ای به نام «کد صفر» تشکیل می‌دهد که گروهی از خون‌آشام‌ها را برای شکار و مقابله با هم‌نوعانشان به کار می‌گیرد.\n\n🚫 بدون سانسور و حذفیات\n \n📥 فصل 01 دوبله فارسی | 720p\n\n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « مارس قرمز »\n\n📹 Mars Red\n⭐️ IMDB : 6.2\n\n🎭 ژانر : اکشن | فانتزی | تاریخی | درام | ترسناک\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 13 قسمت\n👤ستارگان : Junichi Suwabe, Kenichi Suzumura, Tasuku Hatanaka, Akira Ishida\n\n💬 خلاصه داستان : در سال ۱۹۲۳ و دوران تای‌شو، ظهور ناگهانی خون‌آشام‌ها زندگی مردم توکیو را تهدید می‌کند. دولت ژاپن برای مقابله با این موجودات، واحد ویژه‌ای به نام «کد صفر» تشکیل می‌دهد که گروهی از خون‌آشام‌ها را برای شکار و مقابله با هم‌نوعانشان به کار می‌گیرد.\n\n🚫 بدون سانسور و حذفیات\n \n📥 فصل 01 دوبله فارسی | 720p\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 536,
+        "type": "bold"
+      },
+      {
+        "offset": 537,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_477949350"
+      },
+      {
+        "offset": 537,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 543,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 545,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 545,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790983298,
+    "createdAt": "2026-10-03T05:54:09.114Z",
+    "updatedAt": "2026-10-03T05:54:09.114Z"
+  }
+]
