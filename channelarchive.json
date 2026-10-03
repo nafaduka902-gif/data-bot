@@ -1,5 +1,119 @@
 [
   {
+    "id": "animitionfaarsi:73",
+    "name": "هیولاها در محل کار",
+    "nameNormalized": "هیولاها در محل کار",
+    "link": "https://t.me/AnimitionFaarsi/73",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 73,
+    "text": "📺انیمیشن سریالی « هیولاها در محل کار »\n\n📼 Monsters at Work 2021\n✨ IMDb: 7\n\n🎭 ژانر: انیمیشن | کمدی | ماجراجویی\n🪙 محصول: آمریکا\n⭕ وضعیت: 2 فصل 20 قسمت\n🍿 بازیگران: Ben Feldman | Mindy Kaling | Henry Winkler | Lucas Neff | Billy Crystal |\n\n📝 خلاصه داستان : مجموعه ای از داستان هیولاها که 6 ماه پس از فیلم ساخته شد و در مورد داستانی است که هیولاها به جای غرش، انرژی خود را از خنده کودکان می گیرند.\n\n✂️ بدون سانسور و حذفیات !\n\n📥فصل 01 دوبله فارسی | گلوری | 720p\n📥فصل 02 دوبله فارسی | گلوری | 720p\n\n✅ @AnimationFaarsi",
+    "caption": "📺انیمیشن سریالی « هیولاها در محل کار »\n\n📼 Monsters at Work 2021\n✨ IMDb: 7\n\n🎭 ژانر: انیمیشن | کمدی | ماجراجویی\n🪙 محصول: آمریکا\n⭕ وضعیت: 2 فصل 20 قسمت\n🍿 بازیگران: Ben Feldman | Mindy Kaling | Henry Winkler | Lucas Neff | Billy Crystal |\n\n📝 خلاصه داستان : مجموعه ای از داستان هیولاها که 6 ماه پس از فیلم ساخته شد و در مورد داستانی است که هیولاها به جای غرش، انرژی خود را از خنده کودکان می گیرند.\n\n✂️ بدون سانسور و حذفیات !\n\n📥فصل 01 دوبله فارسی | گلوری | 720p\n📥فصل 02 دوبله فارسی | گلوری | 720p\n\n✅ @AnimationFaarsi",
+    "entities": [
+      {
+        "offset": 2,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 17,
+        "length": 22,
+        "type": "bold"
+      },
+      {
+        "offset": 44,
+        "length": 21,
+        "type": "bold"
+      },
+      {
+        "offset": 68,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 80,
+        "length": 32,
+        "type": "bold"
+      },
+      {
+        "offset": 116,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 132,
+        "length": 20,
+        "type": "bold"
+      },
+      {
+        "offset": 156,
+        "length": 84,
+        "type": "bold"
+      },
+      {
+        "offset": 244,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 259,
+        "length": 139,
+        "type": "bold"
+      },
+      {
+        "offset": 402,
+        "length": 21,
+        "type": "bold"
+      },
+      {
+        "offset": 429,
+        "length": 28,
+        "type": "bold"
+      },
+      {
+        "offset": 458,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_150877125"
+      },
+      {
+        "offset": 458,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 465,
+        "length": 26,
+        "type": "bold"
+      },
+      {
+        "offset": 494,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_586237895"
+      },
+      {
+        "offset": 494,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 502,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 502,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791049670,
+    "createdAt": "2026-10-03T17:47:51.001Z",
+    "updatedAt": "2026-10-03T17:47:51.001Z"
+  },
+  {
     "id": "anime_faarsi:1012",
     "name": "ریکشن بالای 50 هرچی زودتر!",
     "nameNormalized": "ریکشن بالای 50 هرچی زودتر",
