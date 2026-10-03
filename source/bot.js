@@ -1691,7 +1691,7 @@ startUploadResultWatcher()
 
 
 
-bot.command('githublimit', async (ctx) => {
+bot.command('gmit', async (ctx) => {
   try {
     if (
       !ctx.from ||
@@ -5835,15 +5835,32 @@ async function nfAskAI(
       )
       .join('\n');
 
-  const ownerMemory =
-    owner
-      ? await nfOwnerMemoryContext(ctx)
-      : '';
+  let ownerMemory = '';
+  let ownerTasks = '';
 
-  const ownerTasks =
-    owner
-      ? await nfTasksContext(ctx)
-      : '';
+  if (owner) {
+    try {
+      ownerMemory =
+        await nfOwnerMemoryContext(ctx);
+    } catch (error) {
+      console.error(
+        'NF OWNER MEMORY ERROR:',
+        error?.message ||
+          error
+      );
+    }
+
+    try {
+      ownerTasks =
+        await nfTasksContext(ctx);
+    } catch (error) {
+      console.error(
+        'NF OWNER TASK ERROR:',
+        error?.message ||
+          error
+      );
+    }
+  }
 
   const baseSystem = [
     `تو ${NF_BOT_NAME} هستی.`,
@@ -5891,6 +5908,7 @@ async function nfAskAI(
     '',
     'پاسخ:',
     'مستقیم و طبیعی جواب بده.',
+    'پاسخ‌های گفت‌وگوی عادی را کوتاه نگه دار.',
     'زبان پیش‌فرض فارسی است.'
   ].join('\n');
 
@@ -5946,13 +5964,12 @@ async function nfAskAI(
   if (archiveContext) {
     messages.push({
       role: 'system',
-      content:
-        [
-          'اطلاعات معتبر آرشیو برای پاسخ:',
-          archiveContext,
-          '',
-          'این اطلاعات داخلی است و نباید درباره ساختار یا منبع داخلی آن توضیح بدهی.'
-        ].join('\n')
+      content: [
+        'اطلاعات معتبر آرشیو برای پاسخ:',
+        archiveContext,
+        '',
+        'این اطلاعات داخلی است و نباید درباره ساختار یا منبع داخلی آن توضیح بدهی.'
+      ].join('\n')
     });
   }
 
@@ -5970,128 +5987,79 @@ async function nfAskAI(
       String(text || '')
   });
 
-  let lastError = null;
-
-  for (
-    let attempt = 0;
-    attempt < 3;
-    attempt++
-  ) {
-    try {
-      const response =
-        await axios.post(
-          NF_API_URL,
-          {
-            model: NF_MODEL,
-            messages,
-            temperature:
-              owner ? 0.25 : 0.2,
-            max_tokens:
-              owner ? 2200 : 1800
+  try {
+    const response =
+      await axios.post(
+        NF_API_URL,
+        {
+          model: NF_MODEL,
+          messages,
+          temperature:
+            owner ? 0.25 : 0.2,
+          max_tokens:
+            owner ? 2200 : 1800
+        },
+        {
+          headers: {
+            Authorization:
+              `Bearer ${NF_API_KEY}`,
+            'Content-Type':
+              'application/json'
           },
-          {
-            headers: {
-              Authorization:
-                `Bearer ${NF_API_KEY}`,
-              'Content-Type':
-                'application/json'
-            },
-            timeout: 30000
-          }
-        );
+          timeout: 10000
+        }
+      );
 
-      const answer =
-        response?.data
-          ?.choices?.[0]
-          ?.message?.content;
+    const answer =
+      response?.data
+        ?.choices?.[0]
+        ?.message?.content;
 
-      if (!answer) {
-        throw new Error(
-          'AI_EMPTY'
-        );
-      }
-
-      return String(
-        answer
-      ).trim();
-
-    } catch (error) {
-      lastError =
-        error;
-
-      const status =
-        Number(
-          error?.response?.status
-        );
-
-      if (
-        status !== 429 &&
-        status < 500
-      ) {
-        throw error;
-      }
-
-      if (
-        attempt >= 2
-      ) {
-        break;
-      }
-
-      let delay =
-        1500 *
-        Math.pow(
-          2,
-          attempt
-        );
-
-      const retryAfter =
-        Number(
-          error?.response
-            ?.headers?.[
-              'retry-after'
-            ]
-        );
-
-      if (
-        Number.isFinite(
-          retryAfter
-        ) &&
-        retryAfter > 0
-      ) {
-        delay =
-          Math.min(
-            retryAfter * 1000,
-            15000
-          );
-      }
-
-      await new Promise(
-        resolve =>
-          setTimeout(
-            resolve,
-            delay
-          )
+    if (!answer) {
+      throw new Error(
+        'AI_EMPTY'
       );
     }
-  }
 
-  throw (
-    lastError ||
-    new Error(
-      'AI_REQUEST_FAILED'
-    )
-  );
+    return String(
+      answer
+    ).trim();
+
+  } catch (error) {
+    const status =
+      Number(
+        error?.response?.status
+      );
+
+    if (status === 429) {
+      const rateError =
+        new Error(
+          'NF_AI_RATE_LIMITED'
+        );
+
+      rateError.response =
+        error.response;
+
+      throw rateError;
+    }
+
+    throw error;
+  }
 }
-   
-    
+
+
 function nfCanUseAI(ctx) {
-  if (!ctx.from) return false;
+  if (!ctx.from) {
+    return false;
+  }
 
   if (nfIsOwner(ctx)) {
     return true;
   }
 
-  if (!ctx.chat) return false;
+  if (!ctx.chat) {
+    return false;
+  }
 
   if (
     !['group', 'supergroup'].includes(
@@ -6129,11 +6097,17 @@ async function nfProcess(
     true
   );
 
+  let thinking = null;
+
   try {
     nfTrackUserMessage(ctx);
 
     const directText =
       String(text || '').trim();
+
+    if (!directText) {
+      return;
+    }
 
     nfRemember(
       ctx,
@@ -6143,8 +6117,6 @@ async function nfProcess(
 
     const owner =
       nfIsOwner(ctx);
-
-    let thinking = null;
 
     const isDeleteRequest =
       nfIsDeleteReply(
@@ -6174,6 +6146,7 @@ async function nfProcess(
           ctx,
           thinking.message_id
         );
+
       } catch (error) {
         console.error(
           'NF THINKING ERROR:',
@@ -6183,11 +6156,21 @@ async function nfProcess(
       }
     }
 
-    const direct =
-      await nfDirect(
-        ctx,
-        directText
+    let direct = null;
+
+    try {
+      direct =
+        await nfDirect(
+          ctx,
+          directText
+        );
+    } catch (error) {
+      console.error(
+        'NF DIRECT ERROR:',
+        error?.message ||
+          error
       );
+    }
 
     if (direct) {
       nfRemember(
@@ -6221,30 +6204,42 @@ async function nfProcess(
             memoryMatch[1] || ''
           ).trim();
 
-        const saved =
-          await nfAddOwnerMemory(
+        if (memory) {
+          let saved = false;
+
+          try {
+            saved =
+              await nfAddOwnerMemory(
+                ctx,
+                memory
+              );
+          } catch (error) {
+            console.error(
+              'NF MEMORY SAVE ERROR:',
+              error?.message ||
+                error
+            );
+          }
+
+          const answer =
+            saved
+              ? '✅ ذخیره شد و در حافظه دائمی مالک قرار گرفت.'
+              : '❌ ذخیره حافظه انجام نشد.';
+
+          nfRemember(
             ctx,
-            memory
+            'assistant',
+            answer
           );
 
-        const answer =
-          saved
-            ? '✅ ذخیره شد و در حافظه دائمی مالک قرار گرفت.'
-            : '❌ ذخیره حافظه انجام نشد.';
+          await nfSendResult(
+            ctx,
+            answer,
+            thinking?.message_id
+          );
 
-        nfRemember(
-          ctx,
-          'assistant',
-          answer
-        );
-
-        await nfSendResult(
-          ctx,
-          answer,
-          thinking?.message_id
-        );
-
-        return;
+          return;
+        }
       }
 
       const taskMatch =
@@ -6260,7 +6255,9 @@ async function nfProcess(
 
         const tasks =
           rawTasks
-            .split(/\s*(?:\n|،|,|;)\s*/)
+            .split(
+              /\s*(?:\n|،|,|;)\s*/
+            )
             .map(
               item =>
                 item
@@ -6277,13 +6274,21 @@ async function nfProcess(
         for (
           const task of tasks
         ) {
-          if (
-            await nfAddTask(
-              ctx,
-              task
-            )
-          ) {
-            savedCount++;
+          try {
+            if (
+              await nfAddTask(
+                ctx,
+                task
+              )
+            ) {
+              savedCount++;
+            }
+          } catch (error) {
+            console.error(
+              'NF TASK SAVE ERROR:',
+              error?.message ||
+                error
+            );
           }
         }
 
@@ -6310,146 +6315,158 @@ async function nfProcess(
 
     let archiveContext = '';
 
-    try {
-      const archiveResults =
-        await nfSearchRealArchive(
-          ctx,
-          directText
-        );
-
-      if (
-        archiveResults.length
-      ) {
-        const output = [];
-
-        for (
-          const record of archiveResults.slice(
-            0,
-            12
-          )
-        ) {
-          const title =
-            String(
-              record.name ||
-              record.title ||
-              ''
-            ).trim();
-
-          const link =
-            String(
-              record.link ||
-              record.postUrl ||
-              ''
-            ).trim();
-
-          const channel =
-            String(
-              record.channel ||
-              ''
-            ).trim();
-
-          const messageId =
-            String(
-              record.messageId ||
-              record.id ||
-              ''
-            ).trim();
-
-          if (title) {
-            output.push(
-              `Title: ${title}`
-            );
-          }
-
-          if (channel) {
-            output.push(
-              `Channel: ${channel}`
-            );
-          }
-
-          if (messageId) {
-            output.push(
-              `Message ID: ${messageId}`
-            );
-          }
-
-          if (link) {
-            output.push(
-              `Telegram Link: ${link}`
-            );
-          }
-
-          if (record.category) {
-            output.push(
-              `Category: ${String(
-                record.category
-              ).trim()}`
-            );
-          }
-
-          if (record.kind) {
-            output.push(
-              `Kind: ${String(
-                record.kind
-              ).trim()}`
-            );
-          }
-
-          if (record.seasons) {
-            output.push(
-              `Seasons: ${String(
-                record.seasons
-              ).trim()}`
-            );
-          }
-
-          if (record.text) {
-            output.push(
-              `Post Content: ${String(
-                record.text
-              ).trim()}`
-            );
-          }
-
-          output.push(
-            '---'
-          );
-        }
-
-        archiveContext =
-          output
-            .join('\n')
-            .slice(0, 50000);
-      } else {
-        archiveContext =
-          'No matching archive record was found. Do not assume that the requested title exists.';
-      }
-    } catch (error) {
-      console.error(
-        'NF ARCHIVE ERROR:',
-        error?.message ||
-          error
+    const archiveIntent =
+      /(?:آرشیو|چنل|کانال|پست|موجوده|موجود است|هست|هستش|دار[یی]|داره|دارد|لینک|لینکش|لینک[شو]|قسمت|قسمت‌ها|قسمت ها|فصل|فصل‌ها|فصل ها|دوبله|فارسی|انیمه|انیمیشن|فیلم|سریال|عنوان)/i.test(
+        directText
       );
 
+    if (archiveIntent) {
       try {
-        archiveContext =
-          await nfBuildArchiveContext(
+        const archiveResults =
+          await nfSearchRealArchive(
             ctx,
             directText
           );
-      } catch (archiveError) {
+
+        if (
+          Array.isArray(
+            archiveResults
+          ) &&
+          archiveResults.length
+        ) {
+          const output = [];
+
+          for (
+            const record of archiveResults.slice(
+              0,
+              12
+            )
+          ) {
+            const title =
+              String(
+                record.name ||
+                record.title ||
+                ''
+              ).trim();
+
+            const link =
+              String(
+                record.link ||
+                record.postUrl ||
+                ''
+              ).trim();
+
+            const channel =
+              String(
+                record.channel ||
+                ''
+              ).trim();
+
+            const messageId =
+              String(
+                record.messageId ||
+                record.id ||
+                ''
+              ).trim();
+
+            if (title) {
+              output.push(
+                `Title: ${title}`
+              );
+            }
+
+            if (channel) {
+              output.push(
+                `Channel: ${channel}`
+              );
+            }
+
+            if (messageId) {
+              output.push(
+                `Message ID: ${messageId}`
+              );
+            }
+
+            if (link) {
+              output.push(
+                `Telegram Link: ${link}`
+              );
+            }
+
+            if (record.category) {
+              output.push(
+                `Category: ${String(
+                  record.category
+                ).trim()}`
+              );
+            }
+
+            if (record.kind) {
+              output.push(
+                `Kind: ${String(
+                  record.kind
+                ).trim()}`
+              );
+            }
+
+            if (record.seasons) {
+              output.push(
+                `Seasons: ${String(
+                  record.seasons
+                ).trim()}`
+              );
+            }
+
+            if (record.text) {
+              output.push(
+                `Post Content: ${String(
+                  record.text
+                ).trim()}`
+              );
+            }
+
+            output.push(
+              '---'
+            );
+          }
+
+          archiveContext =
+            output
+              .join('\n')
+              .slice(0, 50000);
+
+        } else {
+          archiveContext =
+            'No matching archive record was found. Do not assume that the requested title exists.';
+        }
+
+      } catch (error) {
         console.error(
-          'NF ARCHIVE FALLBACK ERROR:',
-          archiveError?.message ||
-            archiveError
+          'NF ARCHIVE ERROR:',
+          error?.message ||
+            error
         );
 
-        archiveContext =
-          '';
+        try {
+          archiveContext =
+            await nfBuildArchiveContext(
+              ctx,
+              directText
+            );
+        } catch (archiveError) {
+          console.error(
+            'NF ARCHIVE FALLBACK ERROR:',
+            archiveError?.message ||
+              archiveError
+          );
+
+          archiveContext =
+            '';
+        }
       }
     }
 
-    let answer;
+    let answer = '';
 
     try {
       answer =
@@ -6458,21 +6475,39 @@ async function nfProcess(
           directText,
           archiveContext
         );
+
     } catch (error) {
       const status =
         Number(
           error?.response?.status
         );
 
-      if (status === 429) {
+      const errorCode =
+        String(
+          error?.message || ''
+        );
+
+      if (
+        status === 429 ||
+        errorCode ===
+          'NF_AI_RATE_LIMITED'
+      ) {
         answer =
           '⏳ سرویس AI فعلاً به محدودیت درخواست رسیده. کمی بعد دوباره امتحان کن.';
       } else if (
         error?.code ===
-        'ECONNABORTED'
+        'ECONNABORTED' ||
+        error?.code ===
+        'ETIMEDOUT'
       ) {
         answer =
           '⏱ پاسخ AI بیش از حد طول کشید. دوباره امتحان کن.';
+      } else if (
+        errorCode ===
+        'NF_API_KEY_MISSING'
+      ) {
+        answer =
+          '⚠️ کلید سرویس AI تنظیم نشده است.';
       } else {
         console.error(
           'NF AI ERROR:',
@@ -6485,6 +6520,11 @@ async function nfProcess(
         answer =
           '❌ دریافت پاسخ AI با خطا مواجه شد.';
       }
+    }
+
+    if (!answer) {
+      answer =
+        '❌ پاسخی دریافت نشد.';
     }
 
     nfRemember(
@@ -6512,6 +6552,14 @@ async function nfProcess(
       '❌ در پردازش درخواست خطایی رخ داد.';
 
     try {
+      nfRemember(
+        ctx,
+        'assistant',
+        fallback
+      );
+    } catch {}
+
+    try {
       await nfSendResult(
         ctx,
         fallback,
@@ -6531,6 +6579,38 @@ async function nfProcess(
     );
   }
 }
+   
+    
+function nfCanUseAI(ctx) {
+  if (!ctx.from) return false;
+
+  if (nfIsOwner(ctx)) {
+    return true;
+  }
+
+  if (!ctx.chat) return false;
+
+  if (
+    !['group', 'supergroup'].includes(
+      ctx.chat.type
+    )
+  ) {
+    return false;
+  }
+
+  const username =
+    String(ctx.chat.username || '')
+      .replace(/^@/, '')
+      .toLowerCase();
+
+  return (
+    username ===
+    NF_AI_CHAT_USERNAME.toLowerCase()
+  );
+}
+
+
+
 
 bot.command(
   'nfon',
