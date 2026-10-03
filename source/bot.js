@@ -13054,6 +13054,7 @@ async function sendRulesToUser(
 
   const userId =
     Number(ctx.from?.id);
+
   const token =
     String(captchaToken || '').trim();
 
@@ -13067,10 +13068,6 @@ async function sendRulesToUser(
     );
 
   if (!pendingItem) {
-    await ctx.reply(
-      'این لینک تأیید معتبر نیست یا درخواست آن دیگر فعال نیست. از گروه، لینک جدید بگیرید.'
-    );
-
     return false;
   }
 
@@ -13097,7 +13094,7 @@ async function sendRulesToUser(
               text:
                 confirmButtonText,
               callback_data:
-                `captcha_accept:${captchaToken}`
+                `captcha_accept:${token}`
             }
           ]
         ]
