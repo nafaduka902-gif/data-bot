@@ -1331,5 +1331,14 @@
     "welcomeMessageId": 4768,
     "captchaToken": "mus59c66_ovg39hnq",
     "createdAt": "2026-10-03T08:42:47.196Z"
+  },
+  {
+    "kind": "pending",
+    "userId": 8681543397,
+    "chatId": -1002239235244,
+    "chatTitle": "Anime Faarsi Chats | چت انیمه فارسی",
+    "welcomeMessageId": 4772,
+    "captchaToken": "mus6cf65_09ejq3ft",
+    "createdAt": "2026-10-03T09:13:10.686Z"
   }
 ]
