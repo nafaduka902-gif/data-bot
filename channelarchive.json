@@ -1,5 +1,113 @@
 [
   {
+    "id": "animitionfaarsi:49",
+    "name": "اسنوپی تقدیم می‌کند: به خانه خوش آمدید، فرانکلین",
+    "nameNormalized": "اسنوپی تقدیم می کند به خانه خوش آمدید فرانکلین",
+    "link": "https://t.me/AnimitionFaarsi/49",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 49,
+    "text": "📼 انیمیشن سینمایی « اسنوپی تقدیم می‌کند: به خانه خوش آمدید، فرانکلین »\n\n📹 Snoopy Presents: Welcome Home, Franklin 2024\n⭐️ IMDB : 7.2\n\n🎭 ژانر : انیمیشن\n🌎 محصول : آمریکا\n👤 ستارگان : Caleb Bellavance , Etienne Kellici , Terry McGurrin\n\n💬 خلاصه داستان : برای فرانکلین تازه وارد هماهنگ شدن با اعضای گروه Peanuts مشکل به نظر می رسد. وقتی او در مورد مسابقه Soap Box Derby مطلع می شود شک ندارد که برنده شدن در این مسابقه به معنای یافتن دوستان جدید خواهد بود.\n\n🚫 بدون سانسور و حذفیات\n\n🎤دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @AnimationFaarsi",
+    "caption": "📼 انیمیشن سینمایی « اسنوپی تقدیم می‌کند: به خانه خوش آمدید، فرانکلین »\n\n📹 Snoopy Presents: Welcome Home, Franklin 2024\n⭐️ IMDB : 7.2\n\n🎭 ژانر : انیمیشن\n🌎 محصول : آمریکا\n👤 ستارگان : Caleb Bellavance , Etienne Kellici , Terry McGurrin\n\n💬 خلاصه داستان : برای فرانکلین تازه وارد هماهنگ شدن با اعضای گروه Peanuts مشکل به نظر می رسد. وقتی او در مورد مسابقه Soap Box Derby مطلع می شود شک ندارد که برنده شدن در این مسابقه به معنای یافتن دوستان جدید خواهد بود.\n\n🚫 بدون سانسور و حذفیات\n\n🎤دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @AnimationFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 18,
+        "type": "bold"
+      },
+      {
+        "offset": 19,
+        "length": 50,
+        "type": "bold"
+      },
+      {
+        "offset": 70,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 76,
+        "length": 44,
+        "type": "bold"
+      },
+      {
+        "offset": 124,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 131,
+        "length": 3,
+        "type": "bold"
+      },
+      {
+        "offset": 139,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 157,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 165,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 175,
+        "length": 61,
+        "type": "bold"
+      },
+      {
+        "offset": 241,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 256,
+        "length": 200,
+        "type": "bold"
+      },
+      {
+        "offset": 461,
+        "length": 20,
+        "type": "bold"
+      },
+      {
+        "offset": 485,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 501,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_735962166"
+      },
+      {
+        "offset": 501,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 536,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 536,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791026882,
+    "createdAt": "2026-10-03T11:28:03.020Z",
+    "updatedAt": "2026-10-03T11:28:03.020Z"
+  },
+  {
     "id": "anime_faarsi:1009",
     "name": "گینتاما: فینال",
     "nameNormalized": "گینتاما فینال",
