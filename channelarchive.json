@@ -1,5 +1,69 @@
 [
   {
+    "id": "animitionfaarsi:78",
+    "name": "آبشار جاذبه",
+    "nameNormalized": "آبشار جاذبه",
+    "link": "https://t.me/AnimitionFaarsi/78",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 78,
+    "text": "📼 انیمیشن سریالی  « آبشار جاذبه »\n\n📹 Gravity Falls 2012\n⭐️ IMDB : 8.9\n\n🎭 ژانر : انیمیشن | کمدی | ماجراجویی | فانتزی | رازآلود\n🌐 محصول : آمریکا\n⌨ وضعیت : 2 فصل 41 قسمت\n👤ستارگان : Jason Ritter, Alex Hirsch, Kristen Schaal\n\n💬 خلاصه داستان : دوقلوهای نوجوان، دیپر و میبل پاینز، برای گذراندن تعطیلات تابستانی نزد عموی بزرگشان استن در شهر مرموز و عجیب «آبشار جاذبه» می‌روند. آن‌ها به‌زودی با موجودات عجیب، اتفاقات ماورایی و رازهای پنهان این شهر روبه‌رو می‌شوند.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | 720p\n📥 فصل 02 دوبله فارسی | 720p\n\n✅ @AnimationFaarsi",
+    "caption": "📼 انیمیشن سریالی  « آبشار جاذبه »\n\n📹 Gravity Falls 2012\n⭐️ IMDB : 8.9\n\n🎭 ژانر : انیمیشن | کمدی | ماجراجویی | فانتزی | رازآلود\n🌐 محصول : آمریکا\n⌨ وضعیت : 2 فصل 41 قسمت\n👤ستارگان : Jason Ritter, Alex Hirsch, Kristen Schaal\n\n💬 خلاصه داستان : دوقلوهای نوجوان، دیپر و میبل پاینز، برای گذراندن تعطیلات تابستانی نزد عموی بزرگشان استن در شهر مرموز و عجیب «آبشار جاذبه» می‌روند. آن‌ها به‌زودی با موجودات عجیب، اتفاقات ماورایی و رازهای پنهان این شهر روبه‌رو می‌شوند.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | 720p\n📥 فصل 02 دوبله فارسی | 720p\n\n✅ @AnimationFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 514,
+        "type": "bold"
+      },
+      {
+        "offset": 514,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_993251744"
+      },
+      {
+        "offset": 514,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 519,
+        "length": 24,
+        "type": "bold"
+      },
+      {
+        "offset": 543,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_285455481"
+      },
+      {
+        "offset": 543,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 549,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 551,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 551,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791051610,
+    "createdAt": "2026-10-03T18:20:10.676Z",
+    "updatedAt": "2026-10-03T18:20:10.676Z"
+  },
+  {
     "id": "animitionfaarsi:77",
     "name": "سونیک پرایم",
     "nameNormalized": "سونیک پرایم",
