@@ -320,6 +320,54 @@
     "updatedAt": "2026-10-03T06:01:16.151Z"
   },
   {
+    "id": "anime_faarsi:993",
+    "name": "صدای روباه",
+    "nameNormalized": "صدای روباه",
+    "link": "https://t.me/Anime_Faarsi/993",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 993,
+    "text": "📼 انیمه سریالی « صدای روباه »\n\n📹 Voice of Fox\n⭐️ IMDB : 6.4\n\n🎭 ژانر : انیمیشن | درام | موسیقی\n🌐 محصول : چین | ژاپن\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Tomo Muranaka, Makoto Koichi, Masatomo Nakazawa\n\n💬 خلاصه داستان : هو لی، خواننده‌ای بااستعداد است که با نقاب روباه در اینترنت فعالیت می‌کند و به‌عنوان خوانندهٔ پشت‌صحنه برای یک خوانندهٔ محبوب اما بی‌استعداد آواز می‌خواند. با آشکار شدن رازهای دنیای موسیقی و هویت واقعی او، مسیر زندگی و رؤیای خوانندگی‌اش تغییر می‌کند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « صدای روباه »\n\n📹 Voice of Fox\n⭐️ IMDB : 6.4\n\n🎭 ژانر : انیمیشن | درام | موسیقی\n🌐 محصول : چین | ژاپن\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Tomo Muranaka, Makoto Koichi, Masatomo Nakazawa\n\n💬 خلاصه داستان : هو لی، خواننده‌ای بااستعداد است که با نقاب روباه در اینترنت فعالیت می‌کند و به‌عنوان خوانندهٔ پشت‌صحنه برای یک خوانندهٔ محبوب اما بی‌استعداد آواز می‌خواند. با آشکار شدن رازهای دنیای موسیقی و هویت واقعی او، مسیر زندگی و رؤیای خوانندگی‌اش تغییر می‌کند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 530,
+        "type": "bold"
+      },
+      {
+        "offset": 531,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_84531464"
+      },
+      {
+        "offset": 531,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 538,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 540,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 540,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790792753,
+    "createdAt": "2026-10-03T06:01:37.205Z",
+    "updatedAt": "2026-10-03T06:01:37.205Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
