@@ -5910,26 +5910,37 @@ async function nfAskAI(
   let ownerTasks = '';
 
   if (owner) {
-    try {
-      ownerMemory =
-        await nfOwnerMemoryContext(ctx);
-    } catch (error) {
-      console.error(
-        'NF OWNER MEMORY ERROR:',
-        error?.message ||
-          error
-      );
-    }
+    const lowerText =
+      String(text || '')
+        .toLowerCase();
 
-    try {
-      ownerTasks =
-        await nfTasksContext(ctx);
-    } catch (error) {
-      console.error(
-        'NF OWNER TASK ERROR:',
-        error?.message ||
-          error
+    const needOwnerContext =
+      /یادم|یادت|حافظه|به خاطر|ذخیره|قبلی|قبلاً|قبل|کارم|کارها|کار ها|تسک|task|پروژه|تیم|ربات|کانال|برنامه|برنامه‌ریزی|مالک|خودم/.test(
+        lowerText
       );
+
+    if (needOwnerContext) {
+      try {
+        ownerMemory =
+          await nfOwnerMemoryContext(ctx);
+      } catch (error) {
+        console.error(
+          'NF OWNER MEMORY ERROR:',
+          error?.message ||
+            error
+        );
+      }
+
+      try {
+        ownerTasks =
+          await nfTasksContext(ctx);
+      } catch (error) {
+        console.error(
+          'NF OWNER TASK ERROR:',
+          error?.message ||
+            error
+        );
+      }
     }
   }
 
@@ -5987,7 +5998,7 @@ async function nfAskAI(
     'حالت مالک فعال است.',
     'کاربر فعلی مالک اصلی تیم و سیستم است.',
     'او را به عنوان مالک و مدیر اصلی سیستم بشناس.',
-    'با مالک مانند یک دستیار شخصی و مدیریتی صحبت کن، نه مانند کاربر عادی.',
+    'با مالک مانند یک دستیار شخصی و مدیریتی صحبت کن.',
     'موضوعات مربوط به تیم، ربات، پروژه‌ها، برنامه‌ریزی و کارهای مالک را با توجه به حافظه و Taskهای ذخیره‌شده در نظر بگیر.',
     'اگر مالک درباره خودش سؤال کرد، از اطلاعات معتبر موجود در حافظه و تاریخچه استفاده کن.',
     'اگر اطلاعاتی درباره مالک در حافظه وجود ندارد، اطلاعاتی را از خودت نساز.',
@@ -6048,7 +6059,7 @@ async function nfAskAI(
     ...nfConversationHistory(
       ctx,
       text,
-      owner ? 20 : 10
+      owner ? 6 : 4
     )
   );
 
@@ -6068,7 +6079,7 @@ async function nfAskAI(
           temperature:
             owner ? 0.25 : 0.2,
           max_tokens:
-            owner ? 2200 : 1800
+            owner ? 1000 : 700
         },
         {
           headers: {
@@ -6081,37 +6092,6 @@ async function nfAskAI(
         }
       );
 
-    const headers =
-      response?.headers || {};
-
-    if (owner) {
-      try {
-        await ctx.telegram.sendMessage(
-          ctx.from.id,
-          [
-            '📊 <b>Groq Rate Limit</b>',
-            '',
-            `📨 Requests باقی‌مانده: <b>${headers['x-ratelimit-remaining-requests'] ?? 'نامشخص'}</b>`,
-            `📨 Requests Limit: <b>${headers['x-ratelimit-limit-requests'] ?? 'نامشخص'}</b>`,
-            `🔤 Tokens باقی‌مانده: <b>${headers['x-ratelimit-remaining-tokens'] ?? 'نامشخص'}</b>`,
-            `🔤 Tokens Limit: <b>${headers['x-ratelimit-limit-tokens'] ?? 'نامشخص'}</b>`,
-            `⏱ Reset Requests: <b>${headers['x-ratelimit-reset-requests'] ?? 'نامشخص'}</b>`,
-            `⏱ Reset Tokens: <b>${headers['x-ratelimit-reset-tokens'] ?? 'نامشخص'}</b>`,
-            `🤖 Model: <code>${String(NF_MODEL)}</code>`
-          ].join('\n'),
-          {
-            parse_mode: 'HTML'
-          }
-        );
-      } catch (limitError) {
-        console.error(
-          'NF GROQ LIMIT DM ERROR:',
-          limitError?.message ||
-            limitError
-        );
-      }
-    }
-
     const answer =
       response?.data
         ?.choices?.[0]
@@ -6121,6 +6101,55 @@ async function nfAskAI(
       throw new Error(
         'AI_EMPTY'
       );
+    }
+
+    if (owner) {
+      try {
+        const headers =
+          response?.headers || {};
+
+        await ctx.telegram.sendMessage(
+          ctx.from.id,
+          [
+            '📊 Groq Rate Limit',
+            '',
+            `Requests باقی‌مانده: ${
+              headers[
+                'x-ratelimit-remaining-requests'
+              ] ?? '-'
+            }`,
+            `Requests Limit: ${
+              headers[
+                'x-ratelimit-limit-requests'
+              ] ?? '-'
+            }`,
+            `Tokens باقی‌مانده: ${
+              headers[
+                'x-ratelimit-remaining-tokens'
+              ] ?? '-'
+            }`,
+            `Tokens Limit: ${
+              headers[
+                'x-ratelimit-limit-tokens'
+              ] ?? '-'
+            }`,
+            `Reset Requests: ${
+              headers[
+                'x-ratelimit-reset-requests'
+              ] ?? '-'
+            }`,
+            `Reset Tokens: ${
+              headers[
+                'x-ratelimit-reset-tokens'
+              ] ?? '-'
+            }`,
+            `Model: ${
+              response?.data?.model ||
+              NF_MODEL
+            }`
+          ].join('\n')
+        );
+      } catch {}
     }
 
     return String(
@@ -6134,37 +6163,55 @@ async function nfAskAI(
       );
 
     if (status === 429) {
-      const headers =
-        error?.response?.headers ||
-        {};
-
       if (owner) {
         try {
+          const headers =
+            error?.response?.headers ||
+            {};
+
           await ctx.telegram.sendMessage(
             ctx.from.id,
             [
-              '🚨 <b>Groq Rate Limit</b>',
+              '⛔ Groq Rate Limit',
               '',
-              `📨 Requests باقی‌مانده: <b>${headers['x-ratelimit-remaining-requests'] ?? 'نامشخص'}</b>`,
-              `📨 Requests Limit: <b>${headers['x-ratelimit-limit-requests'] ?? 'نامشخص'}</b>`,
-              `🔤 Tokens باقی‌مانده: <b>${headers['x-ratelimit-remaining-tokens'] ?? 'نامشخص'}</b>`,
-              `🔤 Tokens Limit: <b>${headers['x-ratelimit-limit-tokens'] ?? 'نامشخص'}</b>`,
-              `⏱ Reset Requests: <b>${headers['x-ratelimit-reset-requests'] ?? 'نامشخص'}</b>`,
-              `⏱ Reset Tokens: <b>${headers['x-ratelimit-reset-tokens'] ?? 'نامشخص'}</b>`,
-              `⏳ Retry After: <b>${headers['retry-after'] ?? 'نامشخص'} ثانیه</b>`,
-              `🤖 Model: <code>${String(NF_MODEL)}</code>`
-            ].join('\n'),
-            {
-              parse_mode: 'HTML'
-            }
+              `Requests باقی‌مانده: ${
+                headers[
+                  'x-ratelimit-remaining-requests'
+                ] ?? '-'
+              }`,
+              `Requests Limit: ${
+                headers[
+                  'x-ratelimit-limit-requests'
+                ] ?? '-'
+              }`,
+              `Tokens باقی‌مانده: ${
+                headers[
+                  'x-ratelimit-remaining-tokens'
+                ] ?? '-'
+              }`,
+              `Tokens Limit: ${
+                headers[
+                  'x-ratelimit-limit-tokens'
+                ] ?? '-'
+              }`,
+              `Reset Requests: ${
+                headers[
+                  'x-ratelimit-reset-requests'
+                ] ?? '-'
+              }`,
+              `Reset Tokens: ${
+                headers[
+                  'x-ratelimit-reset-tokens'
+                ] ?? '-'
+              }`,
+              `Retry After: ${
+                headers[
+                  'retry-after'
+                ] ?? '-'
+              }`
+            ].join('\n')
           );
-        } catch (limitError) {
-          console.error(
-            'NF GROQ 429 DM ERROR:',
-            limitError?.message ||
-              limitError
-          );
-        }
+        } catch {}
       }
 
       const rateError =
@@ -6556,7 +6603,9 @@ async function nfProcess(
               output.push(
                 `Post Content: ${String(
                   record.text
-                ).trim()}`
+                )
+                  .trim()
+                  .slice(0, 1200)}`
               );
             }
 
@@ -6568,7 +6617,7 @@ async function nfProcess(
           archiveContext =
             output
               .join('\n')
-              .slice(0, 50000);
+              .slice(0, 16000);
 
         } else {
           archiveContext =
@@ -6588,6 +6637,12 @@ async function nfProcess(
               ctx,
               directText
             );
+
+          archiveContext =
+            String(
+              archiveContext || ''
+            ).slice(0, 16000);
+
         } catch (archiveError) {
           console.error(
             'NF ARCHIVE FALLBACK ERROR:',
