@@ -2502,6 +2502,54 @@
     "updatedAt": "2026-10-03T11:24:29.360Z"
   },
   {
+    "id": "anime_faarsi:800",
+    "name": "بلک کلاور: شمشیر پادشاه جادوگر",
+    "nameNormalized": "بلک کلاور شمشیر پادشاه جادوگر",
+    "link": "https://t.me/Anime_Faarsi/800",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 800,
+    "text": "📼 انیمه سینمایی « بلک کلاور: شمشیر پادشاه جادوگر »\n\n📹 Black Clover: Sword of the Wizard King 2023\n⭐️ IMDB : 7.4\n\n🎭 ژانر : انیمیشن | اکشن | ماجراجویی | فانتزی | علمی‌تخیلی\n🌐 محصول : ژاپن\n👤 ستارگان : Gakuto Kajiwara, Nobunaga Shimazaki, Kana Yûki\n\n💬 خلاصه داستان : آستا، پسری که بدون قدرت جادویی متولد شده، همچنان رؤیای تبدیل شدن به پادشاه جادوگر را دنبال می‌کند. اما با بازگشت کنراد لتو، پادشاه جادوگر سابق، و نقشه او برای نابودی پادشاهی کلاور، آستا و یونو باید برای نجات سرزمینشان وارد نبردی بزرگ شوند.\n\n🚫 بدون سانسور و حذفیات\n\n🎤دوبله فارسی(گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سینمایی « بلک کلاور: شمشیر پادشاه جادوگر »\n\n📹 Black Clover: Sword of the Wizard King 2023\n⭐️ IMDB : 7.4\n\n🎭 ژانر : انیمیشن | اکشن | ماجراجویی | فانتزی | علمی‌تخیلی\n🌐 محصول : ژاپن\n👤 ستارگان : Gakuto Kajiwara, Nobunaga Shimazaki, Kana Yûki\n\n💬 خلاصه داستان : آستا، پسری که بدون قدرت جادویی متولد شده، همچنان رؤیای تبدیل شدن به پادشاه جادوگر را دنبال می‌کند. اما با بازگشت کنراد لتو، پادشاه جادوگر سابق، و نقشه او برای نابودی پادشاهی کلاور، آستا و یونو باید برای نجات سرزمینشان وارد نبردی بزرگ شوند.\n\n🚫 بدون سانسور و حذفیات\n\n🎤دوبله فارسی(گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 558,
+        "type": "bold"
+      },
+      {
+        "offset": 562,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_200753299"
+      },
+      {
+        "offset": 562,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 595,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 597,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 597,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1782246057,
+    "createdAt": "2026-10-03T17:14:33.136Z",
+    "updatedAt": "2026-10-03T17:14:33.136Z"
+  },
+  {
     "id": "anime_faarsi:456",
     "name": "➖ Gintama Episode 1 ~ 30",
     "nameNormalized": "gintama episode 1 30",
