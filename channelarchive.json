@@ -33,6 +33,39 @@
     "updatedAt": "2026-10-03T12:52:50.519Z"
   },
   {
+    "id": "faarsimovie:450",
+    "name": "زندگی کن و بگذار بمیرد",
+    "nameNormalized": "زندگی کن و بگذار بمیرد",
+    "link": "https://t.me/FaarsiMovie/450",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 450,
+    "text": "📼 فیلم « زندگی کن و بگذار بمیرد »\n\n📹 Live and Let Die 1973\n✨ IMDb: 6.7\n\n🎭 ژانر: اکشن | ماجراجویی | هیجان‌انگیز | جاسوسی\n🪙 محصول: بریتانیا\n🍿 بازیگران: Roger Moore | Yaphet Kotto | Jane Seymour | Clifton James | Julius Harris | Lois Maxwell\n\n📝 خلاصه داستان : جیمز باند، مأمور 007، برای تحقیق درباره قتل چند مأمور بریتانیایی به نیویورک فرستاده می‌شود. تحقیقات او را به یک قاچاقچی قدرتمند مواد مخدر و شبکه‌ای خطرناک می‌رساند که باند باید با هوش و مهارت‌هایش با آن‌ها مقابله کند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « زندگی کن و بگذار بمیرد »\n\n📹 Live and Let Die 1973\n✨ IMDb: 6.7\n\n🎭 ژانر: اکشن | ماجراجویی | هیجان‌انگیز | جاسوسی\n🪙 محصول: بریتانیا\n🍿 بازیگران: Roger Moore | Yaphet Kotto | Jane Seymour | Clifton James | Julius Harris | Lois Maxwell\n\n📝 خلاصه داستان : جیمز باند، مأمور 007، برای تحقیق درباره قتل چند مأمور بریتانیایی به نیویورک فرستاده می‌شود. تحقیقات او را به یک قاچاقچی قدرتمند مواد مخدر و شبکه‌ای خطرناک می‌رساند که باند باید با هوش و مهارت‌هایش با آن‌ها مقابله کند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 529,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_914881913"
+      },
+      {
+        "offset": 529,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 564,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791031970,
+    "createdAt": "2026-10-03T12:52:51.717Z",
+    "updatedAt": "2026-10-03T12:52:51.717Z"
+  },
+  {
     "id": "faarsimovie:448",
     "name": "پارکر",
     "nameNormalized": "پارکر",
