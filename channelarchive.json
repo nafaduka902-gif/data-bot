@@ -1,5 +1,27 @@
 [
   {
+    "id": "anime_faarsi:1010",
+    "name": "Jujutsu Kaisen",
+    "nameNormalized": "jujutsu kaisen",
+    "link": "https://t.me/Anime_Faarsi/1010",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1010,
+    "text": "فصل سوم و انیمه های سینمایی 1,2,3 « Jujutsu Kaisen » با دوبله فارسی اضافه شد.",
+    "caption": "",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 77,
+        "type": "bold"
+      }
+    ],
+    "date": 1791027670,
+    "createdAt": "2026-10-03T11:41:11.373Z",
+    "updatedAt": "2026-10-03T11:41:11.373Z"
+  },
+  {
     "id": "animitionfaarsi:52",
     "name": "مزرعه حیوانات",
     "nameNormalized": "مزرعه حیوانات",
