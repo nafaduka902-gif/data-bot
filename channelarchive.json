@@ -1,5 +1,113 @@
 [
   {
+    "id": "animitionfaarsi:52",
+    "name": "مزرعه حیوانات",
+    "nameNormalized": "مزرعه حیوانات",
+    "link": "https://t.me/AnimitionFaarsi/52",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 52,
+    "text": "📺 انیمیشن سینمایی « مزرعه حیوانات »\n\n🎬 Animal Farm 2025\n⭐️ IMDB : 2.4\n\n🔴 ژانر : انیمیشن | ماجراجویی | کمدی\n📍 محصول :  آمریکا, انگلستان\n🤔 ستارگان : Gaten Matarazzo, Glenn Close, Seth Rogen\n\n🌀 خلاصه داستان : این فیلم داستانی تمثیلی و طنزآمیز، انقلاب حیوانات مزرعه را دنبال می‌کند؛ جایی که خوک‌ها قدرت را به دست می‌گیرند و مزرعه به‌تدریج به یک دیکتاتوری بی‌رحم تبدیل می‌شود؛ روایتی که هشدار جورج اورول درباره خطرات کمونیسم را به تصویر می‌کشد.\n\n⭕ بدون سانسور و حذفیات\n\n دوبله فارسی(سورن):\n☑ (برای دانلود اینجا کلیک کنید) 👉\n\n✅ @AnimitionFaarsi",
+    "caption": "📺 انیمیشن سینمایی « مزرعه حیوانات »\n\n🎬 Animal Farm 2025\n⭐️ IMDB : 2.4\n\n🔴 ژانر : انیمیشن | ماجراجویی | کمدی\n📍 محصول :  آمریکا, انگلستان\n🤔 ستارگان : Gaten Matarazzo, Glenn Close, Seth Rogen\n\n🌀 خلاصه داستان : این فیلم داستانی تمثیلی و طنزآمیز، انقلاب حیوانات مزرعه را دنبال می‌کند؛ جایی که خوک‌ها قدرت را به دست می‌گیرند و مزرعه به‌تدریج به یک دیکتاتوری بی‌رحم تبدیل می‌شود؛ روایتی که هشدار جورج اورول درباره خطرات کمونیسم را به تصویر می‌کشد.\n\n⭕ بدون سانسور و حذفیات\n\n دوبله فارسی(سورن):\n☑ (برای دانلود اینجا کلیک کنید) 👉\n\n✅ @AnimitionFaarsi",
+    "entities": [
+      {
+        "offset": 2,
+        "length": 16,
+        "type": "bold"
+      },
+      {
+        "offset": 19,
+        "length": 18,
+        "type": "bold"
+      },
+      {
+        "offset": 41,
+        "length": 16,
+        "type": "bold"
+      },
+      {
+        "offset": 61,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 76,
+        "length": 33,
+        "type": "bold"
+      },
+      {
+        "offset": 113,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 122,
+        "length": 16,
+        "type": "bold"
+      },
+      {
+        "offset": 142,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 152,
+        "length": 40,
+        "type": "bold"
+      },
+      {
+        "offset": 197,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 212,
+        "length": 233,
+        "type": "bold"
+      },
+      {
+        "offset": 449,
+        "length": 20,
+        "type": "bold"
+      },
+      {
+        "offset": 472,
+        "length": 18,
+        "type": "bold"
+      },
+      {
+        "offset": 494,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Babesangi_bot?start=119190837"
+      },
+      {
+        "offset": 494,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 527,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 529,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 529,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791027364,
+    "createdAt": "2026-10-03T11:36:04.441Z",
+    "updatedAt": "2026-10-03T11:36:04.441Z"
+  },
+  {
     "id": "animitionfaarsi:51",
     "name": "کایوتی در برابر اکمی",
     "nameNormalized": "کایوتی در برابر اکمی",
