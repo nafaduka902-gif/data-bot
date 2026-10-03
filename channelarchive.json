@@ -46,5 +46,69 @@
     "date": 1790983298,
     "createdAt": "2026-10-03T05:54:09.114Z",
     "updatedAt": "2026-10-03T05:54:09.114Z"
+  },
+  {
+    "id": "anime_faarsi:1003",
+    "name": "مدالیست",
+    "nameNormalized": "مدالیست",
+    "link": "https://t.me/Anime_Faarsi/1003",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1003,
+    "text": "📼 انیمه سریالی « مدالیست »\n\n📹 Medalist\n⭐️ IMDB : 8.0\n\n🎭 ژانر : درام | ورزشی | روان‌شناختی\n🌐 محصول : ژاپن\n⌨ وضعیت : 2 فصل 21 قسمت\n👤ستارگان : Natsumi Haruse, Takeo Otsuka, Kana Ichinose, Yuma Uchida\n\n💬 خلاصه داستان : تسوکاسا آکوراجی، اسکیت‌باز سابقی که رؤیاهایش شکست خورده، با اینوری یویتسوکا، دختری که آرزوی تبدیل شدن به یک اسکیت‌باز حرفه‌ای را دارد، آشنا می‌شود. تسوکاسا مربی او می‌شود و این دو برای رسیدن به رویای بزرگشان در دنیای اسکیت نمایشی تلاش می‌کنند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n📥 فصل 02 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « مدالیست »\n\n📹 Medalist\n⭐️ IMDB : 8.0\n\n🎭 ژانر : درام | ورزشی | روان‌شناختی\n🌐 محصول : ژاپن\n⌨ وضعیت : 2 فصل 21 قسمت\n👤ستارگان : Natsumi Haruse, Takeo Otsuka, Kana Ichinose, Yuma Uchida\n\n💬 خلاصه داستان : تسوکاسا آکوراجی، اسکیت‌باز سابقی که رؤیاهایش شکست خورده، با اینوری یویتسوکا، دختری که آرزوی تبدیل شدن به یک اسکیت‌باز حرفه‌ای را دارد، آشنا می‌شود. تسوکاسا مربی او می‌شود و این دو برای رسیدن به رویای بزرگشان در دنیای اسکیت نمایشی تلاش می‌کنند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n📥 فصل 02 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 522,
+        "type": "bold"
+      },
+      {
+        "offset": 523,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_982606441"
+      },
+      {
+        "offset": 523,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 528,
+        "length": 31,
+        "type": "bold"
+      },
+      {
+        "offset": 560,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_817510209"
+      },
+      {
+        "offset": 560,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 567,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 569,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 569,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790982466,
+    "createdAt": "2026-10-03T05:55:19.129Z",
+    "updatedAt": "2026-10-03T05:55:19.129Z"
   }
 ]
