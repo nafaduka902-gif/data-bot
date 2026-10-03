@@ -48,6 +48,165 @@
     "updatedAt": "2026-10-03T02:16:57.395Z"
   },
   {
+    "id": "animitionfaarsi:44",
+    "name": "نام انیمیشن: Arcane",
+    "nameNormalized": "نام انیمیشن arcane",
+    "link": "https://t.me/AnimitionFaarsi/44",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 44,
+    "text": "نام انیمیشن: Arcane\nنام انگلیسی: Arcane\nنام فارسی: آرکین\nفصل: 1\nامتیاز: 9.4\nنوع: سریالی\nژانر: #انیمیشن #اکشن #ماجراجویی #فانتزی\nسال ساخت: 2021\nتعداد قسمت‌ها: 9\nوضعیت: اتمام پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nدوبله اختصاصی انیمه لاوو\n\n📥 لینک‌ های دانلود:\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n\nدوبله از: Anime Faarsi\n#Arcane\n#Arcane_Leage\n@AnimitionFaarsi✨",
+    "caption": "نام انیمیشن: Arcane\nنام انگلیسی: Arcane\nنام فارسی: آرکین\nفصل: 1\nامتیاز: 9.4\nنوع: سریالی\nژانر: #انیمیشن #اکشن #ماجراجویی #فانتزی\nسال ساخت: 2021\nتعداد قسمت‌ها: 9\nوضعیت: اتمام پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nدوبله اختصاصی انیمه لاوو\n\n📥 لینک‌ های دانلود:\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n\nدوبله از: Anime Faarsi\n#Arcane\n#Arcane_Leage\n@AnimitionFaarsi✨",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 94,
+        "type": "bold"
+      },
+      {
+        "offset": 94,
+        "length": 8,
+        "type": "hashtag"
+      },
+      {
+        "offset": 94,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 102,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 103,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 103,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 108,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 109,
+        "length": 10,
+        "type": "hashtag"
+      },
+      {
+        "offset": 109,
+        "length": 10,
+        "type": "bold"
+      },
+      {
+        "offset": 119,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 120,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 120,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 127,
+        "length": 102,
+        "type": "bold"
+      },
+      {
+        "offset": 230,
+        "length": 22,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Loveri/290"
+      },
+      {
+        "offset": 253,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 259,
+        "length": 75,
+        "type": "bold"
+      },
+      {
+        "offset": 335,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_578482775"
+      },
+      {
+        "offset": 335,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 341,
+        "length": 23,
+        "type": "bold"
+      },
+      {
+        "offset": 364,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 364,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 371,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 372,
+        "length": 13,
+        "type": "hashtag"
+      },
+      {
+        "offset": 372,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 385,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 386,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 386,
+        "length": 16,
+        "type": "bold"
+      },
+      {
+        "offset": 402,
+        "length": 1,
+        "type": "bold"
+      }
+    ],
+    "date": 1790993816,
+    "createdAt": "2026-10-03T02:16:58.964Z",
+    "updatedAt": "2026-10-03T02:16:58.964Z"
+  },
+  {
     "id": "animitionfaarsi:42",
     "name": "کسلوانیا",
     "nameNormalized": "کسلوانیا",
