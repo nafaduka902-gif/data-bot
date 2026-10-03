@@ -1,5 +1,53 @@
 [
   {
+    "id": "anime_faarsi:1009",
+    "name": "گینتاما: فینال",
+    "nameNormalized": "گینتاما فینال",
+    "link": "https://t.me/Anime_Faarsi/1009",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1009,
+    "text": "📼 انیمه سینمایی « گینتاما: فینال »\n\n📹 Gintama: The Final 2021\n⭐️ IMDB : 8.7\n\n🎭 ژانر : اکشن انیمیشن کمدی\n🌎 محصول : ژاپن\n👤 ستارگان : Clint Bickham , Greg Ayres , James Belcher\n\n💬 خلاصه داستان : نسخه یی نهایی از انیمه سریالی گینتاما ریبوت از تمام قسمت های نشر شده گینتاما تا این لحظه.\n\n🚫 بدون سانسور و حذفیات !\n\n🎤دوبله فارسی(گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سینمایی « گینتاما: فینال »\n\n📹 Gintama: The Final 2021\n⭐️ IMDB : 8.7\n\n🎭 ژانر : اکشن انیمیشن کمدی\n🌎 محصول : ژاپن\n👤 ستارگان : Clint Bickham , Greg Ayres , James Belcher\n\n💬 خلاصه داستان : نسخه یی نهایی از انیمه سریالی گینتاما ریبوت از تمام قسمت های نشر شده گینتاما تا این لحظه.\n\n🚫 بدون سانسور و حذفیات !\n\n🎤دوبله فارسی(گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 343,
+        "type": "bold"
+      },
+      {
+        "offset": 343,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_778171745"
+      },
+      {
+        "offset": 343,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 370,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 378,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 378,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1791026694,
+    "createdAt": "2026-10-03T11:24:54.807Z",
+    "updatedAt": "2026-10-03T11:24:54.807Z"
+  },
+  {
     "id": "anime_faarsi:1008",
     "name": "Post 1008",
     "nameNormalized": "post 1008",
