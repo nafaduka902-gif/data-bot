@@ -13574,11 +13574,6 @@ async function handleNewMembers(
     return;
   }
 
-  const captchaEnabled =
-    Boolean(
-      groupSettings.captchaEnabled
-    );
-
   const welcomeEnabled =
     Boolean(
       welcome.settings.enabled &&
@@ -13587,7 +13582,7 @@ async function handleNewMembers(
 
   if (
     !welcomeEnabled &&
-    !captchaEnabled
+    !groupSettings.captchaEnabled
   ) {
     return;
   }
@@ -13598,7 +13593,9 @@ async function handleNewMembers(
   for (
     const user of members
   ) {
-    if (user.is_bot) {
+    if (
+      user.is_bot
+    ) {
       continue;
     }
 
@@ -13621,7 +13618,7 @@ async function handleNewMembers(
             ctx.chat
           )
         : welcomeGroupText(
-            '👋 {user}، به {chat} خوش آمدید!\nلطفا قوانین را مطالعه کرده و رعایت بفرمایید.\nبرای باز شدن دسترسی بر روی خواندن قوانین کلیک کنید.',
+            '👋 {user}، برای ورود به {chat} لطفاً قوانین گروه را از دکمهٔ زیر بخوانید و تأیید کنید.',
             user,
             ctx.chat
           );
@@ -13642,23 +13639,22 @@ async function handleNewMembers(
           welcomeMessageText,
           {
             parse_mode: 'HTML',
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  {
-                    text:
-                      String(
-                        welcome.settings.buttonText ||
-                        '📖 خواندن قوانین'
-                      ),
-                    url: startUrl
+            ...(groupSettings.captchaEnabled
+              ? {
+                  reply_markup: {
+                    inline_keyboard: [
+                      [
+                        {
+                          text:
+                            welcome.settings
+                              .buttonText,
+                          url: startUrl
+                        }
+                      ]
+                    ]
                   }
-                ]
-              ]
-            },
-            link_preview_options: {
-              is_disabled: true
-            }
+                }
+              : {})
           }
         );
     } catch (error) {
@@ -13671,7 +13667,9 @@ async function handleNewMembers(
       continue;
     }
 
-    if (captchaEnabled) {
+    if (
+      groupSettings.captchaEnabled
+    ) {
       pending.push({
         userId:
           Number(user.id),
@@ -13687,10 +13685,14 @@ async function handleNewMembers(
         createdAt:
           new Date().toISOString()
       });
+    }
 
-      welcome.pending =
-        pending;
+    welcome.pending =
+      pending;
 
+    if (
+      groupSettings.captchaEnabled
+    ) {
       let saved = false;
 
       try {
@@ -13712,6 +13714,12 @@ async function handleNewMembers(
           await ctx.telegram.deleteMessage(
             ctx.chat.id,
             sent.message_id
+          );
+        } catch {}
+
+        try {
+          await ctx.reply(
+            '⚠️ ذخیرهٔ وضعیت تأیید انجام نشد؛ لطفاً مدیر گروه اتصال GitHub را بررسی کند.'
           );
         } catch {}
 
@@ -13782,8 +13790,8 @@ async function handlePendingUserMessage(
       return false;
     }
 
-    const pendingIndex =
-      data.pending.findIndex(
+    const item =
+      data.pending.find(
         x =>
           Number(x.userId) ===
             Number(ctx.from.id) &&
@@ -13791,12 +13799,9 @@ async function handlePendingUserMessage(
             Number(ctx.chat.id)
       );
 
-    if (pendingIndex < 0) {
+    if (!item) {
       return false;
     }
-
-    const item =
-      data.pending[pendingIndex];
 
     if (ctx.message?.message_id) {
       try {
@@ -13807,147 +13812,10 @@ async function handlePendingUserMessage(
       } catch {}
     }
 
-    let welcomeExists = false;
-
-    if (
-      item.welcomeMessageId
-    ) {
-      try {
-        await ctx.telegram.editMessageReplyMarkup(
-          ctx.chat.id,
-          Number(
-            item.welcomeMessageId
-          ),
-          undefined
-        );
-
-        welcomeExists = true;
-      } catch {
-        welcomeExists = false;
-      }
-    }
-
-    if (welcomeExists) {
-      return true;
-    }
-
-    const groupSettings =
-      await getGroupSettingsV1(
-        ctx.chat.id
-      );
-
-    const welcomeEnabled =
-      Boolean(
-        data.settings?.enabled &&
-        groupSettings.welcomeEnabled
-      );
-
-    const fakeUser = {
-      id:
-        Number(ctx.from.id),
-      first_name:
-        ctx.from.first_name || '',
-      last_name:
-        ctx.from.last_name || '',
-      username:
-        ctx.from.username || '',
-      is_bot: false
-    };
-
-    const welcomeMessageText =
-      welcomeEnabled
-        ? welcomeGroupText(
-            data.settings.welcomeText,
-            fakeUser,
-            ctx.chat
-          )
-        : welcomeGroupText(
-            '👋 {user}، برای ورود به {chat} لطفاً قوانین گروه را از دکمهٔ زیر بخوانید و تأیید کنید.',
-            fakeUser,
-            ctx.chat
-          );
-
-    const startUrl =
-      `https://t.me/${BOT_USERNAME}?start=captcha_${ctx.from.id}_${item.captchaToken}`;
-
-    let sent;
-
-    try {
-      sent =
-        await ctx.reply(
-          welcomeMessageText,
-          {
-            parse_mode: 'HTML',
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  {
-                    text:
-                      data.settings?.buttonText ||
-                      'خواندن قوانین',
-                    url: startUrl
-                  }
-                ]
-              ]
-            }
-          }
-        );
-    } catch (error) {
-      console.error(
-        'WELCOME RECREATE ERROR:',
-        error?.message ||
-          error
-      );
-
-      return true;
-    }
-
-    data.pending[
-      pendingIndex
-    ].welcomeMessageId =
-      sent.message_id;
-
-    let saved = false;
-
-    try {
-      saved =
-        await saveWelcomeData(
-          data.settings,
-          data.pending
-        );
-    } catch (error) {
-      console.error(
-        'WELCOME RECREATE SAVE ERROR:',
-        error?.message ||
-          error
-      );
-    }
-
-    if (!saved) {
-      try {
-        await ctx.telegram.deleteMessage(
-          ctx.chat.id,
-          sent.message_id
-        );
-      } catch {}
-    }
-
-    setTimeout(
-      async () => {
-        try {
-          await ctx.telegram.deleteMessage(
-            ctx.chat.id,
-            sent.message_id
-          );
-        } catch {}
-      },
-      Math.max(
-        10,
-        Number(
-          groupSettings.welcomeDeleteAfterSeconds ??
-            120
-        )
-      ) * 1000
+    await sendRulesToUser(
+      ctx,
+      data,
+      item.captchaToken
     );
 
     return true;
@@ -14129,6 +13997,95 @@ async function sendRulesToUser(
 
   return true;
 }
+
+
+bot.start(
+  async ctx => {
+    const text =
+      ctx.message?.text || '';
+
+    const match =
+      text.match(
+        /^\/start(?:@\w+)?(?:\s+(.+))?$/i
+      );
+
+    const payload =
+      String(match?.[1] || '').trim();
+
+    if (
+      payload.startsWith(
+        'captcha_'
+      )
+    ) {
+      const captchaMatch =
+        payload.match(
+          /^captcha_(\d+)_(.+)$/
+        );
+      const targetId =
+        Number(captchaMatch?.[1]);
+      const captchaToken =
+        String(
+          captchaMatch?.[2] || ''
+        ).trim();
+
+      if (
+        !captchaMatch ||
+        !Number.isFinite(targetId) ||
+        !captchaToken ||
+        targetId !==
+          Number(ctx.from?.id)
+      ) {
+        await ctx.reply(
+          'این لینک تأیید نامعتبر است.'
+        );
+
+        return;
+      }
+
+      const data =
+        await getWelcomeData();
+
+      if (!data.available) {
+        await ctx.reply(
+          '⚠️ وضعیت تأیید از GitHub خوانده نشد. چند دقیقهٔ دیگر دوباره تلاش کنید.'
+        );
+
+        return;
+      }
+
+      await sendRulesToUser(
+        ctx,
+        data,
+        captchaToken
+      );
+
+      return;
+    }
+
+    if (isAdmin(ctx)) {
+      await ctx.reply(
+        '<b>Owner Panel</b>',
+        {
+          parse_mode: 'HTML',
+          reply_markup:
+            mainKeyboard()
+        }
+      );
+
+      return;
+    }
+
+    await ctx.reply(
+      USER_COMMANDS_TEXT,
+      {
+        parse_mode: 'HTML',
+        link_preview_options: {
+          is_disabled: true
+        }
+      }
+    );
+  }
+);
 
 
 bot.action(
