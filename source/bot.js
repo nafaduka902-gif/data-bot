@@ -5889,12 +5889,6 @@ async function nfAskAI(
   text,
   archiveContext = ''
 ) {
-  if (!NF_API_KEY) {
-    throw new Error(
-      'NF_API_KEY_MISSING'
-    );
-  }
-
   const owner =
     nfIsOwner(ctx);
 
@@ -6059,34 +6053,35 @@ async function nfAskAI(
   });
 
   try {
+    const query =
+      messages
+        .map(
+          item =>
+            `${item.role}: ${String(
+              item.content || ''
+            )}`
+        )
+        .join('\n\n');
+
     const response =
-      await axios.post(
-        NF_API_URL,
+      await axios.get(
+        'https://api.shizo.top/ai/gpt',
         {
-          model: NF_MODEL,
-          messages,
-          temperature:
-            owner ? 0.25 : 0.2,
-          max_tokens:
-            owner ? 2200 : 1800
-        },
-        {
-          headers: {
-            Authorization:
-              `Bearer ${NF_API_KEY}`,
-            'Content-Type':
-              'application/json'
+          params: {
+            apikey: 'shizo',
+            query
           },
-          timeout: 10000
+          timeout: 12000
         }
       );
 
     const answer =
-      response?.data
-        ?.choices?.[0]
-        ?.message?.content;
+      response?.data?.msg;
 
-    if (!answer) {
+    if (
+      !response?.data?.status ||
+      !answer
+    ) {
       throw new Error(
         'AI_EMPTY'
       );
@@ -6097,23 +6092,6 @@ async function nfAskAI(
     ).trim();
 
   } catch (error) {
-    const status =
-      Number(
-        error?.response?.status
-      );
-
-    if (status === 429) {
-      const rateError =
-        new Error(
-          'NF_AI_RATE_LIMITED'
-        );
-
-      rateError.response =
-        error.response;
-
-      throw rateError;
-    }
-
     throw error;
   }
 }
