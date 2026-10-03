@@ -6077,9 +6077,40 @@ async function nfAskAI(
             'Content-Type':
               'application/json'
           },
-          timeout: 9000
+          timeout: 10000
         }
       );
+
+    const headers =
+      response?.headers || {};
+
+    if (owner) {
+      try {
+        await ctx.telegram.sendMessage(
+          ctx.from.id,
+          [
+            '📊 <b>Groq Rate Limit</b>',
+            '',
+            `📨 Requests باقی‌مانده: <b>${headers['x-ratelimit-remaining-requests'] ?? 'نامشخص'}</b>`,
+            `📨 Requests Limit: <b>${headers['x-ratelimit-limit-requests'] ?? 'نامشخص'}</b>`,
+            `🔤 Tokens باقی‌مانده: <b>${headers['x-ratelimit-remaining-tokens'] ?? 'نامشخص'}</b>`,
+            `🔤 Tokens Limit: <b>${headers['x-ratelimit-limit-tokens'] ?? 'نامشخص'}</b>`,
+            `⏱ Reset Requests: <b>${headers['x-ratelimit-reset-requests'] ?? 'نامشخص'}</b>`,
+            `⏱ Reset Tokens: <b>${headers['x-ratelimit-reset-tokens'] ?? 'نامشخص'}</b>`,
+            `🤖 Model: <code>${String(NF_MODEL)}</code>`
+          ].join('\n'),
+          {
+            parse_mode: 'HTML'
+          }
+        );
+      } catch (limitError) {
+        console.error(
+          'NF GROQ LIMIT DM ERROR:',
+          limitError?.message ||
+            limitError
+        );
+      }
+    }
 
     const answer =
       response?.data
@@ -6103,6 +6134,39 @@ async function nfAskAI(
       );
 
     if (status === 429) {
+      const headers =
+        error?.response?.headers ||
+        {};
+
+      if (owner) {
+        try {
+          await ctx.telegram.sendMessage(
+            ctx.from.id,
+            [
+              '🚨 <b>Groq Rate Limit</b>',
+              '',
+              `📨 Requests باقی‌مانده: <b>${headers['x-ratelimit-remaining-requests'] ?? 'نامشخص'}</b>`,
+              `📨 Requests Limit: <b>${headers['x-ratelimit-limit-requests'] ?? 'نامشخص'}</b>`,
+              `🔤 Tokens باقی‌مانده: <b>${headers['x-ratelimit-remaining-tokens'] ?? 'نامشخص'}</b>`,
+              `🔤 Tokens Limit: <b>${headers['x-ratelimit-limit-tokens'] ?? 'نامشخص'}</b>`,
+              `⏱ Reset Requests: <b>${headers['x-ratelimit-reset-requests'] ?? 'نامشخص'}</b>`,
+              `⏱ Reset Tokens: <b>${headers['x-ratelimit-reset-tokens'] ?? 'نامشخص'}</b>`,
+              `⏳ Retry After: <b>${headers['retry-after'] ?? 'نامشخص'} ثانیه</b>`,
+              `🤖 Model: <code>${String(NF_MODEL)}</code>`
+            ].join('\n'),
+            {
+              parse_mode: 'HTML'
+            }
+          );
+        } catch (limitError) {
+          console.error(
+            'NF GROQ 429 DM ERROR:',
+            limitError?.message ||
+              limitError
+          );
+        }
+      }
+
       const rateError =
         new Error(
           'NF_AI_RATE_LIMITED'
@@ -6112,17 +6176,6 @@ async function nfAskAI(
         error.response;
 
       throw rateError;
-    }
-
-    if (
-      error?.code ===
-        'ECONNABORTED' ||
-      error?.code ===
-        'ETIMEDOUT'
-    ) {
-      throw new Error(
-        'NF_AI_TIMEOUT'
-      );
     }
 
     throw error;
