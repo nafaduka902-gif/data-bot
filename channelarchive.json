@@ -1,5 +1,38 @@
 [
   {
+    "id": "faarsimovie:451",
+    "name": "کابوی نیمه‌شب",
+    "nameNormalized": "کابوی نیمه شب",
+    "link": "https://t.me/FaarsiMovie/451",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 451,
+    "text": "📼 فیلم « کابوی نیمه‌شب »\n\n📹 Midnight Cowboy 1969\n✨ IMDb: 7.8\n\n🎭 ژانر: درام | روان‌شناختی\n🪙 محصول: آمریکا\n🍿 بازیگران: Dustin Hoffman | Jon Voight | Sylvia Miles | John McGiver | Brenda Vaccaro | Barnard Hughes\n\n📝 خلاصه داستان : جو باک، جوانی ساده‌دل از تگزاس، برای پیدا کردن شانس و ثروت راهی نیویورک می‌شود. او در شهر با راتسو ریزو، مردی خیابانی و منزوی، آشنا می‌شود و این دو با وجود تفاوت‌هایشان به دوستانی نزدیک تبدیل می‌شوند و برای کنار آمدن با زندگی سخت شهر تلاش می‌کنند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « کابوی نیمه‌شب »\n\n📹 Midnight Cowboy 1969\n✨ IMDb: 7.8\n\n🎭 ژانر: درام | روان‌شناختی\n🪙 محصول: آمریکا\n🍿 بازیگران: Dustin Hoffman | Jon Voight | Sylvia Miles | John McGiver | Brenda Vaccaro | Barnard Hughes\n\n📝 خلاصه داستان : جو باک، جوانی ساده‌دل از تگزاس، برای پیدا کردن شانس و ثروت راهی نیویورک می‌شود. او در شهر با راتسو ریزو، مردی خیابانی و منزوی، آشنا می‌شود و این دو با وجود تفاوت‌هایشان به دوستانی نزدیک تبدیل می‌شوند و برای کنار آمدن با زندگی سخت شهر تلاش می‌کنند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 529,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_349885427"
+      },
+      {
+        "offset": 529,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 564,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791031971,
+    "createdAt": "2026-10-03T12:52:52.964Z",
+    "updatedAt": "2026-10-03T12:52:52.964Z"
+  },
+  {
     "id": "faarsimovie:449",
     "name": "چشمه",
     "nameNormalized": "چشمه",
