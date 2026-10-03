@@ -1694,9 +1694,12 @@ const NFV2_API_KEY = 'sk_1pNUeROs1PREGrYBsYxplnAlm8WSEm21';
 
 bot.command('testnewai', async ctx => {
   try {
-    if (!NFV2_API_KEY) {
+    const key =
+      String(NFV2_API_KEY || '').trim();
+
+    if (!key) {
       await ctx.reply(
-        '❌ POLLINATIONS_API_KEY تنظیم نشده است.'
+        '❌ NFV2_API_KEY تنظیم نشده است.'
       );
       return;
     }
@@ -1714,23 +1717,17 @@ bot.command('testnewai', async ctx => {
             'google/gemini-2.5-flash-lite',
           messages: [
             {
-              role: 'system',
-              content:
-                'تو دستیار فارسی Anime Faarsi هستی. کوتاه، طبیعی و دقیق جواب بده.'
-            },
-            {
               role: 'user',
               content:
-                'سلام، خودت را معرفی کن و بگو آیا آماده پاسخگویی هستی؟'
+                'سلام، فقط جواب بده: تست موفق بود.'
             }
           ],
-          temperature: 0.2,
-          max_tokens: 500
+          max_tokens: 100
         },
         {
           headers: {
             Authorization:
-              `Bearer ${NF_API_KEY}`,
+              `Bearer ${key}`,
             'Content-Type':
               'application/json'
           },
