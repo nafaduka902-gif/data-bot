@@ -13574,6 +13574,11 @@ async function handleNewMembers(
     return;
   }
 
+  const captchaEnabled =
+    Boolean(
+      groupSettings.captchaEnabled
+    );
+
   const welcomeEnabled =
     Boolean(
       welcome.settings.enabled &&
@@ -13582,7 +13587,7 @@ async function handleNewMembers(
 
   if (
     !welcomeEnabled &&
-    !groupSettings.captchaEnabled
+    !captchaEnabled
   ) {
     return;
   }
@@ -13616,7 +13621,7 @@ async function handleNewMembers(
             ctx.chat
           )
         : welcomeGroupText(
-            '👋 {user}، برای ورود به {chat} لطفاً قوانین گروه را از دکمهٔ زیر بخوانید و تأیید کنید.',
+            '👋 {user}، به {chat} خوش آمدید!\nلطفا قوانین را مطالعه کرده و رعایت بفرمایید.\nبرای باز شدن دسترسی بر روی خواندن قوانین کلیک کنید.',
             user,
             ctx.chat
           );
@@ -13637,22 +13642,23 @@ async function handleNewMembers(
           welcomeMessageText,
           {
             parse_mode: 'HTML',
-            ...(groupSettings.captchaEnabled
-              ? {
-                  reply_markup: {
-                    inline_keyboard: [
-                      [
-                        {
-                          text:
-                            welcome.settings
-                              .buttonText,
-                          url: startUrl
-                        }
-                      ]
-                    ]
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text:
+                      String(
+                        welcome.settings.buttonText ||
+                        '📖 خواندن قوانین'
+                      ),
+                    url: startUrl
                   }
-                }
-              : {})
+                ]
+              ]
+            },
+            link_preview_options: {
+              is_disabled: true
+            }
           }
         );
     } catch (error) {
@@ -13665,9 +13671,7 @@ async function handleNewMembers(
       continue;
     }
 
-    if (
-      groupSettings.captchaEnabled
-    ) {
+    if (captchaEnabled) {
       pending.push({
         userId:
           Number(user.id),
@@ -13683,14 +13687,10 @@ async function handleNewMembers(
         createdAt:
           new Date().toISOString()
       });
-    }
 
-    welcome.pending =
-      pending;
+      welcome.pending =
+        pending;
 
-    if (
-      groupSettings.captchaEnabled
-    ) {
       let saved = false;
 
       try {
