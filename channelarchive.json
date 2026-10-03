@@ -1,5 +1,63 @@
 [
   {
+    "id": "animitionfaarsi:58",
+    "name": "فردیناند",
+    "nameNormalized": "فردیناند",
+    "link": "https://t.me/AnimitionFaarsi/58",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 58,
+    "text": "📼 انیمیشن سینمایی « فردیناند »\n\n📹 Ferdinand 2017\n⭐️ IMDB : 6.7\n\n🎭 ژانر : انیمیشن | ماجراجویی | کمدی | خانوادگی\n🌐 محصول : آمریکا\n👤 ستارگان : John Cena, Kate McKinnon, Bobby Cannavale, David Tennant\n\n💬 خلاصه داستان : فردیناند گاوی بزرگ و مهربان است که برخلاف ظاهر قدرتمندش، عاشق گل‌ها و زندگی آرام است؛ اما پس از اتفاقی ناخواسته مجبور می‌شود به میدان گاوبازی بازگردد.\n\n🚫 بدون سانسور و حذفیات\n\n🎤دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @Anime_Faarsi",
+    "caption": "📼 انیمیشن سینمایی « فردیناند »\n\n📹 Ferdinand 2017\n⭐️ IMDB : 6.7\n\n🎭 ژانر : انیمیشن | ماجراجویی | کمدی | خانوادگی\n🌐 محصول : آمریکا\n👤 ستارگان : John Cena, Kate McKinnon, Bobby Cannavale, David Tennant\n\n💬 خلاصه داستان : فردیناند گاوی بزرگ و مهربان است که برخلاف ظاهر قدرتمندش، عاشق گل‌ها و زندگی آرام است؛ اما پس از اتفاقی ناخواسته مجبور می‌شود به میدان گاوبازی بازگردد.\n\n🚫 بدون سانسور و حذفیات\n\n🎤دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 412,
+        "type": "bold"
+      },
+      {
+        "offset": 415,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 416,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_122745459"
+      },
+      {
+        "offset": 416,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 443,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 449,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 451,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 451,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1791030882,
+    "createdAt": "2026-10-03T12:34:42.999Z",
+    "updatedAt": "2026-10-03T12:34:42.999Z"
+  },
+  {
     "id": "animitionfaarsi:57",
     "name": "کونگ فو پاندا: افسانه‌های شگفت‌انگیز",
     "nameNormalized": "کونگ فو پاندا افسانه های شگفت انگیز",
