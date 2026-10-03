@@ -1,5 +1,53 @@
 [
   {
+    "id": "animitionfaarsi:41",
+    "name": "سند لند",
+    "nameNormalized": "سند لند",
+    "link": "https://t.me/AnimitionFaarsi/41",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 41,
+    "text": "📼 انیمیشن سریالی « سند لند »\n\n📹 Sand Land: The Series\n⭐️ IMDB : 7.6\n\n🎭 ژانر : اکشن | ماجراجویی | کمدی | فانتزی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 13 قسمت\n👤ستارگان : Mutsumi Tamura, Kazuhiro Yamaji, Chô, Satoshi Tsuruoka\n\n💬 خلاصه داستان : در دنیایی بیابانی که آب به‌شدت کمیاب شده است، کلانتر رائو از شاه شیاطین کمک می‌گیرد و همراه با بِلزبوب، شاهزاده شیاطین، و دزد راهی سفری برای یافتن چشمه افسانه‌ای می‌شود؛ اما در مسیر با خطرات و رازهای بزرگی روبه‌رو می‌شوند.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | 720p\n\n✅ @AnimitionFaarsi",
+    "caption": "📼 انیمیشن سریالی « سند لند »\n\n📹 Sand Land: The Series\n⭐️ IMDB : 7.6\n\n🎭 ژانر : اکشن | ماجراجویی | کمدی | فانتزی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 13 قسمت\n👤ستارگان : Mutsumi Tamura, Kazuhiro Yamaji, Chô, Satoshi Tsuruoka\n\n💬 خلاصه داستان : در دنیایی بیابانی که آب به‌شدت کمیاب شده است، کلانتر رائو از شاه شیاطین کمک می‌گیرد و همراه با بِلزبوب، شاهزاده شیاطین، و دزد راهی سفری برای یافتن چشمه افسانه‌ای می‌شود؛ اما در مسیر با خطرات و رازهای بزرگی روبه‌رو می‌شوند.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | 720p\n\n✅ @AnimitionFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 515,
+        "type": "bold"
+      },
+      {
+        "offset": 515,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_946136633"
+      },
+      {
+        "offset": 515,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 519,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 523,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 523,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1790993711,
+    "createdAt": "2026-10-03T02:15:11.933Z",
+    "updatedAt": "2026-10-03T02:15:11.933Z"
+  },
+  {
     "id": "faarsimovie:444",
     "name": "500 مایل",
     "nameNormalized": "500 مایل",
