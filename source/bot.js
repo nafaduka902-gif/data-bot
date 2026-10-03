@@ -1690,6 +1690,95 @@ startUploadResultWatcher()
 
 
 
+const NF_API_KEY = 'sk_BeS9VAAHRJZDymEDB1NtUSRZJ6AA9oMU';
+
+bot.command('testnewai', async ctx => {
+  try {
+    if (!NF_API_KEY) {
+      await ctx.reply(
+        '❌ POLLINATIONS_API_KEY تنظیم نشده است.'
+      );
+      return;
+    }
+
+    const thinking =
+      await ctx.reply(
+        '🤖 Testing new AI...'
+      );
+
+    const response =
+      await axios.post(
+        'https://gen.pollinations.ai/v1/chat/completions',
+        {
+          model:
+            'google/gemini-2.5-flash-lite',
+          messages: [
+            {
+              role: 'system',
+              content:
+                'تو دستیار فارسی Anime Faarsi هستی. کوتاه، طبیعی و دقیق جواب بده.'
+            },
+            {
+              role: 'user',
+              content:
+                'سلام، خودت را معرفی کن و بگو آیا آماده پاسخگویی هستی؟'
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 500
+        },
+        {
+          headers: {
+            Authorization:
+              `Bearer ${NF_API_KEY}`,
+            'Content-Type':
+              'application/json'
+          },
+          timeout: 12000
+        }
+      );
+
+    const answer =
+      response?.data?.choices?.[0]
+        ?.message?.content;
+
+    if (!answer) {
+      throw new Error(
+        'AI_EMPTY_RESPONSE'
+      );
+    }
+
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      thinking.message_id,
+      undefined,
+      `🤖 <b>New AI Test</b>\n\n${String(answer).trim()}`,
+      {
+        parse_mode: 'HTML'
+      }
+    );
+
+  } catch (error) {
+    console.error(
+      'TEST NEW AI ERROR:',
+      error?.response?.data ||
+        error?.message ||
+        error
+    );
+
+    const errorText =
+      error?.response?.data
+        ?.error?.message ||
+      error?.response?.data?.message ||
+      error?.message ||
+      'Unknown error';
+
+    await ctx.reply(
+      `❌ تست AI ناموفق بود:\n\n${String(errorText).slice(0, 1500)}`
+    );
+  }
+});
+
 
 bot.command('gmit', async (ctx) => {
   try {
