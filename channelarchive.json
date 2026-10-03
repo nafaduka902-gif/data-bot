@@ -859,6 +859,54 @@
     "updatedAt": "2026-10-03T06:56:00.884Z"
   },
   {
+    "id": "anime_faarsi:973",
+    "name": "استرداد تابستانی",
+    "nameNormalized": "استرداد تابستانی",
+    "link": "https://t.me/Anime_Faarsi/973",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 973,
+    "text": "📼 انیمه سریالی « استرداد تابستانی »\n\n📹 Summer Time Rendering\n⭐️ IMDB : 8.2\n\n🎭 ژانر : انیمیشن | درام | فانتزی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 25 قسمت\n👤ستارگان : Stephen Fu | John Choi | Merk Nguyen\n\n💬 خلاصه داستان : شینپی به دلیل مرگ دوست دوران کودکی‌اش به خانه‌ی مادری‌اش بازمی‌گردد، اما به نظر می‌رسد در زیر پوسته‌ی این جزیره، رازهایی نهفته است....\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « استرداد تابستانی »\n\n📹 Summer Time Rendering\n⭐️ IMDB : 8.2\n\n🎭 ژانر : انیمیشن | درام | فانتزی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 25 قسمت\n👤ستارگان : Stephen Fu | John Choi | Merk Nguyen\n\n💬 خلاصه داستان : شینپی به دلیل مرگ دوست دوران کودکی‌اش به خانه‌ی مادری‌اش بازمی‌گردد، اما به نظر می‌رسد در زیر پوسته‌ی این جزیره، رازهایی نهفته است....\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 415,
+        "type": "bold"
+      },
+      {
+        "offset": 415,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_686748049"
+      },
+      {
+        "offset": 415,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 419,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 424,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 424,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790341429,
+    "createdAt": "2026-10-03T06:56:08.560Z",
+    "updatedAt": "2026-10-03T06:56:08.560Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
