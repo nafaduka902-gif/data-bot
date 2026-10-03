@@ -1,5 +1,84 @@
 [
   {
+    "id": "animitionfaarsi:75",
+    "name": "در جستجوی نمو",
+    "nameNormalized": "در جستجوی نمو",
+    "link": "https://t.me/AnimitionFaarsi/75",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 75,
+    "text": "🎞 کالکشن انیمیشن « در جستجوی نمو »\n\n📷 Finding Nemo\n\n🎭 ژانر: انیمیشن | کمدی | ماجراجویی | خانوادگی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : دوری، ماهی آبی‌رنگی که به مشکل فراموشی کوتاه‌مدت دچار است، همراه با دوستانش برای پیدا کردن خانواده‌اش سفری پرماجرا را آغاز می‌کند و در این مسیر با رازهایی از گذشته خود روبه‌رو می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Finding Nemo 1 2003 (گلوری)\n📥 Finding Nemo 2 2016 (گلوری)\n\n✅ @Anime_Faarsi",
+    "caption": "🎞 کالکشن انیمیشن « در جستجوی نمو »\n\n📷 Finding Nemo\n\n🎭 ژانر: انیمیشن | کمدی | ماجراجویی | خانوادگی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : دوری، ماهی آبی‌رنگی که به مشکل فراموشی کوتاه‌مدت دچار است، همراه با دوستانش برای پیدا کردن خانواده‌اش سفری پرماجرا را آغاز می‌کند و در این مسیر با رازهایی از گذشته خود روبه‌رو می‌شود.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Finding Nemo 1 2003 (گلوری)\n📥 Finding Nemo 2 2016 (گلوری)\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 354,
+        "type": "bold"
+      },
+      {
+        "offset": 354,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 354,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 370,
+        "length": 19,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_909666737"
+      },
+      {
+        "offset": 370,
+        "length": 19,
+        "type": "bold"
+      },
+      {
+        "offset": 390,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 401,
+        "length": 19,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_99750144"
+      },
+      {
+        "offset": 401,
+        "length": 19,
+        "type": "bold"
+      },
+      {
+        "offset": 421,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 430,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 432,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 432,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1791050468,
+    "createdAt": "2026-10-03T18:01:08.912Z",
+    "updatedAt": "2026-10-03T18:01:08.912Z"
+  },
+  {
     "id": "anime_faarsi:1013",
     "name": "نام انیمه: Black Clover",
     "nameNormalized": "نام انیمه black clover",
