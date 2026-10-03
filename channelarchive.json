@@ -206,5 +206,85 @@
     "date": 1790938646,
     "createdAt": "2026-10-03T05:55:42.312Z",
     "updatedAt": "2026-10-03T05:55:42.312Z"
+  },
+  {
+    "id": "anime_faarsi:316",
+    "name": "ندای شب",
+    "nameNormalized": "ندای شب",
+    "link": "https://t.me/Anime_Faarsi/316",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 316,
+    "text": "📼 انیمه سریالی « ندای شب »\n\n📹 Call of the Night\n⭐️ IMDB : 7.8\n\n🎭 ژانر : انیمیشن | کمدی | عاشقانه | فانتزی | ماورایی\n🌐 محصول : ژاپن\n⌨ وضعیت : 2 فصل 25 قسمت\n👤ستارگان : Gen Sato, Sora Amamiya, Yumiri Hanamori, Kensho Ono\n\n💬 خلاصه داستان : کو یاموری، دانش‌آموزی که از زندگی روزمره و مدرسه خسته شده، شب‌ها به خیابان‌ها می‌رود و با دختر مرموزی به نام نازونا آشنا می‌شود؛ دختری که یک خون‌آشام است و مسیر زندگی او را تغییر می‌دهد.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | رساوا | 720p\n\n📥 فصل 01 زیرنویس فارسی | 720p\n📥 فصل 02 زیرنویس فارسی | 720p\n\nنوت: فصل اول قسمت 1,2 اضافه شده.\nدیگر قسمت ها درحال دوبله فارسی میباشد.\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « ندای شب »\n\n📹 Call of the Night\n⭐️ IMDB : 7.8\n\n🎭 ژانر : انیمیشن | کمدی | عاشقانه | فانتزی | ماورایی\n🌐 محصول : ژاپن\n⌨ وضعیت : 2 فصل 25 قسمت\n👤ستارگان : Gen Sato, Sora Amamiya, Yumiri Hanamori, Kensho Ono\n\n💬 خلاصه داستان : کو یاموری، دانش‌آموزی که از زندگی روزمره و مدرسه خسته شده، شب‌ها به خیابان‌ها می‌رود و با دختر مرموزی به نام نازونا آشنا می‌شود؛ دختری که یک خون‌آشام است و مسیر زندگی او را تغییر می‌دهد.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | رساوا | 720p\n\n📥 فصل 01 زیرنویس فارسی | 720p\n📥 فصل 02 زیرنویس فارسی | 720p\n\nنوت: فصل اول قسمت 1,2 اضافه شده.\nدیگر قسمت ها درحال دوبله فارسی میباشد.\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 486,
+        "type": "bold"
+      },
+      {
+        "offset": 487,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_86498531"
+      },
+      {
+        "offset": 487,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 492,
+        "length": 26,
+        "type": "bold"
+      },
+      {
+        "offset": 519,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_222807157"
+      },
+      {
+        "offset": 519,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 524,
+        "length": 25,
+        "type": "bold"
+      },
+      {
+        "offset": 550,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_65552055"
+      },
+      {
+        "offset": 550,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 556,
+        "length": 76,
+        "type": "bold"
+      },
+      {
+        "offset": 632,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 632,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1739903762,
+    "createdAt": "2026-10-03T05:57:01.603Z",
+    "updatedAt": "2026-10-03T05:57:01.603Z"
   }
 ]
