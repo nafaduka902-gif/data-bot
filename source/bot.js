@@ -6077,7 +6077,7 @@ async function nfAskAI(
             'Content-Type':
               'application/json'
           },
-          timeout: 10000
+          timeout: 9000
         }
       );
 
@@ -6112,6 +6112,17 @@ async function nfAskAI(
         error.response;
 
       throw rateError;
+    }
+
+    if (
+      error?.code ===
+        'ECONNABORTED' ||
+      error?.code ===
+        'ETIMEDOUT'
+    ) {
+      throw new Error(
+        'NF_AI_TIMEOUT'
+      );
     }
 
     throw error;
