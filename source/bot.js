@@ -1690,11 +1690,11 @@ startUploadResultWatcher()
 
 
 
-const NF_API_KEY = 'sk_BeS9VAAHRJZDymEDB1NtUSRZJ6AA9oMU';
+const NFV2_API_KEY = 'sk_BeS9VAAHRJZDymEDB1NtUSRZJ6AA9oMU';
 
 bot.command('testnewai', async ctx => {
   try {
-    if (!NF_API_KEY) {
+    if (!NFV2_API_KEY) {
       await ctx.reply(
         '❌ POLLINATIONS_API_KEY تنظیم نشده است.'
       );
