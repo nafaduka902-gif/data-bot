@@ -1690,7 +1690,7 @@ startUploadResultWatcher()
 
 
 
-const NFV2_API_KEY = 'sk_BeS9VAAHRJZDymEDB1NtUSRZJ6AA9oMU';
+const NFV2_API_KEY = 'sk_1pNUeROs1PREGrYBsYxplnAlm8WSEm21';
 
 bot.command('testnewai', async ctx => {
   try {
