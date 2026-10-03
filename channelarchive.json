@@ -1,5 +1,103 @@
 [
   {
+    "id": "animitionfaarsi:51",
+    "name": "کایوتی در برابر اکمی",
+    "nameNormalized": "کایوتی در برابر اکمی",
+    "link": "https://t.me/AnimitionFaarsi/51",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 51,
+    "text": "📼 انیمیشن سینمایی « کایوتی در برابر اکمی »\n\n📹 Coyote vs Acme 2026\n⭐️ IMDB : 7.6\n\n🎭 ژانر : انیمیشن خانوادگی فانتزی ماجراجویی کمدی \n🌐 محصول : آمریکا\n👤 ستارگان : Will Forte, Lana Condor, John Cena, Tone Bell\n\n💬 خلاصه داستان : داستان کایوت است که وکیلی استخدام می‌کند تا از کمپانی آکمی برای محصولاتی که او را برای شکار رود رانر ناکام گذاشتند، شکایت کند، اما این داستان حقوقی با پیچیدگی زیادی همراه است.\n\n🚫 بدون سانسور و حذفیات !\n\n🎤دوبله فارسی(سورن,گپ فیلم,نماوا):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @AnimitionFaarsi",
+    "caption": "📼 انیمیشن سینمایی « کایوتی در برابر اکمی »\n\n📹 Coyote vs Acme 2026\n⭐️ IMDB : 7.6\n\n🎭 ژانر : انیمیشن خانوادگی فانتزی ماجراجویی کمدی \n🌐 محصول : آمریکا\n👤 ستارگان : Will Forte, Lana Condor, John Cena, Tone Bell\n\n💬 خلاصه داستان : داستان کایوت است که وکیلی استخدام می‌کند تا از کمپانی آکمی برای محصولاتی که او را برای شکار رود رانر ناکام گذاشتند، شکایت کند، اما این داستان حقوقی با پیچیدگی زیادی همراه است.\n\n🚫 بدون سانسور و حذفیات !\n\n🎤دوبله فارسی(سورن,گپ فیلم,نماوا):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @AnimitionFaarsi",
+    "entities": [
+      {
+        "offset": 2,
+        "length": 16,
+        "type": "bold"
+      },
+      {
+        "offset": 19,
+        "length": 24,
+        "type": "bold"
+      },
+      {
+        "offset": 48,
+        "length": 19,
+        "type": "bold"
+      },
+      {
+        "offset": 71,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 86,
+        "length": 46,
+        "type": "bold"
+      },
+      {
+        "offset": 136,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 154,
+        "length": 55,
+        "type": "bold"
+      },
+      {
+        "offset": 214,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 229,
+        "length": 175,
+        "type": "bold"
+      },
+      {
+        "offset": 409,
+        "length": 20,
+        "type": "bold"
+      },
+      {
+        "offset": 435,
+        "length": 32,
+        "type": "bold"
+      },
+      {
+        "offset": 471,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_45535343"
+      },
+      {
+        "offset": 471,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 504,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 506,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 506,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791027281,
+    "createdAt": "2026-10-03T11:34:41.674Z",
+    "updatedAt": "2026-10-03T11:34:41.674Z"
+  },
+  {
     "id": "animitionfaarsi:50",
     "name": "افسانه آنگ: آخرین بادافزار",
     "nameNormalized": "افسانه آنگ آخرین بادافزار",
