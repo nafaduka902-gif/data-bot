@@ -575,6 +575,54 @@
     "updatedAt": "2026-10-03T06:54:39.533Z"
   },
   {
+    "id": "anime_faarsi:985",
+    "name": "هلسینگ نهایی",
+    "nameNormalized": "هلسینگ نهایی",
+    "link": "https://t.me/Anime_Faarsi/985",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 985,
+    "text": "📼 انیمه سریالی « هلسینگ نهایی »\n\n📹 Hellsing Ultimate\n⭐️ IMDB : 8.2\n\n🎭 ژانر : اکشن | فانتزی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 10 قسمت\n👤ستارگان : Crispin Freeman | Katie Gray | Victoria Harwood\n\n💬 خلاصه داستان : خون‌آشام آلوکارد، اربابش سر اینتگرا فیربروک وینگیتس هلسینگ، و سراس ویکتوریا، سرپرست جدیدش، سعی می‌کنند از انگلستان در برابر یک سرگرد اس‌اس دیوانه جنگ که به دنبال آغاز جنگی ابدی با ارتش خون‌آشام خود است، محافظت کنند.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « هلسینگ نهایی »\n\n📹 Hellsing Ultimate\n⭐️ IMDB : 8.2\n\n🎭 ژانر : اکشن | فانتزی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 10 قسمت\n👤ستارگان : Crispin Freeman | Katie Gray | Victoria Harwood\n\n💬 خلاصه داستان : خون‌آشام آلوکارد، اربابش سر اینتگرا فیربروک وینگیتس هلسینگ، و سراس ویکتوریا، سرپرست جدیدش، سعی می‌کنند از انگلستان در برابر یک سرگرد اس‌اس دیوانه جنگ که به دنبال آغاز جنگی ابدی با ارتش خون‌آشام خود است، محافظت کنند.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 489,
+        "type": "bold"
+      },
+      {
+        "offset": 489,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_470408579"
+      },
+      {
+        "offset": 489,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 493,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 498,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 498,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790671679,
+    "createdAt": "2026-10-03T06:54:47.927Z",
+    "updatedAt": "2026-10-03T06:54:47.927Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
