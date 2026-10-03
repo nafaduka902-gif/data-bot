@@ -13534,50 +13534,7 @@ async function muteUser(
   chatId,
   userId
 ) {
-  try {
-    const member =
-      await ctx.telegram.getChatMember(
-        chatId,
-        userId
-      );
-
-    if (
-      member.status ===
-        'administrator' ||
-      member.status ===
-        'creator'
-    ) {
-      return true;
-    }
-
-    await ctx.telegram.restrictChatMember(
-      chatId,
-      userId,
-      {
-        can_send_messages: false,
-        can_send_audios: false,
-        can_send_documents: false,
-        can_send_photos: false,
-        can_send_videos: false,
-        can_send_video_notes: false,
-        can_send_voice_notes: false,
-        can_send_polls: false,
-        can_send_other_messages: false,
-        can_add_web_page_previews: false
-      }
-    );
-
-    return true;
-  } catch (error) {
-    console.error(
-      'MUTE ERROR:',
-      error?.response?.data ||
-        error?.message ||
-        error
-    );
-
-    return false;
-  }
+  return true;
 }
 
 async function unmuteUser(
@@ -13585,35 +13542,7 @@ async function unmuteUser(
   chatId,
   userId
 ) {
-  try {
-    await ctx.telegram.restrictChatMember(
-      chatId,
-      userId,
-      {
-        can_send_messages: true,
-        can_send_audios: true,
-        can_send_documents: true,
-        can_send_photos: true,
-        can_send_videos: true,
-        can_send_video_notes: true,
-        can_send_voice_notes: true,
-        can_send_polls: true,
-        can_send_other_messages: true,
-        can_add_web_page_previews: true
-      }
-    );
-
-    return true;
-  } catch (error) {
-    console.error(
-      'UNMUTE ERROR:',
-      error?.response?.data ||
-        error?.message ||
-        error
-    );
-
-    return false;
-  }
+  return true;
 }
 
 async function handleNewMembers(
@@ -13631,6 +13560,7 @@ async function handleNewMembers(
 
   const welcome =
     await getWelcomeData();
+
   const groupSettings =
     await getGroupSettingsV1(
       ctx.chat.id
@@ -13669,24 +13599,15 @@ async function handleNewMembers(
       continue;
     }
 
-    const muted =
-      groupSettings.captchaEnabled
-        ? await muteUser(
-            ctx,
-            ctx.chat.id,
-            user.id
-          )
-        : true;
-
-    if (!muted) {
-      continue;
-    }
-
     const pending =
       welcome.pending.filter(
         item =>
-          Number(item.userId) !==
-          Number(user.id)
+          !(
+            Number(item.userId) ===
+              Number(user.id) &&
+            Number(item.chatId) ===
+              Number(ctx.chat.id)
+          )
       );
 
     const welcomeMessageText =
@@ -13706,7 +13627,7 @@ async function handleNewMembers(
       `${Date.now().toString(36)}_${Math.random()
         .toString(36)
         .slice(2, 10)}`;
-    
+
     const startUrl =
       `https://t.me/${BOT_USERNAME}?start=captcha_${user.id}_${captchaToken}`;
 
@@ -13736,29 +13657,42 @@ async function handleNewMembers(
               : {})
           }
         );
-    } catch {
+    } catch (error) {
+      console.error(
+        'WELCOME SEND ERROR:',
+        error?.message ||
+          error
+      );
+
       continue;
     }
 
-    if (groupSettings.captchaEnabled) {
+    if (
+      groupSettings.captchaEnabled
+    ) {
       pending.push({
-  userId: Number(user.id),
-  chatId:
-    Number(ctx.chat.id),
-  chatTitle:
-    ctx.chat.title || '',
-  welcomeMessageId:
-    sent.message_id,
-  captchaToken,
-  createdAt:
-    new Date().toISOString()
+        userId:
+          Number(user.id),
+        chatId:
+          Number(ctx.chat.id),
+        chatTitle:
+          ctx.chat.title || '',
+        welcomeMessageId:
+          sent.message_id,
+        rulesMessageId:
+          null,
+        captchaToken,
+        createdAt:
+          new Date().toISOString()
       });
     }
 
     welcome.pending =
       pending;
 
-    if (groupSettings.captchaEnabled) {
+    if (
+      groupSettings.captchaEnabled
+    ) {
       let saved = false;
 
       try {
@@ -13770,7 +13704,8 @@ async function handleNewMembers(
       } catch (error) {
         console.error(
           'WELCOME CAPTCHA SAVE ERROR:',
-          error?.message || error
+          error?.message ||
+            error
         );
       }
 
@@ -13782,18 +13717,9 @@ async function handleNewMembers(
           );
         } catch {}
 
-        const unmuted =
-          await unmuteUser(
-          ctx,
-          ctx.chat.id,
-          user.id
-        );
-
         try {
           await ctx.reply(
-            unmuted
-              ? '⚠️ ذخیرهٔ وضعیت تأیید انجام نشد؛ برای جلوگیری از محدودشدن، عضو موقتاً آزاد شد. مدیر گروه باید اتصال GitHub را بررسی کند.'
-              : '⚠️ ذخیرهٔ وضعیت تأیید انجام نشد و رفع محدودیت خودکار هم ناموفق بود. مدیر گروه باید دسترسی این عضو را دستی بررسی و آزاد کند.'
+            '⚠️ ذخیرهٔ وضعیت تأیید انجام نشد؛ لطفاً مدیر گروه اتصال GitHub را بررسی کند.'
           );
         } catch {}
 
@@ -13811,11 +13737,12 @@ async function handleNewMembers(
         } catch {}
       },
       Math.max(
-  10,
-  Number(
-    groupSettings.welcomeDeleteAfterSeconds ?? 120
-  )
-) * 1000
+        10,
+        Number(
+          groupSettings.welcomeDeleteAfterSeconds ??
+            120
+        )
+      ) * 1000
     );
   }
 
@@ -13834,6 +13761,73 @@ async function handleNewMembers(
         )
       ) * 1000
     );
+  }
+}
+
+async function handlePendingUserMessage(
+  ctx
+) {
+  try {
+    if (
+      !ctx.from ||
+      !ctx.chat
+    ) {
+      return false;
+    }
+
+    if (
+      !['group', 'supergroup'].includes(
+        ctx.chat.type
+      )
+    ) {
+      return false;
+    }
+
+    const data =
+      await getWelcomeData();
+
+    if (!data.available) {
+      return false;
+    }
+
+    const item =
+      data.pending.find(
+        x =>
+          Number(x.userId) ===
+            Number(ctx.from.id) &&
+          Number(x.chatId) ===
+            Number(ctx.chat.id)
+      );
+
+    if (!item) {
+      return false;
+    }
+
+    if (ctx.message?.message_id) {
+      try {
+        await ctx.telegram.deleteMessage(
+          ctx.chat.id,
+          ctx.message.message_id
+        );
+      } catch {}
+    }
+
+    await sendRulesToUser(
+      ctx,
+      data,
+      item.captchaToken
+    );
+
+    return true;
+
+  } catch (error) {
+    console.error(
+      'PENDING USER MESSAGE ERROR:',
+      error?.message ||
+        error
+    );
+
+    return false;
   }
 }
 
@@ -13885,8 +13879,8 @@ async function sendRulesToUser(
   const token =
     String(captchaToken || '').trim();
 
-  const pendingItem =
-    data.pending.find(
+  const pendingIndex =
+    data.pending.findIndex(
       x =>
         Number(x.userId) ===
           userId &&
@@ -13894,8 +13888,46 @@ async function sendRulesToUser(
           token
     );
 
-  if (!pendingItem) {
+  if (pendingIndex < 0) {
     return false;
+  }
+
+  const pendingItem =
+    data.pending[pendingIndex];
+
+  if (
+    pendingItem.rulesMessageId
+  ) {
+    try {
+      await ctx.telegram.editMessageReplyMarkup(
+        ctx.chat.id,
+        Number(
+          pendingItem.rulesMessageId
+        ),
+        undefined,
+        {
+          inline_keyboard: [
+            [
+              {
+                text:
+                  String(
+                    data.settings?.confirmButtonText ||
+                    '✅ خواندم و قوانین را قبول دارم'
+                  ),
+                callback_data:
+                  `captcha_accept:${token}`
+              }
+            ]
+          ]
+        }
+      );
+
+      return true;
+
+    } catch {
+      pendingItem.rulesMessageId =
+        null;
+    }
   }
 
   const rulesText =
@@ -13910,27 +13942,56 @@ async function sendRulesToUser(
       '✅ خواندم و قوانین را قبول دارم'
     );
 
-  await ctx.reply(
-    rulesText,
-    {
-      parse_mode: 'HTML',
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text:
-                confirmButtonText,
-              callback_data:
-                `captcha_accept:${token}`
-            }
-          ]
-        ]
-      },
-      link_preview_options: {
-        is_disabled: true
-      }
-    }
-  );
+  let sent;
+
+  try {
+    sent =
+      await ctx.reply(
+        rulesText,
+        {
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text:
+                    confirmButtonText,
+                  callback_data:
+                    `captcha_accept:${token}`
+                }
+              ]
+            ]
+          },
+          link_preview_options: {
+            is_disabled: true
+          }
+        }
+      );
+  } catch (error) {
+    console.error(
+      'SEND RULES ERROR:',
+      error?.message ||
+        error
+    );
+
+    return false;
+  }
+
+  pendingItem.rulesMessageId =
+    sent.message_id;
+
+  try {
+    await saveWelcomeData(
+      data.settings,
+      data.pending
+    );
+  } catch (error) {
+    console.error(
+      'RULES MESSAGE ID SAVE ERROR:',
+      error?.message ||
+        error
+    );
+  }
 
   return true;
 }
@@ -14055,8 +14116,10 @@ bot.action(
     if (!result.data.available) {
       try {
         await ctx.answerCbQuery(
-          'خطا در خواندن وضعیت تأیید؛ چند دقیقهٔ دیگر دوباره تلاش کنید.',
-          { show_alert: true }
+          'خطا در تأیید وضعیت؛ چند دقیقهٔ دیگر دوباره تلاش کنید.',
+          {
+            show_alert: true
+          }
         );
       } catch {}
 
@@ -14073,49 +14136,19 @@ bot.action(
       return;
     }
 
-    const success =
-      await unmuteUser(
-        ctx,
-        result.item.chatId,
-        userId
-      );
-
-    if (!success) {
-      try {
-        await ctx.answerCbQuery(
-          'خطا در تأیید عضویت.'
-        );
-      } catch {}
-
-      return;
-    }
-
-    if (
-      result.item.chatId &&
-      result.item.welcomeMessageId
-    ) {
-      try {
-        await ctx.telegram.deleteMessage(
-          Number(
-            result.item.chatId
-          ),
-          Number(
-            result.item.welcomeMessageId
-          )
-        );
-      } catch (error) {
-        console.error(
-          'WELCOME MESSAGE DELETE ERROR:',
-          error
-        );
-      }
-    }
-
     const newPending =
       result.data.pending.filter(
         item =>
-          Number(item.userId) !==
-          userId
+          !(
+            Number(item.userId) ===
+              userId &&
+            Number(item.chatId) ===
+              Number(result.item.chatId) &&
+            String(
+              item.captchaToken || ''
+            ) ===
+              captchaToken
+          )
       );
 
     let saved = false;
@@ -14129,23 +14162,63 @@ bot.action(
     } catch (error) {
       console.error(
         'CAPTCHA STATE CLEANUP ERROR:',
-        error?.message || error
+        error?.message ||
+          error
       );
+    }
+
+    if (!saved) {
+      try {
+        await ctx.answerCbQuery(
+          'تأیید انجام شد، اما ذخیره وضعیت ناموفق بود. دوباره تلاش کنید.',
+          {
+            show_alert: true
+          }
+        );
+      } catch {}
+
+      return;
+    }
+
+    if (
+      result.item.rulesMessageId
+    ) {
+      try {
+        await ctx.telegram.deleteMessage(
+          Number(
+            result.item.chatId
+          ),
+          Number(
+            result.item.rulesMessageId
+          )
+        );
+      } catch {}
+    }
+
+    if (
+      result.item.welcomeMessageId
+    ) {
+      try {
+        await ctx.telegram.deleteMessage(
+          Number(
+            result.item.chatId
+          ),
+          Number(
+            result.item.welcomeMessageId
+          )
+        );
+      } catch {}
     }
 
     try {
       await ctx.answerCbQuery(
-        saved
-          ? 'تأیید شد ✅'
-          : 'تأیید انجام شد؛ ذخیرهٔ پاک‌سازی ناموفق بود. اگر دکمه باقی ماند دوباره بزنید.'
+        'تأیید شد ✅'
       );
     } catch {}
 
     try {
       await ctx.editMessageText(
-        saved
-          ? '<b>عضویت شما تأیید شد ✅</b>\n\nاکنون می‌توانید از گروه استفاده کنید.'
-          : '<b>عضویت شما تأیید شد ✅</b>\n\nاکنون می‌توانید از گروه استفاده کنید. ثبت پاک‌سازی درخواست با مشکل روبه‌رو شد؛ اگر دکمه باقی ماند دوباره آن را بزنید.',
+        '<b>عضویت شما تأیید شد ✅</b>\n\nاکنون می‌توانید از گروه استفاده کنید.',
         {
           parse_mode: 'HTML'
         }
@@ -22814,7 +22887,11 @@ const postNewsAlbums = new Map();
 bot.on('message', async ctx => {
   try {
     if (!ctx.from) return;
-
+    if (
+      await handlePendingUserMessage(ctx)
+    ) {
+      return;
+    }
     if (!postNewsStates.has(ctx.from.id)) return;
 
     if (!(await isAdmin(ctx, 'postNews'))) return;
