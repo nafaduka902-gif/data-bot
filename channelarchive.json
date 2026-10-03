@@ -1,5 +1,21 @@
 [
   {
+    "id": "anime_faarsi:1008",
+    "name": "Post 1008",
+    "nameNormalized": "post 1008",
+    "link": "https://t.me/Anime_Faarsi/1008",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1008,
+    "text": "",
+    "caption": "",
+    "entities": [],
+    "date": 1791019006,
+    "createdAt": "2026-10-03T09:16:46.970Z",
+    "updatedAt": "2026-10-03T09:16:46.970Z"
+  },
+  {
     "id": "anime_faarsi:1007",
     "name": "مارس قرمز",
     "nameNormalized": "مارس قرمز",
