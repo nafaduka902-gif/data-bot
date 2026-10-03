@@ -208,6 +208,70 @@
     "updatedAt": "2026-10-03T05:58:39.692Z"
   },
   {
+    "id": "anime_faarsi:998",
+    "name": "نوراگامی اراگوتو",
+    "nameNormalized": "نوراگامی اراگوتو",
+    "link": "https://t.me/Anime_Faarsi/998",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 998,
+    "text": "📼 انیمه سریالی « نوراگامی اراگوتو »\n\n📹 Noragami Aragoto\n⭐️ IMDB : 7.8\n\n🎭 ژانر : | اکشن | ماجراجویی | کمدی | فانتزی\n🌐 محصول : ژاپن\n⌨ وضعیت : 2 فصل 25 قسمت\n👤ستارگان : Hiroshi Kamiya, Maaya Uchida, Yuki Kaji, Miyuki Sawashiro\n\n💬 خلاصه داستان : یاتو، خدایی کم‌اهمیت و بی‌پناه، آرزو دارد روزی به خدایی مشهور تبدیل شود و حتی معبدی به نام خودش داشته باشد. پس از نجات هiyori، دختری دبیرستانی که روحش گاهی از بدنش جدا می‌شود، زندگی او با دنیای خدایان، ارواح و موجودات ماورایی گره می‌خورد.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n📥 فصل 02 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « نوراگامی اراگوتو »\n\n📹 Noragami Aragoto\n⭐️ IMDB : 7.8\n\n🎭 ژانر : | اکشن | ماجراجویی | کمدی | فانتزی\n🌐 محصول : ژاپن\n⌨ وضعیت : 2 فصل 25 قسمت\n👤ستارگان : Hiroshi Kamiya, Maaya Uchida, Yuki Kaji, Miyuki Sawashiro\n\n💬 خلاصه داستان : یاتو، خدایی کم‌اهمیت و بی‌پناه، آرزو دارد روزی به خدایی مشهور تبدیل شود و حتی معبدی به نام خودش داشته باشد. پس از نجات هiyori، دختری دبیرستانی که روحش گاهی از بدنش جدا می‌شود، زندگی او با دنیای خدایان، ارواح و موجودات ماورایی گره می‌خورد.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n📥 فصل 02 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 545,
+        "type": "bold"
+      },
+      {
+        "offset": 546,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_927762903"
+      },
+      {
+        "offset": 546,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 551,
+        "length": 32,
+        "type": "bold"
+      },
+      {
+        "offset": 583,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_331354468"
+      },
+      {
+        "offset": 583,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 590,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 592,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 592,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790912363,
+    "createdAt": "2026-10-03T05:58:47.955Z",
+    "updatedAt": "2026-10-03T05:58:47.955Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
