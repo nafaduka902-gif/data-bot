@@ -1690,19 +1690,18 @@ startUploadResultWatcher()
 
 
 
-const NFV2_API_KEY = 'sk_1pNUeROs1PREGrYBsYxplnAlm8WSEm21';
-
 bot.command('testnewai', async ctx => {
   try {
-    const key =
-      String(NFV2_API_KEY || '').trim();
-
-    if (!key) {
-      await ctx.reply(
-        '❌ NFV2_API_KEY تنظیم نشده است.'
-      );
-      return;
-    }
+    const userText =
+      String(
+        ctx.message?.text || ''
+      )
+        .replace(
+          /^\/testnewai(?:@\w+)?/i,
+          ''
+        )
+        .trim() ||
+      'سلام، خودت را معرفی کن و بگو آماده پاسخگویی هستی.';
 
     const thinking =
       await ctx.reply(
@@ -1710,34 +1709,19 @@ bot.command('testnewai', async ctx => {
       );
 
     const response =
-      await axios.post(
-        'https://gen.pollinations.ai/v1/chat/completions',
+      await axios.get(
+        'https://api.shizo.top/ai/gpt',
         {
-          model:
-            'google/gemini-2.5-flash-lite',
-          messages: [
-            {
-              role: 'user',
-              content:
-                'سلام، فقط جواب بده: تست موفق بود.'
-            }
-          ],
-          max_tokens: 100
-        },
-        {
-          headers: {
-            Authorization:
-              `Bearer ${key}`,
-            'Content-Type':
-              'application/json'
+          params: {
+            apikey: 'shizo',
+            query: userText
           },
           timeout: 12000
         }
       );
 
     const answer =
-      response?.data?.choices?.[0]
-        ?.message?.content;
+      response?.data?.data?.msg;
 
     if (!answer) {
       throw new Error(
@@ -1764,9 +1748,8 @@ bot.command('testnewai', async ctx => {
     );
 
     const errorText =
-      error?.response?.data
-        ?.error?.message ||
       error?.response?.data?.message ||
+      error?.response?.data?.msg ||
       error?.message ||
       'Unknown error';
 
