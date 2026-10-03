@@ -1,5 +1,89 @@
 [
   {
+    "id": "animitionfaarsi:53",
+    "name": "زوتوپیا",
+    "nameNormalized": "زوتوپیا",
+    "link": "https://t.me/AnimitionFaarsi/53",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 53,
+    "text": "🎞 کالکشن انیمیشن « زوتوپیا »\n📷 Zootopia\n\n🎭 ژانر: کمدی | ماجراجویی | خانوادگی | فانتزی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : داستان شهری که در آن‌ حیوانات مختلف در کنار یکدیگر به صورت مسالمت آمیزی زندگی‌ می‌کنند.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Zootopia 1 2016 (سورن)\n📥 Zootopia 2 2026 (سورن)\n\n✅ @AnimitionFaarsi",
+    "caption": "🎞 کالکشن انیمیشن « زوتوپیا »\n📷 Zootopia\n\n🎭 ژانر: کمدی | ماجراجویی | خانوادگی | فانتزی\n🌐 محصول کشور: آمریکا\n\n💬 خلاصه داستان : داستان شهری که در آن‌ حیوانات مختلف در کنار یکدیگر به صورت مسالمت آمیزی زندگی‌ می‌کنند.\n\n🚫 بدون سانسور و حذفیات !\n\n#دوبله_فارسی\n📥 Zootopia 1 2016 (سورن)\n📥 Zootopia 2 2026 (سورن)\n\n✅ @AnimitionFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 246,
+        "type": "bold"
+      },
+      {
+        "offset": 246,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 246,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 258,
+        "length": 3,
+        "type": "bold"
+      },
+      {
+        "offset": 262,
+        "length": 15,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_792382214"
+      },
+      {
+        "offset": 262,
+        "length": 15,
+        "type": "bold"
+      },
+      {
+        "offset": 278,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 288,
+        "length": 15,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_672106624"
+      },
+      {
+        "offset": 288,
+        "length": 15,
+        "type": "bold"
+      },
+      {
+        "offset": 304,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 312,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 314,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 314,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791027939,
+    "createdAt": "2026-10-03T11:45:39.699Z",
+    "updatedAt": "2026-10-03T11:45:39.699Z"
+  },
+  {
     "id": "anime_faarsi:1010",
     "name": "Jujutsu Kaisen",
     "nameNormalized": "jujutsu kaisen",
