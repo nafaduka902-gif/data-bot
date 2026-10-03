@@ -158,5 +158,141 @@
     "date": 1785740887,
     "createdAt": "2026-10-03T11:24:29.360Z",
     "updatedAt": "2026-10-03T11:24:29.360Z"
+  },
+  {
+    "id": "anime_faarsi:456",
+    "name": "➖ Gintama Episode 1 ~ 30",
+    "nameNormalized": "gintama episode 1 30",
+    "link": "https://t.me/Anime_Faarsi/456",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 456,
+    "text": "➖ Gintama Episode 1 ~ 30  \n\n➖ Gintama Episode 31 ~ 60\n\n➖ Gintama Episode 61 ~ 120\n\n➖ Gintama Episode 121 ~ 180\n\n➖ Gintama Episode 181 ~ 240\n\n➖ Gintama Episode 241 ~ 300\n\n➖ Gintama Episode 301 ~ 370\n\n➖ Gintama The Final 2021\n\nسینمایی اول در واقع همون قسمت های 1 تا 30 انیمه رو پوشش میده.\nسینمایی دوم رو بعد اپیزود 30 تا 60 و 60 تا 120 همینطور میتوان دید.\nو فیلم سینمایی تمام قسمت های انیمه سریالی گینتاما رو پوشش میده‌.\n\n#دسترسی_سریع\n#کالکشن\n#گینتاما\n🆔 @Anime_Faarsi",
+    "caption": "➖ Gintama Episode 1 ~ 30  \n\n➖ Gintama Episode 31 ~ 60\n\n➖ Gintama Episode 61 ~ 120\n\n➖ Gintama Episode 121 ~ 180\n\n➖ Gintama Episode 181 ~ 240\n\n➖ Gintama Episode 241 ~ 300\n\n➖ Gintama Episode 301 ~ 370\n\n➖ Gintama The Final 2021\n\nسینمایی اول در واقع همون قسمت های 1 تا 30 انیمه رو پوشش میده.\nسینمایی دوم رو بعد اپیزود 30 تا 60 و 60 تا 120 همینطور میتوان دید.\nو فیلم سینمایی تمام قسمت های انیمه سریالی گینتاما رو پوشش میده‌.\n\n#دسترسی_سریع\n#کالکشن\n#گینتاما\n🆔 @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 2,
+        "length": 26,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/370"
+      },
+      {
+        "offset": 30,
+        "length": 25,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/393"
+      },
+      {
+        "offset": 57,
+        "length": 26,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/451"
+      },
+      {
+        "offset": 85,
+        "length": 26,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/452"
+      },
+      {
+        "offset": 114,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/453"
+      },
+      {
+        "offset": 143,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/454"
+      },
+      {
+        "offset": 172,
+        "length": 25,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/455"
+      },
+      {
+        "offset": 197,
+        "length": 1,
+        "type": "text_link",
+        "url": "https://t.me/animworlddl/18293"
+      },
+      {
+        "offset": 225,
+        "length": 128,
+        "type": "bold"
+      },
+      {
+        "offset": 353,
+        "length": 67,
+        "type": "text_link",
+        "url": "https://t.me/animworlddl/18705"
+      },
+      {
+        "offset": 353,
+        "length": 67,
+        "type": "bold"
+      },
+      {
+        "offset": 420,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 420,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 432,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 433,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 433,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 440,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 441,
+        "length": 8,
+        "type": "hashtag"
+      },
+      {
+        "offset": 441,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 449,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 453,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 453,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1743081463,
+    "createdAt": "2026-10-03T11:26:06.829Z",
+    "updatedAt": "2026-10-03T11:26:06.829Z"
   }
 ]
