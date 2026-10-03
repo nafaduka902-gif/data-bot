@@ -951,6 +951,28 @@
     "updatedAt": "2026-10-03T06:56:41.127Z"
   },
   {
+    "id": "anime_faarsi:968",
+    "name": "Bleach Thousand-Year Blood War",
+    "nameNormalized": "bleach thousand year blood war",
+    "link": "https://t.me/Anime_Faarsi/968",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 968,
+    "text": "فصل 4 قسمت 1 تا 6 انیمه « Bleach Thousand-Year Blood War » با دوبله فارسی(گپ فیلم) اضافه شد.",
+    "caption": "",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 92,
+        "type": "bold"
+      }
+    ],
+    "date": 1790245739,
+    "createdAt": "2026-10-03T06:56:52.488Z",
+    "updatedAt": "2026-10-03T06:56:52.488Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
