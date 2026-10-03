@@ -907,6 +907,28 @@
     "updatedAt": "2026-10-03T06:56:08.560Z"
   },
   {
+    "id": "anime_faarsi:970",
+    "name": "Charlotte",
+    "nameNormalized": "charlotte",
+    "link": "https://t.me/Anime_Faarsi/970",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 970,
+    "text": "فصل 1 قسمت 1 الا 4 انیمه « Charlotte » با دوبله فارسی(السا میدیا) اضافه شد.",
+    "caption": "",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 75,
+        "type": "bold"
+      }
+    ],
+    "date": 1790287339,
+    "createdAt": "2026-10-03T06:56:34.035Z",
+    "updatedAt": "2026-10-03T06:56:34.035Z"
+  },
+  {
     "id": "anime_faarsi:316",
     "name": "ندای شب",
     "nameNormalized": "ندای شب",
