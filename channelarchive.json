@@ -1,5 +1,38 @@
 [
   {
+    "id": "faarsimovie:445",
+    "name": "کرنک",
+    "nameNormalized": "کرنک",
+    "link": "https://t.me/FaarsiMovie/445",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 445,
+    "text": "📼 فیلم « کرنک »\n\n📹 Crank 2006\n✨ IMDb: 6.9\n\n🎭 ژانر: اکشن | جنایی | هیجان‌انگیز | کمدی سیاه\n🪙 محصول: آمریکا\n🍿 بازیگران: Jason Statham | Amy Smart | Jose Pablo Cantillo | Efren Ramirez | Dwight Yoakam | Carlos Sanz\n\n📝 خلاصه داستان : چِو چلیوس، یک آدمکش حرفه‌ای، متوجه می‌شود که رقیبش ماده‌ای سمی به او تزریق کرده که با کاهش ضربان قلبش جانش را تهدید می‌کند. او در حالی که تلاش می‌کند ضربان قلبش را بالا نگه دارد، در جست‌وجوی افرادی است که این نقشه را علیه او اجرا کرده‌اند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « کرنک »\n\n📹 Crank 2006\n✨ IMDb: 6.9\n\n🎭 ژانر: اکشن | جنایی | هیجان‌انگیز | کمدی سیاه\n🪙 محصول: آمریکا\n🍿 بازیگران: Jason Statham | Amy Smart | Jose Pablo Cantillo | Efren Ramirez | Dwight Yoakam | Carlos Sanz\n\n📝 خلاصه داستان : چِو چلیوس، یک آدمکش حرفه‌ای، متوجه می‌شود که رقیبش ماده‌ای سمی به او تزریق کرده که با کاهش ضربان قلبش جانش را تهدید می‌کند. او در حالی که تلاش می‌کند ضربان قلبش را بالا نگه دارد، در جست‌وجوی افرادی است که این نقشه را علیه او اجرا کرده‌اند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 524,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_51897010"
+      },
+      {
+        "offset": 524,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 559,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791031935,
+    "createdAt": "2026-10-03T12:52:15.659Z",
+    "updatedAt": "2026-10-03T12:52:15.659Z"
+  },
+  {
     "id": "animitionfaarsi:60",
     "name": "آواتار: آخرین بادافزار",
     "nameNormalized": "آواتار آخرین بادافزار",
