@@ -1,5 +1,94 @@
 [
   {
+    "id": "animitionfaarsi:47",
+    "name": "➖ Arcane (Season 1 + دوبله فارسی)",
+    "nameNormalized": "arcane season 1 دوبله فارسی",
+    "link": "https://t.me/AnimitionFaarsi/47",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 47,
+    "text": "➖ Arcane (Season 1 + دوبله فارسی)\n\n➖ Arcane  (Season 2 + دوبله فارسی)\n\n#دسترسی_سریع\n#کالکشن\n#ارکین\n🆔 @AnimitionFaarsi",
+    "caption": "➖ Arcane (Season 1 + دوبله فارسی)\n\n➖ Arcane  (Season 2 + دوبله فارسی)\n\n#دسترسی_سریع\n#کالکشن\n#ارکین\n🆔 @AnimitionFaarsi",
+    "entities": [
+      {
+        "offset": 2,
+        "length": 31,
+        "type": "text_link",
+        "url": "https://t.me/AnimitionFaarsi/12"
+      },
+      {
+        "offset": 37,
+        "length": 32,
+        "type": "text_link",
+        "url": "https://t.me/AnimitionFaarsi/15"
+      },
+      {
+        "offset": 69,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 71,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 71,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 83,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 84,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 84,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 91,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 92,
+        "length": 6,
+        "type": "hashtag"
+      },
+      {
+        "offset": 93,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 98,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 102,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 102,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1790993859,
+    "createdAt": "2026-10-03T02:17:39.673Z",
+    "updatedAt": "2026-10-03T02:17:39.673Z"
+  },
+  {
     "id": "animitionfaarsi:46",
     "name": "نام انیمیشن: Arcane",
     "nameNormalized": "نام انیمیشن arcane",
