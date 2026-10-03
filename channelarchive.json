@@ -1,5 +1,38 @@
 [
   {
+    "id": "faarsimovie:448",
+    "name": "پارکر",
+    "nameNormalized": "پارکر",
+    "link": "https://t.me/FaarsiMovie/448",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 448,
+    "text": "📼 فیلم « پارکر »\n\n📹 Parker 2013\n✨ IMDb: 6.2\n\n🎭 ژانر: اکشن | جنایی | هیجان‌انگیز\n🪙 محصول: آمریکا\n🍿 بازیگران: Jason Statham | Jennifer Lopez | Michael Chiklis | Wendell Pierce | Clifton Collins Jr. | Nick Nolte\n\n📝 خلاصه داستان : پارکر، یک دزد حرفه‌ای با اصول اخلاقی خاص خودش، پس از اینکه توسط اعضای گروهش مورد خیانت قرار می‌گیرد و رهایش می‌کنند، تصمیم می‌گیرد از آن‌ها انتقام بگیرد. او برای مقابله با گروه، با زنی به نام لزلی که اطلاعاتی از نقشه آن‌ها دارد، متحد می‌شود و برای سرقتی بزرگ و خطرناک نقشه می‌کشند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « پارکر »\n\n📹 Parker 2013\n✨ IMDb: 6.2\n\n🎭 ژانر: اکشن | جنایی | هیجان‌انگیز\n🪙 محصول: آمریکا\n🍿 بازیگران: Jason Statham | Jennifer Lopez | Michael Chiklis | Wendell Pierce | Clifton Collins Jr. | Nick Nolte\n\n📝 خلاصه داستان : پارکر، یک دزد حرفه‌ای با اصول اخلاقی خاص خودش، پس از اینکه توسط اعضای گروهش مورد خیانت قرار می‌گیرد و رهایش می‌کنند، تصمیم می‌گیرد از آن‌ها انتقام بگیرد. او برای مقابله با گروه، با زنی به نام لزلی که اطلاعاتی از نقشه آن‌ها دارد، متحد می‌شود و برای سرقتی بزرگ و خطرناک نقشه می‌کشند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 563,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_588857814"
+      },
+      {
+        "offset": 563,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 598,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791031937,
+    "createdAt": "2026-10-03T12:52:20.779Z",
+    "updatedAt": "2026-10-03T12:52:20.779Z"
+  },
+  {
     "id": "faarsimovie:447",
     "name": "مکانیک",
     "nameNormalized": "مکانیک",
