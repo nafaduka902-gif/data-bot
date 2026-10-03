@@ -2550,6 +2550,175 @@
     "updatedAt": "2026-10-03T17:14:33.136Z"
   },
   {
+    "id": "anime_faarsi:554",
+    "name": "نام انیمه: Black Clover",
+    "nameNormalized": "نام انیمه black clover",
+    "link": "https://t.me/Anime_Faarsi/554",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 554,
+    "text": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 1\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2017\nتعداد قسمت‌ها: 60 / 170\nوضعیت: اتمام پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nدوبله اختصاصی انیمه لاوو\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 60 / 170 قسمت دوبله فارسی | نماوا ]\n\nدوبله از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
+    "caption": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 1\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2017\nتعداد قسمت‌ها: 60 / 170\nوضعیت: اتمام پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nدوبله اختصاصی انیمه لاوو\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 60 / 170 قسمت دوبله فارسی | نماوا ]\n\nدوبله از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 108,
+        "type": "bold"
+      },
+      {
+        "offset": 108,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 108,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 113,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 114,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 114,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 121,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 122,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 122,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 127,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 128,
+        "length": 10,
+        "type": "hashtag"
+      },
+      {
+        "offset": 128,
+        "length": 10,
+        "type": "bold"
+      },
+      {
+        "offset": 138,
+        "length": 109,
+        "type": "bold"
+      },
+      {
+        "offset": 248,
+        "length": 22,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Loveri/300"
+      },
+      {
+        "offset": 271,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 277,
+        "length": 42,
+        "type": "bold"
+      },
+      {
+        "offset": 324,
+        "length": 32,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_36544674"
+      },
+      {
+        "offset": 324,
+        "length": 32,
+        "type": "bold"
+      },
+      {
+        "offset": 357,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 365,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 368,
+        "length": 23,
+        "type": "bold"
+      },
+      {
+        "offset": 391,
+        "length": 13,
+        "type": "hashtag"
+      },
+      {
+        "offset": 391,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 404,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 405,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 405,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 412,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 413,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 413,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 426,
+        "length": 1,
+        "type": "bold"
+      }
+    ],
+    "date": 1743402310,
+    "createdAt": "2026-10-03T17:15:05.063Z",
+    "updatedAt": "2026-10-03T17:15:05.063Z"
+  },
+  {
     "id": "anime_faarsi:456",
     "name": "➖ Gintama Episode 1 ~ 30",
     "nameNormalized": "gintama episode 1 30",
