@@ -1,5 +1,118 @@
 [
   {
+    "id": "animitionfaarsi:50",
+    "name": "افسانه آنگ: آخرین بادافزار",
+    "nameNormalized": "افسانه آنگ آخرین بادافزار",
+    "link": "https://t.me/AnimitionFaarsi/50",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 50,
+    "text": "📼 انیمیشن سینمایی « افسانه آنگ: آخرین بادافزار »\n\n📹 Avatar Aang: The Last Airbender 2026\n(The Legend of Aang: The Last Airbender 2026)\n⭐️ IMDB :\n\n🎭 ژانر : انیمیشن | اکشن | ماجراجویی\n🌐 محصول : آمریکا\n👤 ستارگان : Dave Bautista, Eric Nam, Jessica Matten, Román Zaragoza\n\n💬 خلاصه داستان : داستان آنگ و دوستانش را در دوران جوانی و چند سال پس از وقایع پایان سریال آواتار: آخرین بادافزار روایت می‌کند.\n\n🚫 بدون سانسور و حذفیات !\n\n🎤دوبله فارسی(گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @AnimitionFaarsi",
+    "caption": "📼 انیمیشن سینمایی « افسانه آنگ: آخرین بادافزار »\n\n📹 Avatar Aang: The Last Airbender 2026\n(The Legend of Aang: The Last Airbender 2026)\n⭐️ IMDB :\n\n🎭 ژانر : انیمیشن | اکشن | ماجراجویی\n🌐 محصول : آمریکا\n👤 ستارگان : Dave Bautista, Eric Nam, Jessica Matten, Román Zaragoza\n\n💬 خلاصه داستان : داستان آنگ و دوستانش را در دوران جوانی و چند سال پس از وقایع پایان سریال آواتار: آخرین بادافزار روایت می‌کند.\n\n🚫 بدون سانسور و حذفیات !\n\n🎤دوبله فارسی(گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @AnimitionFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 18,
+        "type": "bold"
+      },
+      {
+        "offset": 19,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 21,
+        "length": 26,
+        "type": "bold"
+      },
+      {
+        "offset": 48,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 54,
+        "length": 36,
+        "type": "bold"
+      },
+      {
+        "offset": 92,
+        "length": 43,
+        "type": "bold"
+      },
+      {
+        "offset": 140,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 151,
+        "length": 33,
+        "type": "bold"
+      },
+      {
+        "offset": 188,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 206,
+        "length": 65,
+        "type": "bold"
+      },
+      {
+        "offset": 276,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 291,
+        "length": 109,
+        "type": "bold"
+      },
+      {
+        "offset": 405,
+        "length": 20,
+        "type": "bold"
+      },
+      {
+        "offset": 431,
+        "length": 21,
+        "type": "bold"
+      },
+      {
+        "offset": 456,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_914318453"
+      },
+      {
+        "offset": 456,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 489,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 491,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 491,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791027070,
+    "createdAt": "2026-10-03T11:31:11.941Z",
+    "updatedAt": "2026-10-03T11:31:11.941Z"
+  },
+  {
     "id": "animitionfaarsi:49",
     "name": "اسنوپی تقدیم می‌کند: به خانه خوش آمدید، فرانکلین",
     "nameNormalized": "اسنوپی تقدیم می کند به خانه خوش آمدید فرانکلین",
