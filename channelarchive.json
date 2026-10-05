@@ -953,8 +953,8 @@
     "channelNormalized": "anime_faarsi",
     "channelType": "anime",
     "messageId": 1013,
-    "text": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویس اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت زیرنویس فارسی ]\n🔻 [ منبع: زیرنویس از انیمه فارسی ]\n\nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
-    "caption": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویس اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت زیرنویس فارسی ]\n🔻 [ منبع: زیرنویس از انیمه فارسی ]\n\nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
+    "text": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویس اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت زیرنویس فارسی ]\n\nمنبع: انیمه فارسی\nمترجم و انکود: Mr / @tizpc\n \nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
+    "caption": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویس اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت زیرنویس فارسی ]\n\nمنبع: انیمه فارسی\nمترجم و انکود: Mr / @tizpc\n \nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
     "entities": [
       {
         "offset": 0,
@@ -1024,49 +1024,64 @@
         "type": "bold"
       },
       {
-        "offset": 356,
-        "length": 30,
+        "offset": 352,
+        "length": 38,
         "type": "bold"
       },
       {
-        "offset": 388,
+        "offset": 390,
+        "length": 6,
+        "type": "mention"
+      },
+      {
+        "offset": 390,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 396,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 399,
         "length": 25,
         "type": "bold"
       },
       {
-        "offset": 413,
+        "offset": 424,
         "length": 13,
         "type": "hashtag"
       },
       {
-        "offset": 426,
+        "offset": 437,
         "length": 1,
         "type": "bold"
       },
       {
-        "offset": 427,
+        "offset": 438,
         "length": 7,
         "type": "hashtag"
       },
       {
-        "offset": 434,
+        "offset": 445,
         "length": 1,
         "type": "bold"
       },
       {
-        "offset": 435,
+        "offset": 446,
         "length": 13,
         "type": "mention"
       },
       {
-        "offset": 448,
+        "offset": 459,
         "length": 1,
         "type": "bold"
       }
     ],
     "date": 1791049773,
     "createdAt": "2026-10-03T17:49:33.774Z",
-    "updatedAt": "2026-10-03T17:49:39.956Z"
+    "updatedAt": "2026-10-05T02:58:53.652Z"
   },
   {
     "id": "animitionfaarsi:74",
