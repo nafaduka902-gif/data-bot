@@ -4581,23 +4581,129 @@ function nfArchiveMessageText(
   ).trim();
 }
 
+async function nfArchiveDebugLog(
+  text
+) {
+  try {
+    const adminId =
+      Number(
+        process.env.ADMIN_ID ||
+        ADMIN_ID
+      );
+
+    if (
+      !adminId ||
+      !bot?.telegram
+    ) {
+      return;
+    }
+
+    const value =
+      String(text || '');
+
+    const chunks = [];
+
+    for (
+      let i = 0;
+      i < value.length;
+      i += 3500
+    ) {
+      chunks.push(
+        value.slice(
+          i,
+          i + 3500
+        )
+      );
+    }
+
+    for (
+      const chunk of chunks
+    ) {
+      await bot.telegram.sendMessage(
+        adminId,
+        chunk
+      );
+    }
+  } catch (error) {
+    console.error(
+      'NF ARCHIVE DEBUG SEND ERROR:',
+      error?.message ||
+        error
+    );
+  }
+}
+
 function nfArchiveRecordFromChannelPost(
   ctx
 ) {
   const post =
     ctx.channelPost ||
-    ctx.editedChannelPost;
+    ctx.editedChannelPost ||
+    ctx.update?.channel_post ||
+    ctx.update?.edited_channel_post;
 
   if (!post) {
+    nfArchiveDebugLog(
+      '🔴 NF ARCHIVE DEBUG\n\n' +
+      '❌ پست پیدا نشد.\n\n' +
+      'ctx.channelPost: ' +
+      String(
+        Boolean(
+          ctx.channelPost
+        )
+      ) +
+      '\n' +
+      'ctx.editedChannelPost: ' +
+      String(
+        Boolean(
+          ctx.editedChannelPost
+        )
+      ) +
+      '\n' +
+      'update.channel_post: ' +
+      String(
+        Boolean(
+          ctx.update?.channel_post
+        )
+      ) +
+      '\n' +
+      'update.edited_channel_post: ' +
+      String(
+        Boolean(
+          ctx.update?.edited_channel_post
+        )
+      )
+    );
+
     return null;
   }
 
   const chat =
-    ctx.chat;
+    ctx.chat ||
+    post.chat;
 
   if (
     chat?.type !== 'channel'
   ) {
+    nfArchiveDebugLog(
+      '🔴 NF ARCHIVE DEBUG\n\n' +
+      '❌ نوع چت channel نیست.\n\n' +
+      'Chat ID: ' +
+      String(
+        chat?.id || ''
+      ) +
+      '\n' +
+      'Username: ' +
+      String(
+        chat?.username || ''
+      ) +
+      '\n' +
+      'Type: ' +
+      String(
+        chat?.type || ''
+      )
+    );
+
     return null;
   }
 
@@ -4611,6 +4717,20 @@ function nfArchiveRecordFromChannelPost(
       username
     )
   ) {
+    nfArchiveDebugLog(
+      '🔴 NF ARCHIVE DEBUG\n\n' +
+      '❌ کانال در NF_ARCHIVE_CHANNELS مجاز نیست.\n\n' +
+      'Channel: ' +
+      String(
+        username || '(بدون username)'
+      ) +
+      '\n' +
+      'Chat ID: ' +
+      String(
+        chat.id || ''
+      )
+    );
+
     return null;
   }
 
@@ -4628,6 +4748,18 @@ function nfArchiveRecordFromChannelPost(
     !Number.isInteger(messageId) ||
     messageId <= 0
   ) {
+    nfArchiveDebugLog(
+      '🔴 NF ARCHIVE DEBUG\n\n' +
+      '❌ message_id نامعتبر است.\n\n' +
+      'Channel: ' +
+      username +
+      '\n' +
+      'message_id: ' +
+      String(
+        post.message_id || ''
+      )
+    );
+
     return null;
   }
 
@@ -4635,6 +4767,22 @@ function nfArchiveRecordFromChannelPost(
     nfArchiveMessageText(
       post
     );
+
+  if (!text) {
+    nfArchiveDebugLog(
+      '🟡 NF ARCHIVE DEBUG\n\n' +
+      '⚠️ پست متن یا caption ندارد.\n\n' +
+      'Channel: ' +
+      username +
+      '\n' +
+      'Message ID: ' +
+      String(
+        messageId
+      ) +
+      '\n' +
+      'با این حال رکورد ادامه پیدا می‌کند.'
+    );
+  }
 
   const title =
     nfArchiveExtractTitle(
@@ -4644,7 +4792,7 @@ function nfArchiveRecordFromChannelPost(
   const now =
     new Date().toISOString();
 
-  return {
+  const record = {
     id:
       `${String(username)
         .replace(/^@/, '')
@@ -4702,6 +4850,47 @@ function nfArchiveRecordFromChannelPost(
     updatedAt:
       now
   };
+
+  nfArchiveDebugLog(
+    '🟢 NF ARCHIVE DEBUG\n\n' +
+    '✅ رکورد ساخته شد.\n\n' +
+    '📢 Channel: ' +
+    String(
+      record.channel
+    ) +
+    '\n' +
+    '🆔 Message ID: ' +
+    String(
+      record.messageId
+    ) +
+    '\n' +
+    '📌 Type: ' +
+    String(
+      record.channelType
+    ) +
+    '\n' +
+    '📝 Name: ' +
+    String(
+      record.name
+    ) +
+    '\n' +
+    '🔗 Link: ' +
+    String(
+      record.link
+    ) +
+    '\n' +
+    '📄 Text length: ' +
+    String(
+      record.text.length
+    ) +
+    '\n' +
+    '🕒 Date: ' +
+    String(
+      record.date
+    )
+  );
+
+  return record;
 }
 
 async function nfReadArchive() {
