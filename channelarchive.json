@@ -1,5 +1,38 @@
 [
   {
+    "id": "faarsimovie:463",
+    "name": "تعطیلات پر ماجرا",
+    "nameNormalized": "تعطیلات پر ماجرا",
+    "link": "https://t.me/FaarsiMovie/463",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 463,
+    "text": "📼 فیلم « تعطیلات پر ماجرا »\n\n📹 What We Did on Our Holiday 2014\n✨ IMDb: 6.9\n\n🎭 ژانر: کمدی | درام\n🪙 محصول: انگلستان\n🍿 بازیگران: Billy Connolly | David Tennant | Rosamund Pike | Ben Miller | Amelia Bullmore | Bobby Smalldridge\n\n📝 خلاصه داستان : داگ و ابی به همراه سه فرزندشان برای جشن تولد پدر داگ به اسکاتلند سفر می‌کنند. آن‌ها تصمیم گرفته‌اند مشکلات خانوادگی‌شان را از پدربزرگ پنهان کنند، اما حضور بچه‌ها و اتفاقات غیرمنتظره، تعطیلات خانوادگی را به مجموعه‌ای از ماجراهای خنده‌دار و عجیب تبدیل می‌کند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « تعطیلات پر ماجرا »\n\n📹 What We Did on Our Holiday 2014\n✨ IMDb: 6.9\n\n🎭 ژانر: کمدی | درام\n🪙 محصول: انگلستان\n🍿 بازیگران: Billy Connolly | David Tennant | Rosamund Pike | Ben Miller | Amelia Bullmore | Bobby Smalldridge\n\n📝 خلاصه داستان : داگ و ابی به همراه سه فرزندشان برای جشن تولد پدر داگ به اسکاتلند سفر می‌کنند. آن‌ها تصمیم گرفته‌اند مشکلات خانوادگی‌شان را از پدربزرگ پنهان کنند، اما حضور بچه‌ها و اتفاقات غیرمنتظره، تعطیلات خانوادگی را به مجموعه‌ای از ماجراهای خنده‌دار و عجیب تبدیل می‌کند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 554,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_111314059"
+      },
+      {
+        "offset": 554,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 589,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791309753,
+    "createdAt": "2026-10-06T18:02:43.739Z",
+    "updatedAt": "2026-10-06T18:02:43.739Z"
+  },
+  {
     "id": "faarsimovie:461",
     "name": "کارآگاه جوان دی: ظهور اژدهای دریایی",
     "nameNormalized": "کارآگاه جوان دی ظهور اژدهای دریایی",
