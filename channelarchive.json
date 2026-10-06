@@ -33,6 +33,39 @@
     "updatedAt": "2026-10-06T18:02:45.220Z"
   },
   {
+    "id": "faarsimovie:465",
+    "name": "با خونسردی بکش",
+    "nameNormalized": "با خونسردی بکش",
+    "link": "https://t.me/FaarsiMovie/465",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 465,
+    "text": "📼 فیلم « با خونسردی بکش »\n\n📹 Kill Me Three Times 2014\n✨ IMDb: 5.8\n\n🎭 ژانر: کمدی سیاه | اکشن | ماجراجویی | کمدی | جنایی | معمایی | هیجان‌انگیز\n🪙 محصول: استرالیا | آمریکا\n🍿 بازیگران: Simon Pegg | Teresa Palmer | Alice Braga | Sullivan Stapleton | Luke Hemsworth | Callan Mulvey | Bryan Brown\n\n📝 خلاصه داستان : چارلی ولف، یک آدمکش حرفه‌ای، پس از قبول یک مأموریت قتل وارد زنجیره‌ای از قتل، باج‌گیری و انتقام می‌شود. اتفاقات مختلف از دید شخصیت‌های متفاوت روایت می‌شوند و ماجرا به شکلی غیرمنتظره و پیچیده پیش می‌رود.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « با خونسردی بکش »\n\n📹 Kill Me Three Times 2014\n✨ IMDb: 5.8\n\n🎭 ژانر: کمدی سیاه | اکشن | ماجراجویی | کمدی | جنایی | معمایی | هیجان‌انگیز\n🪙 محصول: استرالیا | آمریکا\n🍿 بازیگران: Simon Pegg | Teresa Palmer | Alice Braga | Sullivan Stapleton | Luke Hemsworth | Callan Mulvey | Bryan Brown\n\n📝 خلاصه داستان : چارلی ولف، یک آدمکش حرفه‌ای، پس از قبول یک مأموریت قتل وارد زنجیره‌ای از قتل، باج‌گیری و انتقام می‌شود. اتفاقات مختلف از دید شخصیت‌های متفاوت روایت می‌شوند و ماجرا به شکلی غیرمنتظره و پیچیده پیش می‌رود.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 565,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_68707772"
+      },
+      {
+        "offset": 565,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 600,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791309754,
+    "createdAt": "2026-10-06T18:02:46.713Z",
+    "updatedAt": "2026-10-06T18:02:46.713Z"
+  },
+  {
     "id": "faarsimovie:463",
     "name": "تعطیلات پر ماجرا",
     "nameNormalized": "تعطیلات پر ماجرا",
