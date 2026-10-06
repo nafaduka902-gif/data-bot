@@ -1,5 +1,38 @@
 [
   {
+    "id": "faarsimovie:461",
+    "name": "کارآگاه جوان دی: ظهور اژدهای دریایی",
+    "nameNormalized": "کارآگاه جوان دی ظهور اژدهای دریایی",
+    "link": "https://t.me/FaarsiMovie/461",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 461,
+    "text": "📼 فیلم « کارآگاه جوان دی: ظهور اژدهای دریایی »\n\n📹 Young Detective Dee: Rise of the Sea Dragon 2013\n✨ IMDb: 6.4\n\n🎭 ژانر: اکشن | ماجراجویی | درام | فانتزی | معمایی\n🪙 محصول: چین | هنگ‌کنگ\n🍿 بازیگران: Mark Chao | William Feng | Angelababy | Carina Lau | Kenny Lin | Kim Bum | Chen Kun\n\n📝 خلاصه داستان : دی رن‌جیه، کارآگاه جوانی که به‌تازگی وارد نیروی پلیس امپراتوری شده، مأمور تحقیق درباره گزارش‌هایی مربوط به یک هیولای دریایی می‌شود که شهر را به وحشت انداخته است. تحقیقات او به توطئه‌ای پیچیده از خیانت و دسیسه می‌رسد که حتی به بالاترین سطوح خاندان سلطنتی ارتباط دارد.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « کارآگاه جوان دی: ظهور اژدهای دریایی »\n\n📹 Young Detective Dee: Rise of the Sea Dragon 2013\n✨ IMDb: 6.4\n\n🎭 ژانر: اکشن | ماجراجویی | درام | فانتزی | معمایی\n🪙 محصول: چین | هنگ‌کنگ\n🍿 بازیگران: Mark Chao | William Feng | Angelababy | Carina Lau | Kenny Lin | Kim Bum | Chen Kun\n\n📝 خلاصه داستان : دی رن‌جیه، کارآگاه جوانی که به‌تازگی وارد نیروی پلیس امپراتوری شده، مأمور تحقیق درباره گزارش‌هایی مربوط به یک هیولای دریایی می‌شود که شهر را به وحشت انداخته است. تحقیقات او به توطئه‌ای پیچیده از خیانت و دسیسه می‌رسد که حتی به بالاترین سطوح خاندان سلطنتی ارتباط دارد.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 620,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_804768846"
+      },
+      {
+        "offset": 620,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 655,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791309752,
+    "createdAt": "2026-10-06T18:02:34.013Z",
+    "updatedAt": "2026-10-06T18:02:34.013Z"
+  },
+  {
     "id": "faarsimovie:460",
     "name": "خروج از جهنم",
     "nameNormalized": "خروج از جهنم",
