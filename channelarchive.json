@@ -33,6 +33,39 @@
     "updatedAt": "2026-10-06T18:02:34.013Z"
   },
   {
+    "id": "faarsimovie:462",
+    "name": "صریح",
+    "nameNormalized": "صریح",
+    "link": "https://t.me/FaarsiMovie/462",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 462,
+    "text": "📼 فیلم « صریح »\n\n📹 Point Blank 2019\n✨ IMDb: 5.7\n\n🎭 ژانر: اکشن | جنایی | هیجان‌انگیز\n🪙 محصول: فرانسه\n🍿 بازیگران: Anthony Mackie | Frank Grillo | Marcia Gay Harden | Teyonah Parris | Boris McGiver | Christian Cooke\n\n📝 خلاصه داستان : پل، یک پرستار اورژانس، برای نجات همسر باردارش مجبور می‌شود با یک مجروح خطرناک به نام ایبل همکاری کند. او برای نجات جان همسرش وارد دنیای خلافکاران و پلیس‌های فاسد می‌شود و باید پیش از اینکه دیر شود، راهی برای فرار پیدا کند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « صریح »\n\n📹 Point Blank 2019\n✨ IMDb: 5.7\n\n🎭 ژانر: اکشن | جنایی | هیجان‌انگیز\n🪙 محصول: فرانسه\n🍿 بازیگران: Anthony Mackie | Frank Grillo | Marcia Gay Harden | Teyonah Parris | Boris McGiver | Christian Cooke\n\n📝 خلاصه داستان : پل، یک پرستار اورژانس، برای نجات همسر باردارش مجبور می‌شود با یک مجروح خطرناک به نام ایبل همکاری کند. او برای نجات جان همسرش وارد دنیای خلافکاران و پلیس‌های فاسد می‌شود و باید پیش از اینکه دیر شود، راهی برای فرار پیدا کند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 508,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_979482326"
+      },
+      {
+        "offset": 508,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 543,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791309752,
+    "createdAt": "2026-10-06T18:02:41.643Z",
+    "updatedAt": "2026-10-06T18:02:41.643Z"
+  },
+  {
     "id": "faarsimovie:460",
     "name": "خروج از جهنم",
     "nameNormalized": "خروج از جهنم",
