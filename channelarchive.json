@@ -1,5 +1,38 @@
 [
   {
+    "id": "faarsimovie:460",
+    "name": "خروج از جهنم",
+    "nameNormalized": "خروج از جهنم",
+    "link": "https://t.me/FaarsiMovie/460",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 460,
+    "text": "📼 فیلم « خروج از جهنم »\n\n📹 Out of Inferno 2013\n✨ IMDb: 5.7\n\n🎭 ژانر: فاجعه | اکشن | ماجراجویی | درام | هیجان‌انگیز\n🪙 محصول: چین | هنگ‌کنگ\n🍿 بازیگران: Ching-Wan Lau | Louis Koo | Angelica Lee | Chen Sicheng | Crystal Lee | Jin Qiaoqiao\n\n📝 خلاصه داستان : دو برادر که هر دو سابقاً آتش‌نشان بوده‌اند، در ساختمانی گرفتار آتش‌سوزی عظیمی می‌شوند. در حالی که شعله‌های آتش ساختمان را در بر گرفته، آن‌ها باید اختلافات گذشته را کنار بگذارند و برای نجات خود و دیگر افراد گرفتار تلاش کنند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "caption": "📼 فیلم « خروج از جهنم »\n\n📹 Out of Inferno 2013\n✨ IMDb: 5.7\n\n🎭 ژانر: فاجعه | اکشن | ماجراجویی | درام | هیجان‌انگیز\n🪙 محصول: چین | هنگ‌کنگ\n🍿 بازیگران: Ching-Wan Lau | Louis Koo | Angelica Lee | Chen Sicheng | Crystal Lee | Jin Qiaoqiao\n\n📝 خلاصه داستان : دو برادر که هر دو سابقاً آتش‌نشان بوده‌اند، در ساختمانی گرفتار آتش‌سوزی عظیمی می‌شوند. در حالی که شعله‌های آتش ساختمان را در بر گرفته، آن‌ها باید اختلافات گذشته را کنار بگذارند و برای نجات خود و دیگر افراد گرفتار تلاش کنند.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n🎤 دوبله فارسی:\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @FaarsiMovie",
+    "entities": [
+      {
+        "offset": 530,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_185690494"
+      },
+      {
+        "offset": 530,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 565,
+        "length": 12,
+        "type": "mention"
+      }
+    ],
+    "date": 1791309751,
+    "createdAt": "2026-10-06T18:02:32.012Z",
+    "updatedAt": "2026-10-06T18:02:32.012Z"
+  },
+  {
     "id": "faarsimovie:459",
     "name": "مردگان متحرک",
     "nameNormalized": "مردگان متحرک",
