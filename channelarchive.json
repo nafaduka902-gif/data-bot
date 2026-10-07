@@ -511,6 +511,91 @@
     "updatedAt": "2026-10-05T02:36:32.491Z"
   },
   {
+    "id": "animitionfaarsi:84",
+    "name": "آمفیبیا",
+    "nameNormalized": "آمفیبیا",
+    "link": "https://t.me/AnimitionFaarsi/84",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 84,
+    "text": "📼 انیمیشن سریالی « آمفیبیا »\n\n📹 Amphibia 2019\n⭐️ IMDB : 8.1\n\n🎭 ژانر : انیمیشن | کمدی | ماجراجویی | فانتزی\n🌐 محصول : آمریکا\n⌨ وضعیت : 3 فصل 58 قسمت\n👤ستارگان : Brenda Song, Justin Felbinger, Bill Farmer\n\n💬 خلاصه داستان : آن بوچوی، دختر نوجوانی است که به‌طور اسرارآمیزی به دنیایی پر از قورباغه‌ها، وزغ‌ها و موجودات عجیب منتقل می‌شود. او در این سرزمین با خانواده‌ای از قورباغه‌ها دوست شده و تلاش می‌کند راه بازگشت به خانه را پیدا کند.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n📥 فصل 02 دوبله فارسی | نماوا | 720p\n📥 فصل 03 دوبله فارسی | نماوا | 720p\n\n✅ @AnimationFaarsi",
+    "caption": "📼 انیمیشن سریالی « آمفیبیا »\n\n📹 Amphibia 2019\n⭐️ IMDB : 8.1\n\n🎭 ژانر : انیمیشن | کمدی | ماجراجویی | فانتزی\n🌐 محصول : آمریکا\n⌨ وضعیت : 3 فصل 58 قسمت\n👤ستارگان : Brenda Song, Justin Felbinger, Bill Farmer\n\n💬 خلاصه داستان : آن بوچوی، دختر نوجوانی است که به‌طور اسرارآمیزی به دنیایی پر از قورباغه‌ها، وزغ‌ها و موجودات عجیب منتقل می‌شود. او در این سرزمین با خانواده‌ای از قورباغه‌ها دوست شده و تلاش می‌کند راه بازگشت به خانه را پیدا کند.\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n📥 فصل 02 دوبله فارسی | نماوا | 720p\n📥 فصل 03 دوبله فارسی | نماوا | 720p\n\n✅ @AnimationFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 464,
+        "type": "bold"
+      },
+      {
+        "offset": 465,
+        "length": 31,
+        "type": "bold"
+      },
+      {
+        "offset": 497,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_169366272"
+      },
+      {
+        "offset": 497,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 502,
+        "length": 32,
+        "type": "bold"
+      },
+      {
+        "offset": 534,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_125434026"
+      },
+      {
+        "offset": 534,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 539,
+        "length": 32,
+        "type": "bold"
+      },
+      {
+        "offset": 571,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_315686506"
+      },
+      {
+        "offset": 571,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 577,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 579,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 579,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1791077371,
+    "createdAt": "2026-10-07T16:00:59.510Z",
+    "updatedAt": "2026-10-07T16:00:59.510Z"
+  },
+  {
     "id": "animitionfaarsi:80",
     "name": "مرد عنکبوتی",
     "nameNormalized": "مرد عنکبوتی",
