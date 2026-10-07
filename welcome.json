@@ -1338,15 +1338,6 @@
   },
   {
     "kind": "pending",
-    "userId": 8280908774,
-    "chatId": -1002239235244,
-    "chatTitle": "Anime Faarsi Chats | چت انیمه فارسی",
-    "welcomeMessageId": 4831,
-    "captchaToken": "musk7m9i_dhlrv4ob",
-    "createdAt": "2026-10-03T15:41:21.259Z"
-  },
-  {
-    "kind": "pending",
     "userId": 8923645140,
     "chatId": -1002239235244,
     "chatTitle": "Anime Faarsi Chats | چت انیمه فارسی",
@@ -1644,5 +1635,15 @@
     "rulesMessageId": null,
     "captchaToken": "muxre8fz_jf168jre",
     "createdAt": "2026-10-07T07:01:18.087Z"
+  },
+  {
+    "kind": "pending",
+    "userId": 8280908774,
+    "chatId": -1002239235244,
+    "chatTitle": "Anime Faarsi Chats | چت انیمه فارسی",
+    "welcomeMessageId": 5171,
+    "rulesMessageId": null,
+    "captchaToken": "muxrmuk4_7ajiool6",
+    "createdAt": "2026-10-07T07:07:59.981Z"
   }
 ]
