@@ -6746,6 +6746,158 @@
     "updatedAt": "2026-10-08T17:57:31.614Z"
   },
   {
+    "id": "anime_faarsi:465",
+    "name": "Jujutsu Kaisen (Season 1 + دوبله فارسی)",
+    "nameNormalized": "jujutsu kaisen season 1 دوبله فارسی",
+    "aliases": [
+      "Jujutsu Kaisen (Season 1 + دوبله فارسی)"
+    ],
+    "aliasesNormalized": [
+      "jujutsu kaisen season 1 دوبله فارسی"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "Jujutsu Kaisen (Season 1 + دوبله فارسی)",
+    "link": "https://t.me/Anime_Faarsi/465",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 465,
+    "text": "➖ Jujutsu Kaisen (Season 1 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Season 2 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Season 3 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Movie 1 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Movie 2 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Movie 3 + دوبله فارسی)\n \n#دسترسی_سریع\n#کالکشن\n#جوجوتسو_کایسن\n🆔 @Anime_Faarsi",
+    "caption": "➖ Jujutsu Kaisen (Season 1 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Season 2 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Season 3 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Movie 1 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Movie 2 + دوبله فارسی)\n\n➖ Jujutsu Kaisen (Movie 3 + دوبله فارسی)\n \n#دسترسی_سریع\n#کالکشن\n#جوجوتسو_کایسن\n🆔 @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 2,
+        "length": 39,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/236"
+      },
+      {
+        "offset": 2,
+        "length": 39,
+        "type": "bold"
+      },
+      {
+        "offset": 45,
+        "length": 39,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/236"
+      },
+      {
+        "offset": 45,
+        "length": 39,
+        "type": "bold"
+      },
+      {
+        "offset": 88,
+        "length": 39,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/236"
+      },
+      {
+        "offset": 88,
+        "length": 39,
+        "type": "bold"
+      },
+      {
+        "offset": 131,
+        "length": 38,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/236"
+      },
+      {
+        "offset": 131,
+        "length": 38,
+        "type": "bold"
+      },
+      {
+        "offset": 173,
+        "length": 38,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/236"
+      },
+      {
+        "offset": 173,
+        "length": 38,
+        "type": "bold"
+      },
+      {
+        "offset": 215,
+        "length": 38,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi/236"
+      },
+      {
+        "offset": 215,
+        "length": 38,
+        "type": "bold"
+      },
+      {
+        "offset": 253,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 256,
+        "length": 12,
+        "type": "hashtag"
+      },
+      {
+        "offset": 256,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 268,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 269,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 269,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 276,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 277,
+        "length": 14,
+        "type": "hashtag"
+      },
+      {
+        "offset": 278,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 291,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 295,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 295,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1743096357,
+    "createdAt": "2026-10-08T19:40:21.508Z",
+    "updatedAt": "2026-10-08T19:40:21.508Z"
+  },
+  {
     "id": "anime_faarsi:456",
     "name": "➖ Gintama Episode 1 ~ 30",
     "nameNormalized": "gintama episode 1 30",
