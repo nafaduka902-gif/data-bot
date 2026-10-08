@@ -57,6 +57,22 @@
     "updatedAt": "2026-10-08T14:24:13.506Z"
   },
   {
+    "id": "anime_faarsi:1015",
+    "name": "Post 1015",
+    "nameNormalized": "post 1015",
+    "link": "https://t.me/Anime_Faarsi/1015",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1015,
+    "text": "",
+    "caption": "",
+    "entities": [],
+    "date": 1791469453,
+    "createdAt": "2026-10-08T14:24:18.321Z",
+    "updatedAt": "2026-10-08T14:24:18.321Z"
+  },
+  {
     "id": "dubb_anime:12",
     "name": "Post 12",
     "nameNormalized": "post 12",
