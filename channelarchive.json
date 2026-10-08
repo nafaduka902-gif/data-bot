@@ -4380,6 +4380,63 @@
     "updatedAt": "2026-10-03T07:40:32.916Z"
   },
   {
+    "id": "animitionfaarsi:19",
+    "name": "مرد خانواده",
+    "nameNormalized": "مرد خانواده",
+    "aliases": [
+      "مرد خانواده"
+    ],
+    "aliasesNormalized": [
+      "مرد خانواده"
+    ],
+    "animeName": "مرد خانواده",
+    "englishName": "",
+    "persianName": "مرد خانواده",
+    "link": "https://t.me/AnimitionFaarsi/19",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 19,
+    "text": "📺 انیمیشن سریالی « مرد خانواده »\n\n📼 Family Guy\n✨ IMDb: 8.5\n\n🎭 ژانر: انیمیشن | کمدی | سینن | بزرگسالانه\n🪙 محصول: آمریکا\n⭕ وضعیت: 1 فصل 7 قسمت\n🚫 رده‌بندی سنی: 18+\n🍿 بازیگران: Seth MacFarlane | Alex Borstein | Seth Green | Mila Kunis\n\n📝 خلاصه داستان : داستان خانواده گریفین و زندگی عجیب و پرماجرای آن‌ها در شهر خیالی کوهاگ است.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @AnimitionFaarsi",
+    "caption": "📺 انیمیشن سریالی « مرد خانواده »\n\n📼 Family Guy\n✨ IMDb: 8.5\n\n🎭 ژانر: انیمیشن | کمدی | سینن | بزرگسالانه\n🪙 محصول: آمریکا\n⭕ وضعیت: 1 فصل 7 قسمت\n🚫 رده‌بندی سنی: 18+\n🍿 بازیگران: Seth MacFarlane | Alex Borstein | Seth Green | Mila Kunis\n\n📝 خلاصه داستان : داستان خانواده گریفین و زندگی عجیب و پرماجرای آن‌ها در شهر خیالی کوهاگ است.\n\n✂️ بدون سانسور و حذفیات ❗️\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @AnimitionFaarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 393,
+        "type": "bold"
+      },
+      {
+        "offset": 393,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_407477803"
+      },
+      {
+        "offset": 393,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 397,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 402,
+        "length": 16,
+        "type": "mention"
+      },
+      {
+        "offset": 402,
+        "length": 16,
+        "type": "bold"
+      }
+    ],
+    "date": 1790426025,
+    "createdAt": "2026-10-08T19:27:47.609Z",
+    "updatedAt": "2026-10-08T19:27:47.609Z"
+  },
+  {
     "id": "anime_faarsi:963",
     "name": "آشپزی در سیاه چال",
     "nameNormalized": "آشپزی در سیاه چال",
