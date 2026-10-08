@@ -5052,6 +5052,7 @@ function nfArchiveExtractMetadata(
 
 
 
+// #update
 function nfArchiveSearchScore(
   query,
   record
@@ -5081,15 +5082,10 @@ function nfArchiveSearchScore(
     );
 
   const aliases =
-    Array.isArray(
-      record.aliases
-    )
+    Array.isArray(record.aliases)
       ? record.aliases
-          .map(
-            item =>
-              nfArchiveNormalize(
-                item
-              )
+          .map(item =>
+            nfArchiveNormalize(item)
           )
           .filter(Boolean)
       : [];
@@ -5100,21 +5096,20 @@ function nfArchiveSearchScore(
       record.englishName,
       record.persianName
     ]
-      .map(
-        item =>
-          nfArchiveNormalize(
-            item
-          )
+      .map(item =>
+        nfArchiveNormalize(item)
       )
       .filter(Boolean);
 
   const names =
     Array.from(
-      new Set([
-        title,
-        ...aliases,
-        ...metadata
-      ].filter(Boolean))
+      new Set(
+        [
+          title,
+          ...aliases,
+          ...metadata
+        ].filter(Boolean)
+      )
     );
 
   if (!names.length) {
@@ -5132,48 +5127,35 @@ function nfArchiveSearchScore(
   for (
     const name of names
   ) {
-    if (
-      q === name
-    ) {
-      score =
-        Math.max(
-          score,
-          10000
-        );
+    if (q === name) {
+      score = Math.max(
+        score,
+        10000
+      );
     }
 
-    if (
-      name.includes(q)
-    ) {
-      score =
-        Math.max(
-          score,
-          4000
-        );
+    if (name.includes(q)) {
+      score = Math.max(
+        score,
+        4000
+      );
     }
 
-    if (
-      q.includes(name)
-    ) {
-      score =
-        Math.max(
-          score,
-          3000
-        );
+    if (q.includes(name)) {
+      score = Math.max(
+        score,
+        3000
+      );
     }
 
     const nameWords =
-      nfArchiveWords(
-        name
-      );
+      nfArchiveWords(name);
 
     for (
       const word of qWords
     ) {
       if (
-        nameWords.includes(
-          word
-        )
+        nameWords.includes(word)
       ) {
         score += 700;
       }
@@ -5184,9 +5166,7 @@ function nfArchiveSearchScore(
     const word of qWords
   ) {
     if (
-      textWords.includes(
-        word
-      )
+      textWords.includes(word)
     ) {
       score += 70;
     }
@@ -5202,7 +5182,7 @@ function nfArchiveSearchScore(
   return score;
 }
 
-
+// #update
 function nfArchiveSearch(
   records,
   query,
@@ -5217,41 +5197,35 @@ function nfArchiveSearch(
 
   const scored =
     records
-      .map(
-        record => ({
-          record,
-          score:
-            nfArchiveSearchScore(
-              query,
-              record
-            )
-        })
-      )
+      .map(record => ({
+        record,
+        score:
+          nfArchiveSearchScore(
+            query,
+            record
+          )
+      }))
       .filter(
-        item =>
-          item.score > 0
+        item => item.score > 0
       )
       .sort(
         (a, b) =>
-          b.score -
-          a.score
+          b.score - a.score
       );
 
   return scored
     .slice(0, limit)
     .map(
-      item =>
-        item.record
+      item => item.record
     );
 }
 
 
+// #update
 function nfArchiveIntentText(
   text
 ) {
-  return String(
-    text || ''
-  )
+  return String(text || '')
     .replace(
       /لینک\s+(?:پست|انیمه|فیلم|سریال)?/gi,
       ' '
@@ -5592,6 +5566,7 @@ function nfArchiveRecordFromChannelPost(
 }
 
 
+// #update
 async function nfSearchRealArchive(
   ctx,
   userText
@@ -5618,48 +5593,33 @@ async function nfSearchRealArchive(
   const queries =
     new Set();
 
-  queries.add(
-    query
-  );
+  queries.add(query);
 
   const cleaned =
     nfArchiveIntentText(
       query
     );
 
-  if (
-    cleaned
-  ) {
-    queries.add(
-      cleaned
-    );
+  if (cleaned) {
+    queries.add(cleaned);
   }
 
   for (
     const item of
-    nfArchiveQueryVariants(
-      query
-    )
+    nfArchiveQueryVariants(query)
   ) {
-    queries.add(
-      item
-    );
+    queries.add(item);
   }
 
   for (
     const item of
-    nfArchiveQueryVariants(
-      cleaned
-    )
+    nfArchiveQueryVariants(cleaned)
   ) {
-    queries.add(
-      item
-    );
+    queries.add(item);
   }
 
   for (
-    const candidate of
-    queries
+    const candidate of queries
   ) {
     const results =
       nfArchiveSearch(
@@ -5668,9 +5628,7 @@ async function nfSearchRealArchive(
         12
       );
 
-    if (
-      results.length
-    ) {
+    if (results.length) {
       return results;
     }
   }
@@ -5679,14 +5637,11 @@ async function nfSearchRealArchive(
     await nfReadAddedArchivePosts();
 
   if (
-    Array.isArray(
-      addedPosts
-    ) &&
+    Array.isArray(addedPosts) &&
     addedPosts.length
   ) {
     for (
-      const candidate of
-      queries
+      const candidate of queries
     ) {
       const results =
         nfArchiveSearch(
@@ -5695,9 +5650,7 @@ async function nfSearchRealArchive(
           12
         );
 
-      if (
-        results.length
-      ) {
+      if (results.length) {
         return results;
       }
     }
@@ -5705,7 +5658,6 @@ async function nfSearchRealArchive(
 
   return [];
 }
-
 
 
 // #new
@@ -7865,204 +7817,165 @@ async function nfProcess(
       }
     }
 
-    const archiveIntent =
-      /(?:آرشیو|چنل|کانال|پست|موجوده|موجود است|هست|هستش|دار[یی]|داره|دارد|لینک|لینکش|لینک[شو]|قسمت|قسمت‌ها|قسمت ها|فصل|فصل‌ها|فصل ها|دوبله|فارسی|انیمه|انیمیشن|فیلم|سریال|عنوان)/i.test(
-        directText
-      );
-
+    // #update
     let archiveContext = '';
 
-    if (archiveIntent) {
-      try {
-        const extractionPrompt = [
-          'فقط نام عنوان موردنظر کاربر را استخراج کن.',
-          'اگر انیمه، انیمیشن، فیلم یا سریال است فقط نام آن را بنویس.',
-          'هیچ توضیحی نده.',
-          'اگر عنوان مشخص نیست فقط UNKNOWN بنویس.',
-          '',
-          `پیام کاربر: ${directText}`
-        ].join('\n');
-
-        const extractionResponse =
-          await axios.post(
-            NF_API_URL,
-            {
-              model: NF_MODEL,
-              messages: [
-                {
-                  role: 'system',
-                  content:
-                    'فقط عنوان اثر را استخراج کن. فقط نام عنوان یا UNKNOWN.'
-                },
-                {
-                  role: 'user',
-                  content:
-                    extractionPrompt
-                }
-              ],
-              temperature: 0,
-              max_tokens: 30
-            },
-            {
-              headers: {
-                Authorization:
-                  `Bearer ${NF_API_KEY}`,
-                'Content-Type':
-                  'application/json'
-              },
-              timeout: 8000
-            }
-          );
-
-        const extractedTitle =
-          String(
-            extractionResponse
-              ?.data
-              ?.choices?.[0]
-              ?.message?.content || ''
-          )
-            .trim()
-            .replace(
-              /^["'«»]+|["'«»]+$/g,
-              ''
-            );
-
-        if (
-          extractedTitle &&
-          extractedTitle
-            .toUpperCase() !==
-            'UNKNOWN'
-        ) {
-          const archiveResults =
-            await nfSearchRealArchive(
-              ctx,
-              extractedTitle
-            );
-
-          if (
-            Array.isArray(
-              archiveResults
-            ) &&
-            archiveResults.length
-          ) {
-            const output = [];
-
-            for (
-              const record of archiveResults.slice(
-                0,
-                1
-              )
-            ) {
-              const title =
-                String(
-                  record.name ||
-                  record.title ||
-                  ''
-                ).trim();
-
-              const link =
-                String(
-                  record.link ||
-                  record.postUrl ||
-                  ''
-                ).trim();
-
-              const channel =
-                String(
-                  record.channel ||
-                  ''
-                ).trim();
-
-              const messageId =
-                String(
-                  record.messageId ||
-                  record.id ||
-                  ''
-                ).trim();
-
-              if (title) {
-                output.push(
-                  `Title: ${title}`
-                );
-              }
-
-              if (channel) {
-                output.push(
-                  `Channel: ${channel}`
-                );
-              }
-
-              if (messageId) {
-                output.push(
-                  `Message ID: ${messageId}`
-                );
-              }
-
-              if (link) {
-                output.push(
-                  `Telegram Link: ${link}`
-                );
-              }
-
-              if (record.category) {
-                output.push(
-                  `Category: ${String(
-                    record.category
-                  ).trim()}`
-                );
-              }
-
-              if (record.kind) {
-                output.push(
-                  `Kind: ${String(
-                    record.kind
-                  ).trim()}`
-                );
-              }
-
-              if (record.seasons) {
-                output.push(
-                  `Seasons: ${String(
-                    record.seasons
-                  ).trim()}`
-                );
-              }
-
-              if (record.text) {
-                output.push(
-                  `Post Content: ${String(
-                    record.text
-                  ).trim()}`
-                );
-              }
-            }
-
-            archiveContext =
-              output
-                .join('\n')
-                .slice(0, 6000);
-
-          } else {
-            archiveContext =
-              'No matching archive record was found. Do not assume that the requested title exists.';
-          }
-
-        } else {
-          archiveContext =
-            'No clear title could be extracted from the user message.';
-        }
-
-      } catch (error) {
-        console.error(
-          'NF ARCHIVE AI SEARCH ERROR:',
-          error?.response
-            ?.data ||
-          error?.message ||
-          error
+    try {
+      const archiveResults =
+        await nfSearchRealArchive(
+          ctx,
+          directText
         );
 
-        archiveContext = '';
+      if (
+        Array.isArray(
+          archiveResults
+        ) &&
+        archiveResults.length
+      ) {
+        const output = [];
+
+        for (
+          const record of archiveResults.slice(
+            0,
+            3
+          )
+        ) {
+          const title =
+            String(
+              record.name ||
+              record.title ||
+              ''
+            ).trim();
+
+          const link =
+            String(
+              record.link ||
+              record.postUrl ||
+              ''
+            ).trim();
+
+          const channel =
+            String(
+              record.channel ||
+              ''
+            ).trim();
+
+          const messageId =
+            String(
+              record.messageId ||
+              record.id ||
+              ''
+            ).trim();
+
+          if (title) {
+            output.push(
+              `Title: ${title}`
+            );
+          }
+
+          if (record.animeName) {
+            output.push(
+              `Anime Name: ${String(
+                record.animeName
+              ).trim()}`
+            );
+          }
+
+          if (record.englishName) {
+            output.push(
+              `English Name: ${String(
+                record.englishName
+              ).trim()}`
+            );
+          }
+
+          if (record.persianName) {
+            output.push(
+              `Persian Name: ${String(
+                record.persianName
+              ).trim()}`
+            );
+          }
+
+          if (channel) {
+            output.push(
+              `Channel: ${channel}`
+            );
+          }
+
+          if (messageId) {
+            output.push(
+              `Message ID: ${messageId}`
+            );
+          }
+
+          if (link) {
+            output.push(
+              `Telegram Link: ${link}`
+            );
+          }
+
+          if (record.channelType) {
+            output.push(
+              `Channel Type: ${String(
+                record.channelType
+              ).trim()}`
+            );
+          }
+
+          if (record.category) {
+            output.push(
+              `Category: ${String(
+                record.category
+              ).trim()}`
+            );
+          }
+
+          if (record.kind) {
+            output.push(
+              `Kind: ${String(
+                record.kind
+              ).trim()}`
+            );
+          }
+
+          if (record.seasons) {
+            output.push(
+              `Seasons: ${String(
+                record.seasons
+              ).trim()}`
+            );
+          }
+
+          if (record.text) {
+            output.push(
+              `Post Content: ${String(
+                record.text
+              ).trim()}`
+            );
+          }
+
+          output.push(
+            '━━━━━━━━━━━━━━━━━━'
+          );
+        }
+
+        archiveContext =
+          output
+            .join('\n')
+            .slice(0, 10000);
       }
+
+    } catch (error) {
+      console.error(
+        'NF ARCHIVE SEARCH ERROR:',
+        error?.response?.data ||
+        error?.message ||
+        error
+      );
+
+      archiveContext = '';
     }
 
     // #new
@@ -8075,7 +7988,9 @@ async function nfProcess(
     ) {
       try {
         const airingSearch =
-          String(directText || '')
+          String(
+            directText || ''
+          )
             .replace(
               /^(?:قسمت\s+بعدی|زمان\s+پخش|تاریخ\s+پخش|تاریخ\s+انتشار)\s*/iu,
               ''
@@ -8096,6 +8011,7 @@ async function nfProcess(
               airingSearch
             );
         }
+
       } catch (error) {
         console.error(
           'NF AIRING SEARCH ERROR:',
@@ -8164,8 +8080,7 @@ async function nfProcess(
       } else {
         console.error(
           'NF AI ERROR:',
-          error?.response
-            ?.data ||
+          error?.response?.data ||
           error?.message ||
           error
         );
@@ -8195,8 +8110,7 @@ async function nfProcess(
   } catch (error) {
     console.error(
       'NF PROCESS ERROR:',
-      error?.response
-        ?.data ||
+      error?.response?.data ||
       error?.message ||
       error
     );
@@ -8233,7 +8147,6 @@ async function nfProcess(
     );
   }
 }
-   
     
 function nfCanUseAI(ctx) {
   if (!ctx.from) return false;
