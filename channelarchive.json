@@ -7379,6 +7379,65 @@
     "updatedAt": "2026-10-03T18:22:38.540Z"
   },
   {
+    "id": "anime_faarsi:253",
+    "name": "بلو لاک: قسمت ناگی",
+    "nameNormalized": "بلو لاک قسمت ناگی",
+    "aliases": [
+      "بلو لاک: قسمت ناگی",
+      "Blue Lock: Episode Nagi 2024"
+    ],
+    "aliasesNormalized": [
+      "بلو لاک قسمت ناگی",
+      "blue lock episode nagi 2024"
+    ],
+    "animeName": "بلو لاک: قسمت ناگی",
+    "englishName": "Blue Lock: Episode Nagi 2024",
+    "persianName": "بلو لاک: قسمت ناگی",
+    "link": "https://t.me/Anime_Faarsi/253",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 253,
+    "text": "📼 انیمه سینمایی « بلو لاک: قسمت ناگی »\n\n📹 Blue Lock: Episode Nagi 2024\n⭐️ IMDB : 6.6\n\n🎭 ژانر : انیمیشن | ورزشی | درام | هیجان‌انگیز\n🌐 محصول : ژاپن\n👤 ستارگان : Nobunaga Shimazaki, Yuma Uchida, Kazuyuki Okitsu\n\n💬 خلاصه داستان : داستان از نگاه سیشیرو ناگی روایت می‌شود؛ نابغه‌ای که زندگی آرام و بی‌دغدغه‌ای دارد تا اینکه آشنایی او با رئو میکاجه باعث می‌شود استعداد پنهانش در فوتبال شکوفا شود و وارد پروژه مرموز بلو لاک شود.\n\n🚫 بدون سانسور و حذفیات\n \n🎤دوبله فارسی (گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سینمایی « بلو لاک: قسمت ناگی »\n\n📹 Blue Lock: Episode Nagi 2024\n⭐️ IMDB : 6.6\n\n🎭 ژانر : انیمیشن | ورزشی | درام | هیجان‌انگیز\n🌐 محصول : ژاپن\n👤 ستارگان : Nobunaga Shimazaki, Yuma Uchida, Kazuyuki Okitsu\n\n💬 خلاصه داستان : داستان از نگاه سیشیرو ناگی روایت می‌شود؛ نابغه‌ای که زندگی آرام و بی‌دغدغه‌ای دارد تا اینکه آشنایی او با رئو میکاجه باعث می‌شود استعداد پنهانش در فوتبال شکوفا شود و وارد پروژه مرموز بلو لاک شود.\n\n🚫 بدون سانسور و حذفیات\n \n🎤دوبله فارسی (گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 478,
+        "type": "bold"
+      },
+      {
+        "offset": 482,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_79063042"
+      },
+      {
+        "offset": 482,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 515,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 517,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 517,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1739531871,
+    "createdAt": "2026-10-08T19:43:01.069Z",
+    "updatedAt": "2026-10-08T19:43:01.069Z"
+  },
+  {
     "id": "anime_faarsi:252",
     "name": "گارودن: شیوه گرگ تنها",
     "nameNormalized": "گارودن شیوه گرگ تنها",
