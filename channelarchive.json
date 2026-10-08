@@ -5670,15 +5670,15 @@
   },
   {
     "id": "anime_faarsi:556",
-    "name": "➖ Black Clover Season 1 Episode 01 ~ 60",
+    "name": "Black Clover Season 1 Episode 01 ~ 60",
     "nameNormalized": "black clover season 1 episode 01 60",
     "link": "https://t.me/Anime_Faarsi/556",
     "channel": "Anime_Faarsi",
     "channelNormalized": "anime_faarsi",
     "channelType": "anime",
     "messageId": 556,
-    "text": "➖ Black Clover Season 1 Episode 01 ~ 60\n\n➖ Black Clover Season 1 Episode 61 ~ 170\n\n➖ Black Clover Season 2 Episode 1 ~ 25\n\n➖ Black Clover Movie: Sword of the Wizard King Movie 1\n\n#دسترسی_سریع\n#کالکشن\n#شبدر_سیاه\n🆔 @Anime_Faarsi",
-    "caption": "➖ Black Clover Season 1 Episode 01 ~ 60\n\n➖ Black Clover Season 1 Episode 61 ~ 170\n\n➖ Black Clover Season 2 Episode 1 ~ 25\n\n➖ Black Clover Movie: Sword of the Wizard King Movie 1\n\n#دسترسی_سریع\n#کالکشن\n#شبدر_سیاه\n🆔 @Anime_Faarsi",
+    "text": "➖ Black Clover Season 1 Episode 01 ~ 60\n\n➖ Black Clover Season 1 Episode 61 ~ 170\n\n➖ Black Clover Season 2 Episode 1 ~ 25\n\n➖ Black Clover Movie: Sword of the Wizard King Movie 1\n \n#دسترسی_سریع\n#کالکشن\n#شبدر_سیاه\n🆔 @Anime_Faarsi",
+    "caption": "➖ Black Clover Season 1 Episode 01 ~ 60\n\n➖ Black Clover Season 1 Episode 61 ~ 170\n\n➖ Black Clover Season 2 Episode 1 ~ 25\n\n➖ Black Clover Movie: Sword of the Wizard King Movie 1\n \n#دسترسی_سریع\n#کالکشن\n#شبدر_سیاه\n🆔 @Anime_Faarsi",
     "entities": [
       {
         "offset": 2,
@@ -5706,74 +5706,83 @@
       },
       {
         "offset": 177,
-        "length": 2,
+        "length": 3,
         "type": "text_link",
         "url": "https://t.me/animworlddl/18705"
       },
       {
         "offset": 177,
-        "length": 2,
+        "length": 3,
         "type": "bold"
       },
       {
-        "offset": 179,
+        "offset": 180,
         "length": 12,
         "type": "hashtag"
       },
       {
-        "offset": 179,
+        "offset": 180,
         "length": 12,
         "type": "bold"
       },
       {
-        "offset": 191,
+        "offset": 192,
         "length": 1,
         "type": "bold"
       },
       {
-        "offset": 192,
+        "offset": 193,
         "length": 7,
         "type": "hashtag"
       },
       {
-        "offset": 192,
+        "offset": 193,
         "length": 7,
         "type": "bold"
       },
       {
-        "offset": 199,
+        "offset": 200,
         "length": 1,
         "type": "bold"
       },
       {
-        "offset": 200,
+        "offset": 201,
         "length": 10,
         "type": "hashtag"
       },
       {
-        "offset": 200,
+        "offset": 201,
         "length": 10,
         "type": "bold"
       },
       {
-        "offset": 210,
+        "offset": 211,
         "length": 4,
         "type": "bold"
       },
       {
-        "offset": 214,
+        "offset": 215,
         "length": 13,
         "type": "mention"
       },
       {
-        "offset": 214,
+        "offset": 215,
         "length": 13,
         "type": "bold"
       }
     ],
     "date": 1743403203,
     "createdAt": "2026-10-03T17:52:34.841Z",
-    "updatedAt": "2026-10-03T17:52:34.841Z"
+    "updatedAt": "2026-10-08T19:02:27.283Z",
+    "aliases": [
+      "Black Clover Season 1 Episode 01 ~ 60"
+    ],
+    "aliasesNormalized": [
+      "black clover season 1 episode 01 60"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "Black Clover Season 1 Episode 01 ~ 60"
   },
   {
     "id": "anime_faarsi:554",
