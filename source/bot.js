@@ -5083,6 +5083,420 @@ async function nfWriteArchive(
   );
 }
 
+
+
+
+
+// #new
+function nfArchiveCleanText(value) {
+  return String(value || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/\u200c/g, ' ')
+    .replace(/\u200f/g, '')
+    .replace(/\u202a|\u202b|\u202c|\u202d|\u202e/g, '')
+    .replace(/[ـ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// #new
+function nfArchiveNormalize(value) {
+  return nfArchiveCleanText(value)
+    .toLowerCase()
+    .replace(/[يى]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[ۀة]/g, 'ه')
+    .replace(/ؤ/g, 'و')
+    .replace(/[إأٱ]/g, 'ا')
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// #new
+function nfArchiveAddAlias(
+  aliases,
+  value
+) {
+  const raw =
+    nfArchiveCleanText(value);
+
+  if (!raw) {
+    return;
+  }
+
+  const normalized =
+    nfArchiveNormalize(raw);
+
+  if (!normalized) {
+    return;
+  }
+
+  if (
+    !aliases.some(
+      item =>
+        nfArchiveNormalize(item) ===
+        normalized
+    )
+  ) {
+    aliases.push(raw);
+  }
+}
+
+// #new
+function nfArchiveExtractMetadata(
+  text
+) {
+  const result = {
+    anime: '',
+    english: '',
+    persian: '',
+    aliases: []
+  };
+
+  const lines =
+    String(text || '')
+      .split(/\n+/)
+      .map(x =>
+        String(x || '').trim()
+      )
+      .filter(Boolean);
+
+  for (const line of lines) {
+    let match;
+
+    match =
+      line.match(
+        /^\s*نام\s+انیمه\s*:\s*(.+)$/iu
+      );
+
+    if (match?.[1]) {
+      result.anime =
+        nfArchiveCleanText(
+          match[1]
+        );
+
+      nfArchiveAddAlias(
+        result.aliases,
+        result.anime
+      );
+
+      continue;
+    }
+
+    match =
+      line.match(
+        /^\s*نام\s+انگلیسی\s*:\s*(.+)$/iu
+      );
+
+    if (match?.[1]) {
+      result.english =
+        nfArchiveCleanText(
+          match[1]
+        );
+
+      nfArchiveAddAlias(
+        result.aliases,
+        result.english
+      );
+
+      continue;
+    }
+
+    match =
+      line.match(
+        /^\s*نام\s+فارسی\s*:\s*(.+)$/iu
+      );
+
+    if (match?.[1]) {
+      result.persian =
+        nfArchiveCleanText(
+          match[1]
+        );
+
+      nfArchiveAddAlias(
+        result.aliases,
+        result.persian
+      );
+
+      continue;
+    }
+  }
+
+  return result;
+}
+
+// #new
+function nfArchiveExtractTitle(
+  text
+) {
+  const value =
+    String(text || '').trim();
+
+  if (!value) {
+    return '';
+  }
+
+  const metadata =
+    nfArchiveExtractMetadata(
+      value
+    );
+
+  if (metadata.persian) {
+    return metadata.persian;
+  }
+
+  if (metadata.english) {
+    return metadata.english;
+  }
+
+  if (metadata.anime) {
+    return metadata.anime;
+  }
+
+  const quoted =
+    value.match(
+      /[«"]\s*([^»"]+?)\s*[»"]/u
+    );
+
+  if (quoted?.[1]) {
+    return nfArchiveCleanText(
+      quoted[1]
+    );
+  }
+
+  const lines =
+    value
+      .split('\n')
+      .map(x =>
+        x
+          .replace(
+            /^[📼🎬🎞️📺➖\-]+\s*/u,
+            ''
+          )
+          .trim()
+      )
+      .filter(Boolean);
+
+  if (!lines.length) {
+    return '';
+  }
+
+  return nfArchiveCleanText(
+    lines[0]
+      .replace(
+        /^(?:انیمه|انیمیشن)\s+(?:سریالی|سریال|سینمایی|فیلم)\s*/iu,
+        ''
+      )
+      .replace(
+        /^فیلم\s+/iu,
+        ''
+      )
+      .replace(
+        /^سریال\s+/iu,
+        ''
+      )
+  );
+}
+
+// #new
+function nfArchiveMessageText(
+  message
+) {
+  const text =
+    String(
+      message?.text ||
+      message?.caption ||
+      ''
+    ).trim();
+
+  return text;
+}
+
+// #update
+function nfArchiveRecordFromChannelPost(
+  ctx
+) {
+  const post =
+    ctx.channelPost ||
+    ctx.editedChannelPost;
+
+  if (!post) {
+    return null;
+  }
+
+  const chat =
+    ctx.chat;
+
+  if (
+    chat?.type !== 'channel'
+  ) {
+    return null;
+  }
+
+  const username =
+    String(
+      chat.username || ''
+    ).trim();
+
+  if (
+    !nfArchiveChannelAllowed(
+      username
+    )
+  ) {
+    return null;
+  }
+
+  const info =
+    nfArchiveChannelInfo(
+      username
+    );
+
+  const messageId =
+    Number(
+      post.message_id
+    );
+
+  if (
+    !Number.isInteger(messageId) ||
+    messageId <= 0
+  ) {
+    return null;
+  }
+
+  const text =
+    nfArchiveMessageText(
+      post
+    );
+
+  if (!text) {
+    console.log(
+      '🟡 NF ARCHIVE SKIP:',
+      username,
+      messageId,
+      'EMPTY POST'
+    );
+
+    return null;
+  }
+
+  const metadata =
+    nfArchiveExtractMetadata(
+      text
+    );
+
+  const title =
+    nfArchiveExtractTitle(
+      text
+    );
+
+  const aliases = [];
+
+  nfArchiveAddAlias(
+    aliases,
+    title
+  );
+
+  nfArchiveAddAlias(
+    aliases,
+    metadata.anime
+  );
+
+  nfArchiveAddAlias(
+    aliases,
+    metadata.english
+  );
+
+  nfArchiveAddAlias(
+    aliases,
+    metadata.persian
+  );
+
+  const now =
+    new Date().toISOString();
+
+  return {
+    id:
+      `${String(username)
+        .replace(/^@/, '')
+        .toLowerCase()}:${messageId}`,
+
+    name:
+      title ||
+      `Post ${messageId}`,
+
+    nameNormalized:
+      nfArchiveNormalize(
+        title ||
+        `Post ${messageId}`
+      ),
+
+    aliases,
+
+    aliasesNormalized:
+      aliases.map(
+        item =>
+          nfArchiveNormalize(
+            item
+          )
+      ),
+
+    animeName:
+      metadata.anime || '',
+
+    englishName:
+      metadata.english || '',
+
+    persianName:
+      metadata.persian || '',
+
+    link:
+      nfArchivePostLink(
+        username,
+        messageId
+      ),
+
+    channel:
+      String(username),
+
+    channelNormalized:
+      String(username)
+        .replace(/^@/, '')
+        .toLowerCase(),
+
+    channelType:
+      info?.type || 'unknown',
+
+    messageId,
+
+    text,
+
+    caption:
+      String(
+        post.caption || ''
+      ).trim(),
+
+    entities:
+      post.entities ||
+      post.caption_entities ||
+      [],
+
+    date:
+      post.date
+        ? Number(post.date)
+        : null,
+
+    createdAt:
+      now,
+
+    updatedAt:
+      now
+  };
+}
+
+// #update
 async function nfUpsertArchivePost(
   ctx
 ) {
@@ -5113,12 +5527,47 @@ async function nfUpsertArchivePost(
       records[index] = {
         ...old,
         ...record,
+
+        aliases:
+          Array.from(
+            new Set([
+              ...(Array.isArray(
+                old.aliases
+              )
+                ? old.aliases
+                : []),
+              ...(Array.isArray(
+                record.aliases
+              )
+                ? record.aliases
+                : [])
+            ])
+          ),
+
+        aliasesNormalized:
+          Array.from(
+            new Set([
+              ...(Array.isArray(
+                old.aliasesNormalized
+              )
+                ? old.aliasesNormalized
+                : []),
+              ...(Array.isArray(
+                record.aliasesNormalized
+              )
+                ? record.aliasesNormalized
+                : [])
+            ])
+          ),
+
         createdAt:
           old.createdAt ||
           record.createdAt
       };
     } else {
-      records.push(record);
+      records.push(
+        record
+      );
     }
 
     records.sort(
@@ -5145,7 +5594,8 @@ async function nfUpsertArchivePost(
       'NF ARCHIVE SAVED:',
       record.channel,
       record.messageId,
-      record.name
+      record.name,
+      record.aliases
     );
 
     return true;
@@ -5158,6 +5608,175 @@ async function nfUpsertArchivePost(
 
     return false;
   }
+}
+
+
+// #new
+function nfArchiveRecordMatches(
+  record,
+  query
+) {
+  const q =
+    nfArchiveNormalize(
+      query
+    );
+
+  if (!q) {
+    return false;
+  }
+
+  const fields = [
+    record?.name,
+    record?.nameNormalized,
+    record?.animeName,
+    record?.englishName,
+    record?.persianName,
+    record?.text,
+    record?.caption
+  ];
+
+  if (
+    Array.isArray(
+      record?.aliases
+    )
+  ) {
+    fields.push(
+      ...record.aliases
+    );
+  }
+
+  if (
+    Array.isArray(
+      record?.aliasesNormalized
+    )
+  ) {
+    fields.push(
+      ...record.aliasesNormalized
+    );
+  }
+
+  return fields.some(
+    value => {
+      const normalized =
+        nfArchiveNormalize(
+          value
+        );
+
+      return (
+        normalized === q ||
+        normalized.includes(q) ||
+        q.includes(normalized)
+      );
+    }
+  );
+}
+
+// #new
+function nfArchiveMatchScore(
+  record,
+  query
+) {
+  const q =
+    nfArchiveNormalize(
+      query
+    );
+
+  if (!q) {
+    return 0;
+  }
+
+  const values = [];
+
+  const add =
+    value => {
+      const normalized =
+        nfArchiveNormalize(
+          value
+        );
+
+      if (normalized) {
+        values.push(
+          normalized
+        );
+      }
+    };
+
+  add(record?.name);
+  add(record?.nameNormalized);
+  add(record?.animeName);
+  add(record?.englishName);
+  add(record?.persianName);
+
+  if (
+    Array.isArray(
+      record?.aliases
+    )
+  ) {
+    record.aliases.forEach(add);
+  }
+
+  if (
+    Array.isArray(
+      record?.aliasesNormalized
+    )
+  ) {
+    record.aliasesNormalized.forEach(
+      add
+    );
+  }
+
+  let score = 0;
+
+  for (
+    const value of values
+  ) {
+    if (value === q) {
+      score =
+        Math.max(
+          score,
+          1000
+        );
+      continue;
+    }
+
+    if (
+      value.includes(q)
+    ) {
+      score =
+        Math.max(
+          score,
+          800
+        );
+    }
+
+    if (
+      q.includes(value)
+    ) {
+      score =
+        Math.max(
+          score,
+          700
+        );
+    }
+  }
+
+  const text =
+    nfArchiveNormalize(
+      record?.text
+    );
+
+  if (
+    text &&
+    text.includes(q)
+  ) {
+    score =
+      Math.max(
+        score,
+        400
+      );
+  }
+
+  return score;
 }
 
 
@@ -5432,6 +6051,8 @@ async function nfSearchRealArchive(
 
   const queries =
     new Set([
+      query,
+      cleaned,
       ...nfArchiveQueryVariants(query),
       ...nfArchiveQueryVariants(cleaned)
     ]);
@@ -5466,6 +6087,318 @@ async function nfSearchRealArchive(
   }
 
   return [];
+}
+
+
+async function unmuteAllKnownMembers(
+  ctx
+) {
+  const chatId =
+    Number(ctx.chat.id);
+
+  const groupSettings =
+    await getGroupSettingsV1(chatId);
+
+  const memberIds =
+    Array.isArray(groupSettings.memberIds)
+      ? groupSettings.memberIds
+          .map(Number)
+          .filter(
+            id =>
+              Number.isInteger(id) &&
+              id !== 0
+          )
+      : [];
+
+  if (!memberIds.length) {
+    return {
+      success: 0,
+      failed: 0,
+      total: 0
+    };
+  }
+
+  let success = 0;
+  let failed = 0;
+
+  for (const userId of memberIds) {
+    try {
+      const result =
+        await unmuteUser(
+          ctx,
+          chatId,
+          userId
+        );
+
+      if (result) {
+        success++;
+      } else {
+        failed++;
+      }
+    } catch {
+      failed++;
+    }
+  }
+
+  return {
+    success,
+    failed,
+    total: memberIds.length
+  };
+}
+
+
+bot.command(
+  'unmuteall',
+  async ctx => {
+    if (!(await requireGroupModerator(ctx))) {
+      return;
+    }
+
+    if (
+      !ctx.chat ||
+      !['group', 'supergroup'].includes(
+        ctx.chat.type
+      )
+    ) {
+      return;
+    }
+
+    const progress =
+      await ctx.reply(
+        '⏳ در حال Unmute کردن اعضای ثبت‌شده گروه...'
+      );
+
+    try {
+      const result =
+        await unmuteAllKnownMembers(ctx);
+
+      await ctx.telegram.editMessageText(
+        ctx.chat.id,
+        progress.message_id,
+        undefined,
+        [
+          '🔊 <b>Unmute All</b>',
+          '',
+          `👥 تعداد بررسی‌شده: ${result.total}`,
+          `✅ Unmute موفق: ${result.success}`,
+          `❌ ناموفق: ${result.failed}`
+        ].join('\n'),
+        {
+          parse_mode: 'HTML'
+        }
+      );
+    } catch (error) {
+      console.error(
+        'UNMUTE ALL ERROR:',
+        error?.message || error
+      );
+
+      try {
+        await ctx.telegram.editMessageText(
+          ctx.chat.id,
+          progress.message_id,
+          undefined,
+          '❌ عملیات Unmute All انجام نشد.'
+        );
+      } catch {}
+    }
+  }
+);
+
+// #new
+function nfIsAiringQuestion(
+  text
+) {
+  const value =
+    String(text || '')
+      .toLowerCase()
+      .trim();
+
+  return Boolean(
+    /(?:airing|پخش|شروع\s*(?:شد|شده|میشه|می‌شود)|قسمت\s*(?:بعدی|بعد)|قسمت\s*\d+|کی\s*(?:میاد|میاد؟|پخش)|چه\s*زمانی\s*(?:میاد|پخش)|زمان\s*پخش|تاریخ\s*پخش|تاریخ\s*انتشار|منتشر\s*(?:شد|شده)|اومد|آمد|نمیاد|نیمده|نیومده|فصل\s*\d+\s*(?:شروع|پخش|اومد|آمد))/iu
+      .test(value)
+  );
+}
+
+
+// #new
+async function nfGetAiringContext(
+  search
+) {
+  const value =
+    String(search || '')
+      .trim();
+
+  if (!value) {
+    return '';
+  }
+
+  try {
+    const results =
+      await searchAnimeOnAniList(
+        value
+      );
+
+    if (
+      !Array.isArray(results) ||
+      !results.length
+    ) {
+      return '';
+    }
+
+    let anime =
+      results.find(
+        x =>
+          x?.status ===
+          'RELEASING'
+      );
+
+    if (!anime) {
+      anime =
+        results.find(
+          x =>
+            x?.status ===
+            'NOT_YET_RELEASED'
+        );
+    }
+
+    if (!anime) {
+      anime =
+        results[0];
+    }
+
+    const airing =
+      anime?.nextAiringEpisode;
+
+    const title =
+      anime?.title?.english ||
+      anime?.title?.romaji ||
+      anime?.title?.native ||
+      value;
+
+    const native =
+      anime?.title?.native ||
+      '';
+
+    const romaji =
+      anime?.title?.romaji ||
+      '';
+
+    const english =
+      anime?.title?.english ||
+      '';
+
+    const status =
+      String(
+        anime?.status || ''
+      );
+
+    const format =
+      String(
+        anime?.format || ''
+      );
+
+    const season =
+      anime?.season
+        ? `${anime.season} ${anime.seasonYear || ''}`.trim()
+        : '';
+
+    let nextEpisode =
+      'اعلام نشده';
+
+    let airingAt =
+      'اعلام نشده';
+
+    let timeUntil =
+      'اعلام نشده';
+
+    if (
+      airing?.episode
+    ) {
+      nextEpisode =
+        `قسمت ${airing.episode}`;
+    }
+
+    if (
+      typeof airing?.airingAt ===
+      'number'
+    ) {
+      const date =
+        new Date(
+          airing.airingAt * 1000
+        );
+
+      if (
+        !isNaN(
+          date.getTime()
+        )
+      ) {
+        airingAt =
+          date.toISOString();
+      }
+    }
+
+    if (
+      typeof airing?.timeUntilAiring ===
+        'number' &&
+      airing.timeUntilAiring >= 0
+    ) {
+      const seconds =
+        airing.timeUntilAiring;
+
+      const days =
+        Math.floor(
+          seconds / 86400
+        );
+
+      const hours =
+        Math.floor(
+          (seconds % 86400) /
+            3600
+        );
+
+      const minutes =
+        Math.floor(
+          (seconds % 3600) /
+            60
+        );
+
+      const secs =
+        Math.floor(
+          seconds % 60
+        );
+
+      timeUntil =
+        `${days} روز، ${hours} ساعت، ${minutes} دقیقه و ${secs} ثانیه`;
+    }
+
+    return [
+      'REAL AIRING DATA FROM ANILIST:',
+      `Title: ${title}`,
+      `Native: ${native}`,
+      `Romaji: ${romaji}`,
+      `English: ${english}`,
+      `Status: ${status}`,
+      `Format: ${format}`,
+      `Season: ${season}`,
+      `Next Episode: ${nextEpisode}`,
+      `Airing At UTC: ${airingAt}`,
+      `Time Until Airing: ${timeUntil}`,
+      `Total Episodes: ${anime?.episodes ?? 'Unknown'}`,
+      `Start Date: ${JSON.stringify(anime?.startDate || null)}`,
+      `End Date: ${JSON.stringify(anime?.endDate || null)}`,
+      `Source: AniList`
+    ].join('\n');
+
+  } catch (error) {
+    console.error(
+      'NF AIRING CONTEXT ERROR:',
+      error
+    );
+
+    return '';
+  }
 }
 
 
@@ -6708,7 +7641,7 @@ async function nfProcess(
         console.error(
           'NF THINKING ERROR:',
           error?.message ||
-            error
+          error
         );
       }
     }
@@ -6721,11 +7654,12 @@ async function nfProcess(
           ctx,
           directText
         );
+
     } catch (error) {
       console.error(
         'NF DIRECT ERROR:',
         error?.message ||
-          error
+        error
       );
     }
 
@@ -6770,11 +7704,12 @@ async function nfProcess(
                 ctx,
                 memory
               );
+
           } catch (error) {
             console.error(
               'NF MEMORY SAVE ERROR:',
               error?.message ||
-                error
+              error
             );
           }
 
@@ -6840,11 +7775,12 @@ async function nfProcess(
             ) {
               savedCount++;
             }
+
           } catch (error) {
             console.error(
               'NF TASK SAVE ERROR:',
               error?.message ||
-                error
+              error
             );
           }
         }
@@ -6924,8 +7860,7 @@ async function nfProcess(
             extractionResponse
               ?.data
               ?.choices?.[0]
-              ?.message
-              ?.content || ''
+              ?.message?.content || ''
           )
             .trim()
             .replace(
@@ -7063,13 +7998,64 @@ async function nfProcess(
           'NF ARCHIVE AI SEARCH ERROR:',
           error?.response
             ?.data ||
-            error?.message ||
-            error
+          error?.message ||
+          error
         );
 
         archiveContext = '';
       }
     }
+
+    // #new
+    let airingContext = '';
+
+    if (
+      nfIsAiringQuestion(
+        directText
+      )
+    ) {
+      try {
+        const airingSearch =
+          String(directText || '')
+            .replace(
+              /^(?:قسمت\s+بعدی|زمان\s+پخش|تاریخ\s+پخش|تاریخ\s+انتشار)\s*/iu,
+              ''
+            )
+            .replace(
+              /(?:شروع\s+شده|شروع\s+شد|پخش\s+شده|پخش\s+شد|کی\s+میاد|کی\s+پخش\s+میشه|نیمده|نیومده|اومده|آمده|شروع|پخش)\s*[؟?]?/iu,
+              ''
+            )
+            .replace(
+              /[؟?]+$/u,
+              ''
+            )
+            .trim();
+
+        if (airingSearch) {
+          airingContext =
+            await nfGetAiringContext(
+              airingSearch
+            );
+        }
+      } catch (error) {
+        console.error(
+          'NF AIRING SEARCH ERROR:',
+          error?.message ||
+          error
+        );
+      }
+    }
+
+    // #new
+    const combinedContext =
+      [
+        archiveContext,
+        airingContext
+      ]
+        .filter(Boolean)
+        .join(
+          '\n\n━━━━━━━━━━━━━━━━━━\n\n'
+        );
 
     let answer = '';
 
@@ -7078,7 +8064,7 @@ async function nfProcess(
         await nfAskAI(
           ctx,
           directText,
-          archiveContext
+          combinedContext
         );
 
     } catch (error) {
@@ -7099,6 +8085,7 @@ async function nfProcess(
       ) {
         answer =
           '⏳ سرویس AI فعلاً به محدودیت درخواست رسیده. کمی بعد دوباره امتحان کن.';
+
       } else if (
         error?.code ===
           'ECONNABORTED' ||
@@ -7107,19 +8094,21 @@ async function nfProcess(
       ) {
         answer =
           '⏱ پاسخ AI بیش از حد طول کشید. دوباره امتحان کن.';
+
       } else if (
         errorCode ===
         'NF_API_KEY_MISSING'
       ) {
         answer =
           '⚠️ کلید سرویس AI تنظیم نشده است.';
+
       } else {
         console.error(
           'NF AI ERROR:',
           error?.response
             ?.data ||
-            error?.message ||
-            error
+          error?.message ||
+          error
         );
 
         answer =
@@ -7149,8 +8138,8 @@ async function nfProcess(
       'NF PROCESS ERROR:',
       error?.response
         ?.data ||
-        error?.message ||
-        error
+      error?.message ||
+      error
     );
 
     const fallback =
@@ -7170,11 +8159,12 @@ async function nfProcess(
         fallback,
         thinking?.message_id
       );
+
     } catch (sendError) {
       console.error(
         'NF FINAL SEND ERROR:',
         sendError?.message ||
-          sendError
+        sendError
       );
     }
 
@@ -15344,6 +16334,7 @@ for (const action of [
   'warn',
   'mute',
   'unmute',
+  'unmuteall',
   'ban',
   'kick',
   'unban',
