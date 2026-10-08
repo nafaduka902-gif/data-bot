@@ -57,6 +57,22 @@
     "updatedAt": "2026-10-08T14:24:42.591Z"
   },
   {
+    "id": "faarsimovie:472",
+    "name": "Post 472",
+    "nameNormalized": "post 472",
+    "link": "https://t.me/FaarsiMovie/472",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 472,
+    "text": "",
+    "caption": "",
+    "entities": [],
+    "date": 1791469482,
+    "createdAt": "2026-10-08T14:24:45.622Z",
+    "updatedAt": "2026-10-08T14:24:45.622Z"
+  },
+  {
     "id": "anime_faarsi:1014",
     "name": "آماده دوتا از بزرگترین پروژه های 2026 هستید؟",
     "nameNormalized": "آماده دوتا از بزرگترین پروژه های 2026 هستید",
