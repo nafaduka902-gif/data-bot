@@ -4712,6 +4712,125 @@
     "updatedAt": "2026-10-03T11:24:29.360Z"
   },
   {
+    "id": "anime_faarsi:811",
+    "name": "سوپر کیوب",
+    "nameNormalized": "سوپر کیوب",
+    "aliases": [
+      "سوپر کیوب",
+      "Super Cube"
+    ],
+    "aliasesNormalized": [
+      "سوپر کیوب",
+      "super cube"
+    ],
+    "animeName": "Super Cube",
+    "englishName": "Super Cube",
+    "persianName": "سوپر کیوب",
+    "link": "https://t.me/Anime_Faarsi/811",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 811,
+    "text": "نام انیمه: Super Cube\nنام انگلیسی: Super Cube\nنام فارسی: سوپر کیوب\nفصل: 1\nامتیاز: 7.3\nنوع: سریالی\nژانر: #اکشن #فانتزی #ماجراجویی\nسال ساخت: 2024\nتعداد قسمت ها: 12\nوضعیت: در حال پخش\nزمان هر قسمت: 23 دقیقه\nکیفیت: 720p\nرده بندی سنی: +16\nاطلاعات - خلاصه داستان:\nداستان درباره پسری است که یک شیء مرموز به نام “مکعب” پیدا می‌کند که قدرت‌های غیرقابل تصور به او می‌دهد و زندگی‌اش را وارد دنیایی خطرناک و متفاوت می‌کند.\n\n📥 لینک های دانلود:\n\n🔻 [ دانلود فصل اول / 12 قسمت دوبله فارسی ]\n \n#SuperCube\n🧩 @Anime_Faarsi ❤️",
+    "caption": "نام انیمه: Super Cube\nنام انگلیسی: Super Cube\nنام فارسی: سوپر کیوب\nفصل: 1\nامتیاز: 7.3\nنوع: سریالی\nژانر: #اکشن #فانتزی #ماجراجویی\nسال ساخت: 2024\nتعداد قسمت ها: 12\nوضعیت: در حال پخش\nزمان هر قسمت: 23 دقیقه\nکیفیت: 720p\nرده بندی سنی: +16\nاطلاعات - خلاصه داستان:\nداستان درباره پسری است که یک شیء مرموز به نام “مکعب” پیدا می‌کند که قدرت‌های غیرقابل تصور به او می‌دهد و زندگی‌اش را وارد دنیایی خطرناک و متفاوت می‌کند.\n\n📥 لینک های دانلود:\n\n🔻 [ دانلود فصل اول / 12 قسمت دوبله فارسی ]\n \n#SuperCube\n🧩 @Anime_Faarsi ❤️",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 104,
+        "type": "bold"
+      },
+      {
+        "offset": 104,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 104,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 109,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 110,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 110,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 117,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 118,
+        "length": 10,
+        "type": "hashtag"
+      },
+      {
+        "offset": 118,
+        "length": 10,
+        "type": "bold"
+      },
+      {
+        "offset": 128,
+        "length": 302,
+        "type": "bold"
+      },
+      {
+        "offset": 437,
+        "length": 36,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_306975226"
+      },
+      {
+        "offset": 437,
+        "length": 36,
+        "type": "bold"
+      },
+      {
+        "offset": 478,
+        "length": 10,
+        "type": "hashtag"
+      },
+      {
+        "offset": 478,
+        "length": 10,
+        "type": "bold"
+      },
+      {
+        "offset": 488,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 492,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 492,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 505,
+        "length": 3,
+        "type": "bold"
+      }
+    ],
+    "date": 1782589873,
+    "createdAt": "2026-10-08T15:21:04.226Z",
+    "updatedAt": "2026-10-08T15:21:04.226Z"
+  },
+  {
     "id": "anime_faarsi:800",
     "name": "بلک کلاور: شمشیر پادشاه جادوگر",
     "nameNormalized": "بلک کلاور شمشیر پادشاه جادوگر",
