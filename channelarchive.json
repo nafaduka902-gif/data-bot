@@ -4456,6 +4456,73 @@
     "updatedAt": "2026-10-08T12:43:58.669Z"
   },
   {
+    "id": "anime_faarsi:942",
+    "name": "تک رو: بیداری دوباره",
+    "nameNormalized": "تک رو بیداری دوباره",
+    "aliases": [
+      "تک رو: بیداری دوباره"
+    ],
+    "aliasesNormalized": [
+      "تک رو بیداری دوباره"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "",
+    "link": "https://t.me/Anime_Faarsi/942",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 942,
+    "text": "📼 انیمه سینمایی « تک رو: بیداری دوباره »\n\n📹 Solo Leveling: ReAwakening 2024\n⭐️ IMDB : 8.7\n\n🎭 ژانر : اکشن | ماجراجویی | فانتزی تاریک\n🌐 محصول : ژاپن | کره جنوبی\n👤 ستارگان : Taito Ban, Brandon Acosta, Ramoile Barreiros\n\n💬 خلاصه داستان : سونگ جین‌وو، ضعیف‌ترین شکارچی بشریت، پس از ماجرای سیاه‌چال دوقلو به قدرتی مرموز دست پیدا می‌کند که به او اجازه می‌دهد برخلاف دیگر شکارچیان، سطح خود را افزایش دهد. این فیلم خلاصه‌ای از فصل اول و پیش‌نمایشی از فصل دوم را ارائه می‌کند.\n\n🚫 بدون سانسور و حذفیات\n\n🎤دوبله فارسی (گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n🔻 نوت: سینک اختصاصی مخصوص چنلمون.\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سینمایی « تک رو: بیداری دوباره »\n\n📹 Solo Leveling: ReAwakening 2024\n⭐️ IMDB : 8.7\n\n🎭 ژانر : اکشن | ماجراجویی | فانتزی تاریک\n🌐 محصول : ژاپن | کره جنوبی\n👤 ستارگان : Taito Ban, Brandon Acosta, Ramoile Barreiros\n\n💬 خلاصه داستان : سونگ جین‌وو، ضعیف‌ترین شکارچی بشریت، پس از ماجرای سیاه‌چال دوقلو به قدرتی مرموز دست پیدا می‌کند که به او اجازه می‌دهد برخلاف دیگر شکارچیان، سطح خود را افزایش دهد. این فیلم خلاصه‌ای از فصل اول و پیش‌نمایشی از فصل دوم را ارائه می‌کند.\n\n🚫 بدون سانسور و حذفیات\n\n🎤دوبله فارسی (گپ فیلم):\n⬇️(برای دانلود اینجا کلیک کنید) ➡️\n\n🔻 نوت: سینک اختصاصی مخصوص چنلمون.\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 523,
+        "type": "bold"
+      },
+      {
+        "offset": 527,
+        "length": 27,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_981503687"
+      },
+      {
+        "offset": 527,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 560,
+        "length": 34,
+        "type": "blockquote"
+      },
+      {
+        "offset": 563,
+        "length": 31,
+        "type": "bold"
+      },
+      {
+        "offset": 597,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 599,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 599,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1789180134,
+    "createdAt": "2026-10-08T15:20:15.016Z",
+    "updatedAt": "2026-10-08T15:20:15.016Z"
+  },
+  {
     "id": "anime_faarsi:928",
     "name": "تیکن: میراث خون",
     "nameNormalized": "تیکن میراث خون",
