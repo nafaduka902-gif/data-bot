@@ -1538,15 +1538,15 @@
   },
   {
     "id": "anime_faarsi:1013",
-    "name": "نام انیمه: Black Clover",
-    "nameNormalized": "نام انیمه black clover",
+    "name": "شبدر سیاه",
+    "nameNormalized": "شبدر سیاه",
     "link": "https://t.me/Anime_Faarsi/1013",
     "channel": "Anime_Faarsi",
     "channelNormalized": "anime_faarsi",
     "channelType": "anime",
     "messageId": 1013,
-    "text": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویس اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت زیرنویس فارسی ]\n\nمنبع: انیمه فارسی\nمترجم و انکود: Mr / @tizpc\n \nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
-    "caption": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویس اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت زیرنویس فارسی ]\n\nمنبع: انیمه فارسی\nمترجم و انکود: Mr / @tizpc\n \nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
+    "text": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویس اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت | زیرنویس فارسی ]\n\nمنبع: انیمه فارسی\nمترجم و انکود: Mr / @tizpc\n \nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
+    "caption": "نام انیمه: Black Clover\nنام انگلیسی: Black Clover\nنام فارسی: شبدر سیاه\nفصل: 2\nامتیاز: 8.2\nنوع: سریالی\nژانر: #اکشن #فانتزی #کمدی #ماجراجویی\nسال ساخت: 2026\nتعداد قسمت‌ها: 25\nوضعیت: درحال پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nزیرنویس اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 [ دانلود 1 قسمت | زیرنویس فارسی ]\n\nمنبع: انیمه فارسی\nمترجم و انکود: Mr / @tizpc\n \nزیرنویس از: Anime Faarsi\n#Black_Clover\n#Clover\n@Anime_Faarsi✨",
     "entities": [
       {
         "offset": 0,
@@ -1606,74 +1606,85 @@
       },
       {
         "offset": 321,
-        "length": 27,
+        "length": 29,
         "type": "text_link",
         "url": "https://t.me/Uploaderpro01Bot?start=7643360501_293105094"
       },
       {
         "offset": 321,
-        "length": 27,
+        "length": 29,
         "type": "bold"
       },
       {
-        "offset": 352,
+        "offset": 354,
         "length": 38,
         "type": "bold"
       },
       {
-        "offset": 390,
+        "offset": 392,
         "length": 6,
         "type": "mention"
       },
       {
-        "offset": 390,
+        "offset": 392,
         "length": 6,
         "type": "bold"
       },
       {
-        "offset": 396,
+        "offset": 398,
         "length": 1,
         "type": "bold"
       },
       {
-        "offset": 399,
+        "offset": 401,
         "length": 25,
         "type": "bold"
       },
       {
-        "offset": 424,
+        "offset": 426,
         "length": 13,
         "type": "hashtag"
       },
       {
-        "offset": 437,
+        "offset": 439,
         "length": 1,
         "type": "bold"
       },
       {
-        "offset": 438,
+        "offset": 440,
         "length": 7,
         "type": "hashtag"
       },
       {
-        "offset": 445,
+        "offset": 447,
         "length": 1,
         "type": "bold"
       },
       {
-        "offset": 446,
+        "offset": 448,
         "length": 13,
         "type": "mention"
       },
       {
-        "offset": 459,
+        "offset": 461,
         "length": 1,
         "type": "bold"
       }
     ],
     "date": 1791049773,
     "createdAt": "2026-10-03T17:49:33.774Z",
-    "updatedAt": "2026-10-05T02:58:53.652Z"
+    "updatedAt": "2026-10-08T15:23:04.610Z",
+    "aliases": [
+      "شبدر سیاه",
+      "Black Clover"
+    ],
+    "aliasesNormalized": [
+      "شبدر سیاه",
+      "black clover"
+    ],
+    "animeName": "Black Clover",
+    "englishName": "Black Clover",
+    "persianName": "شبدر سیاه"
   },
   {
     "id": "animitionfaarsi:74",
