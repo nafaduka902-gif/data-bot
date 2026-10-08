@@ -4437,6 +4437,54 @@
     "updatedAt": "2026-10-08T15:21:53.628Z"
   },
   {
+    "id": "anime_faarsi:954",
+    "name": "راگنا کریمسون",
+    "nameNormalized": "راگنا کریمسون",
+    "link": "https://t.me/Anime_Faarsi/954",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 954,
+    "text": "📼 انیمه سریالی « راگنا کریمسون »\n\n📹 Ragna Crimson\n⭐️ IMDB : 7.2\n\n🎭 ژانر : انیمیشن | اکشن | ماجراجویی | فانتزی | درام | فانتزی تاریک\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 24 قسمت\n👤ستارگان : Ayumu Murase, Chiaki Kobayashi, Ai Fairouz, Reina Ueda\n\n💬 خلاصه داستان : در جهانی که اژدهایان بر زمین، آسمان و دریا حکومت می‌کنند، شکارچی اژدها «راگنا» با موجودی مرموز به نام «کریمسون» متحد می‌شود تا اژدهایان و پادشاهان آن‌ها را نابود کند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « راگنا کریمسون »\n\n📹 Ragna Crimson\n⭐️ IMDB : 7.2\n\n🎭 ژانر : انیمیشن | اکشن | ماجراجویی | فانتزی | درام | فانتزی تاریک\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 24 قسمت\n👤ستارگان : Ayumu Murase, Chiaki Kobayashi, Ai Fairouz, Reina Ueda\n\n💬 خلاصه داستان : در جهانی که اژدهایان بر زمین، آسمان و دریا حکومت می‌کنند، شکارچی اژدها «راگنا» با موجودی مرموز به نام «کریمسون» متحد می‌شود تا اژدهایان و پادشاهان آن‌ها را نابود کند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 485,
+        "type": "bold"
+      },
+      {
+        "offset": 486,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_400642515"
+      },
+      {
+        "offset": 486,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 493,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 495,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 495,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790098004,
+    "createdAt": "2026-10-08T17:26:37.026Z",
+    "updatedAt": "2026-10-08T17:26:37.026Z"
+  },
+  {
     "id": "anime_faarsi:949",
     "name": "شهر بی من",
     "nameNormalized": "شهر بی من",
