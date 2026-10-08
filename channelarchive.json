@@ -4032,6 +4032,54 @@
     "updatedAt": "2026-10-03T07:40:32.916Z"
   },
   {
+    "id": "dubb_anime:7",
+    "name": "🔻 لیست کانال های ما",
+    "nameNormalized": "لیست کانال های ما",
+    "link": "https://t.me/Dubb_Anime/7",
+    "channel": "Dubb_Anime",
+    "channelNormalized": "dubb_anime",
+    "channelType": "anime",
+    "messageId": 7,
+    "text": "🔻 لیست کانال های ما\n\n➖ کانال انیمه\n\n➖ کانال انیمیشن\n\n➖ کانال فیلم و سریال\n\n➖ کانال اخبار\n\n➖ کانال معلومات\n\n➖ کانال ایدیت\n\n➖ گروپ چت\n\n➖ کانال زاپاس\n\n➖ کانال زاپاس دوم\n\n✅ t.me/dubb_Anime",
+    "caption": "",
+    "entities": [
+      {
+        "offset": 22,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 24,
+        "length": 142,
+        "type": "text_link",
+        "url": "https://t.me/AnimeFaarsi"
+      },
+      {
+        "offset": 24,
+        "length": 142,
+        "type": "bold"
+      },
+      {
+        "offset": 166,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 170,
+        "length": 15,
+        "type": "url"
+      },
+      {
+        "offset": 170,
+        "length": 15,
+        "type": "bold"
+      }
+    ],
+    "date": 1789277559,
+    "createdAt": "2026-10-08T12:42:16.239Z",
+    "updatedAt": "2026-10-08T12:42:16.239Z"
+  },
+  {
     "id": "anime_faarsi:928",
     "name": "تیکن: میراث خون",
     "nameNormalized": "تیکن میراث خون",
