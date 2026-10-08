@@ -4983,6 +4983,135 @@
     "updatedAt": "2026-10-08T19:11:10.981Z"
   },
   {
+    "id": "faarsimovie:331",
+    "name": "فانوس ها | لنترن ها",
+    "nameNormalized": "فانوس ها لنترن ها",
+    "aliases": [
+      "فانوس ها | لنترن ها",
+      "Lanterns 2026"
+    ],
+    "aliasesNormalized": [
+      "فانوس ها لنترن ها",
+      "lanterns 2026"
+    ],
+    "animeName": "فانوس ها | لنترن ها",
+    "englishName": "Lanterns 2026",
+    "persianName": "فانوس ها | لنترن ها",
+    "link": "https://t.me/FaarsiMovie/331",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 331,
+    "text": "📼 سریال « فانوس ها | لنترن ها »\n\n📹 Lanterns 2026\n⭐️ IMDB : 8.1\n\n🎭 ژانر : اکشن درام ماجراجویی جنایی معمایی هیجان_انگیز علمی_تخیلی \n🌐 محصول : آمریکا\n⌨ وضعیت : در حال دوبله فارسی \n👤 ستارگان : Poorna Jagannathan,Aaron Pierre,kyle chandler\n\n💬 خلاصه داستان : داستان نیروی استخدامی جدید ارتش فانوس سبز، جان استوارت و اسطوره هل جوردن که باید با یکدیگر بر روی یک پرونده قتل اسرارآمیز در قلب سرزمین آمریکا کار کنند\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | 720p\n \n✅ @MovieFaarsi",
+    "caption": "📼 سریال « فانوس ها | لنترن ها »\n\n📹 Lanterns 2026\n⭐️ IMDB : 8.1\n\n🎭 ژانر : اکشن درام ماجراجویی جنایی معمایی هیجان_انگیز علمی_تخیلی \n🌐 محصول : آمریکا\n⌨ وضعیت : در حال دوبله فارسی \n👤 ستارگان : Poorna Jagannathan,Aaron Pierre,kyle chandler\n\n💬 خلاصه داستان : داستان نیروی استخدامی جدید ارتش فانوس سبز، جان استوارت و اسطوره هل جوردن که باید با یکدیگر بر روی یک پرونده قتل اسرارآمیز در قلب سرزمین آمریکا کار کنند\n\n🚫 بدون سانسور و حذفیات !\n\n📥 فصل 01 دوبله فارسی | 720p\n \n✅ @MovieFaarsi",
+    "entities": [
+      {
+        "offset": 3,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 9,
+        "length": 24,
+        "type": "bold"
+      },
+      {
+        "offset": 37,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 54,
+        "length": 12,
+        "type": "bold"
+      },
+      {
+        "offset": 69,
+        "length": 63,
+        "type": "bold"
+      },
+      {
+        "offset": 136,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 144,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 153,
+        "length": 27,
+        "type": "bold"
+      },
+      {
+        "offset": 184,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 194,
+        "length": 45,
+        "type": "bold"
+      },
+      {
+        "offset": 244,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 259,
+        "length": 151,
+        "type": "bold"
+      },
+      {
+        "offset": 415,
+        "length": 20,
+        "type": "bold"
+      },
+      {
+        "offset": 442,
+        "length": 18,
+        "type": "bold"
+      },
+      {
+        "offset": 461,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 463,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_740062097"
+      },
+      {
+        "offset": 463,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 470,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 472,
+        "length": 12,
+        "type": "mention"
+      },
+      {
+        "offset": 472,
+        "length": 12,
+        "type": "bold"
+      }
+    ],
+    "date": 1788261783,
+    "createdAt": "2026-10-08T19:13:35.942Z",
+    "updatedAt": "2026-10-08T19:13:35.942Z"
+  },
+  {
     "id": "anime_faarsi:864",
     "name": "هشتاد و شش",
     "nameNormalized": "هشتاد و شش",
