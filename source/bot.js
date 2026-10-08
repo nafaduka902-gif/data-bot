@@ -4338,6 +4338,164 @@ async function nfDirect(
 }
 
 
+
+// #new
+async function imdbGetBestPoster(imdbUrl) {
+  const match = String(imdbUrl || '')
+    .trim()
+    .match(/imdb\.com\/title\/(tt\d+)/i);
+
+  if (!match) {
+    return null;
+  }
+
+  const imdbId = match[1];
+
+  try {
+    const response = await axios.get(
+      `https://api.imdbapi.dev/titles/${imdbId}/images`,
+      {
+        timeout: 15000
+      }
+    );
+
+    const data = response?.data || {};
+
+    const images =
+      Array.isArray(data)
+        ? data
+        : Array.isArray(data.images)
+          ? data.images
+          : Array.isArray(data.results)
+            ? data.results
+            : [];
+
+    if (!images.length) {
+      return null;
+    }
+
+    const validImages =
+      images
+        .map(item => ({
+          url:
+            String(
+              item?.url ||
+              item?.image?.url ||
+              ''
+            ).trim(),
+          width:
+            Number(
+              item?.width ||
+              item?.image?.width ||
+              0
+            ),
+          height:
+            Number(
+              item?.height ||
+              item?.image?.height ||
+              0
+            )
+        }))
+        .filter(item =>
+          item.url &&
+          /^https?:\/\//i.test(item.url)
+        );
+
+    if (!validImages.length) {
+      return null;
+    }
+
+    validImages.sort(
+      (a, b) =>
+        (b.width * b.height) -
+        (a.width * a.height)
+    );
+
+    return validImages[0].url;
+
+  } catch (error) {
+    console.error(
+      'IMDB POSTER ERROR:',
+      error?.response?.data ||
+      error?.message ||
+      error
+    );
+
+    return null;
+  }
+}
+
+// #new
+bot.command(
+  'imdbphdl',
+  async ctx => {
+    try {
+      const text =
+        String(
+          ctx.message?.text || ''
+        ).trim();
+
+      const parts =
+        text.split(/\s+/);
+
+      const imdbUrl =
+        parts[1] || '';
+
+      if (!imdbUrl) {
+        await ctx.reply(
+          '❌ لینک IMDb را وارد کنید.\n\nمثال:\n/imdbphdl https://www.imdb.com/title/tt0111161/'
+        );
+        return;
+      }
+
+      if (
+        !/https?:\/\/(?:www\.)?imdb\.com\/title\/tt\d+/i
+          .test(imdbUrl)
+      ) {
+        await ctx.reply(
+          '❌ لینک IMDb معتبر نیست.'
+        );
+        return;
+      }
+
+      const poster =
+        await imdbGetBestPoster(
+          imdbUrl
+        );
+
+      if (!poster) {
+        await ctx.reply(
+          '❌ تصویر IMDb پیدا نشد.'
+        );
+        return;
+      }
+
+      await ctx.replyWithPhoto(
+        {
+          url: poster
+        },
+        {
+          caption:
+            '🖼 پوستر IMDb'
+        }
+      );
+
+    } catch (error) {
+      console.error(
+        'IMDBPHDL ERROR:',
+        error?.message ||
+        error
+      );
+
+      await ctx.reply(
+        '❌ دریافت تصویر IMDb با خطا مواجه شد.'
+      );
+    }
+  }
+);
+
+
+
 const NF_BOT_NAME =
   'Anime Faarsi Bot';
 
