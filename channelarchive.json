@@ -1,5 +1,77 @@
 [
   {
+    "id": "anime_faarsi:1019",
+    "name": "برای اولین بار در تلگرام!",
+    "nameNormalized": "برای اولین بار در تلگرام",
+    "aliases": [
+      "برای اولین بار در تلگرام!"
+    ],
+    "aliasesNormalized": [
+      "برای اولین بار در تلگرام"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "برای اولین بار در تلگرام!",
+    "link": "https://t.me/Anime_Faarsi/1019",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1019,
+    "text": "برای اولین بار در تلگرام!\n\nدیگر نیاز نیست ساعت ها ساعت ها دنبال انیمه بگردی.\n\nدیگر نیاز نیست در کانال دنبال انیمه بگردی.\n\nفقد و فقد در گروپ چت ما میتوانید هر انیمه،انیمیشن،فیلم و سریال خواستید دریافت کنید بدون اینکی جستجو کنید.\n\nفقد کافیه اسم مورد نظر وارد کنید در صورت داشتن در ارشیو و کانال های به شما پست مورد نظر داده خواهد شد پس همین حالا در گروپ چت ما عضو شوید و از ربات لذت ببرید قابل یادآوری است این نسخه بیتا است یعنی تکمیل نشده هنوز ک هنوز 40% کار تکمیله قابل تست است برای امشب این پست راس ساعت 8 صبح پاک میشه تا اون وقت استفاده و تست کنید.\n\n✅ جوین: @Anime_FaarsiChat\n✅ زاپاس:  @Dubb_Anime",
+    "caption": "",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 24,
+        "type": "bold"
+      },
+      {
+        "offset": 135,
+        "length": 7,
+        "type": "text_link",
+        "url": "https://t.me/Anime_FaarsiChat"
+      },
+      {
+        "offset": 229,
+        "length": 321,
+        "type": "expandable_blockquote"
+      },
+      {
+        "offset": 552,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 560,
+        "length": 17,
+        "type": "mention"
+      },
+      {
+        "offset": 560,
+        "length": 17,
+        "type": "bold"
+      },
+      {
+        "offset": 577,
+        "length": 11,
+        "type": "bold"
+      },
+      {
+        "offset": 588,
+        "length": 11,
+        "type": "mention"
+      },
+      {
+        "offset": 588,
+        "length": 11,
+        "type": "bold"
+      }
+    ],
+    "date": 1791488310,
+    "createdAt": "2026-10-08T19:38:30.804Z",
+    "updatedAt": "2026-10-08T19:38:30.804Z"
+  },
+  {
     "id": "anime_faarsi:1018",
     "name": "موب سایکو ۱۰۰",
     "nameNormalized": "موب سایکو ۱۰۰",
