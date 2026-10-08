@@ -4437,6 +4437,54 @@
     "updatedAt": "2026-10-08T15:21:53.628Z"
   },
   {
+    "id": "anime_faarsi:949",
+    "name": "شهر بی من",
+    "nameNormalized": "شهر بی من",
+    "link": "https://t.me/Anime_Faarsi/949",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 949,
+    "text": "📼 انیمه سریالی « شهر بی‌من »\n\n📹 Erased\n⭐️ IMDB : 8.4\n\n🎭 ژانر : معمایی | هیجان‌انگیز | روان‌شناختی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Shinnosuke Mitsushima, Tao Tsuchiya, Minami Takayama, Aoi Yuki\n\n💬 خلاصه داستان : ساتورو فوجینوما، یک مانگاکای جوان، توانایی عجیبی دارد که او را به گذشته بازمی‌گرداند تا از وقوع حوادث مرگبار جلوگیری کند. پس از مرگ مادرش، ساتورو به ۱۸ سال قبل بازمی‌گردد و تلاش می‌کند از مجموعه‌ای از آدم‌ربایی‌ها و قتل‌ها جلوگیری کند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « شهر بی‌من »\n\n📹 Erased\n⭐️ IMDB : 8.4\n\n🎭 ژانر : معمایی | هیجان‌انگیز | روان‌شناختی\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Shinnosuke Mitsushima, Tao Tsuchiya, Minami Takayama, Aoi Yuki\n\n💬 خلاصه داستان : ساتورو فوجینوما، یک مانگاکای جوان، توانایی عجیبی دارد که او را به گذشته بازمی‌گرداند تا از وقوع حوادث مرگبار جلوگیری کند. پس از مرگ مادرش، ساتورو به ۱۸ سال قبل بازمی‌گردد و تلاش می‌کند از مجموعه‌ای از آدم‌ربایی‌ها و قتل‌ها جلوگیری کند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 528,
+        "type": "bold"
+      },
+      {
+        "offset": 529,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_670802753"
+      },
+      {
+        "offset": 529,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 536,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 538,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 538,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1789599577,
+    "createdAt": "2026-10-08T17:09:05.820Z",
+    "updatedAt": "2026-10-08T17:09:05.820Z"
+  },
+  {
     "id": "dubb_anime:7",
     "name": "🔻 لیست کانال های ما",
     "nameNormalized": "لیست کانال های ما",
