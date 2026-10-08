@@ -5383,15 +5383,15 @@
   },
   {
     "id": "anime_faarsi:426",
-    "name": "➖ Solo Leveling (Season 1 + دوبله فارسی)",
+    "name": "Solo Leveling (Season 1 + دوبله فارسی)",
     "nameNormalized": "solo leveling season 1 دوبله فارسی",
     "link": "https://t.me/Anime_Faarsi/426",
     "channel": "Anime_Faarsi",
     "channelNormalized": "anime_faarsi",
     "channelType": "anime",
     "messageId": 426,
-    "text": "➖ Solo Leveling (Season 1 + دوبله فارسی)\n\n➖ Solo Leveling (Season 2 + دوبله فارسی)\n\n➖ Solo Leveling (Movie 1 + دوبله فارسی)\n\nنوت: سینک اختصاصی مخصوص چنلمون میباشد.\n\n#دسترسی_سریع\n#کالکشن\n#سولو_لیولینگ\n#تک_رو \n🆔 @Anime_Faarsi",
-    "caption": "➖ Solo Leveling (Season 1 + دوبله فارسی)\n\n➖ Solo Leveling (Season 2 + دوبله فارسی)\n\n➖ Solo Leveling (Movie 1 + دوبله فارسی)\n\nنوت: سینک اختصاصی مخصوص چنلمون میباشد.\n\n#دسترسی_سریع\n#کالکشن\n#سولو_لیولینگ\n#تک_رو \n🆔 @Anime_Faarsi",
+    "text": "➖ Solo Leveling (Season 1 + دوبله فارسی)\n\n➖ Solo Leveling (Season 2 + دوبله فارسی)\n\n➖ Solo Leveling (Movie 1 + دوبله فارسی)\n\nنوت: سینک اختصاصی مخصوص چنلمون میباشد.\n\n#دسترسی_سریع\n#کالکشن\n#سولو_لیولینگ\n#تک_رو\n🆔 @Anime_Faarsi",
+    "caption": "➖ Solo Leveling (Season 1 + دوبله فارسی)\n\n➖ Solo Leveling (Season 2 + دوبله فارسی)\n\n➖ Solo Leveling (Movie 1 + دوبله فارسی)\n\nنوت: سینک اختصاصی مخصوص چنلمون میباشد.\n\n#دسترسی_سریع\n#کالکشن\n#سولو_لیولینگ\n#تک_رو\n🆔 @Anime_Faarsi",
     "entities": [
       {
         "offset": 2,
@@ -5504,24 +5504,33 @@
         "type": "bold"
       },
       {
-        "offset": 207,
+        "offset": 206,
         "length": 4,
         "type": "bold"
       },
       {
-        "offset": 211,
+        "offset": 210,
         "length": 13,
         "type": "mention"
       },
       {
-        "offset": 211,
+        "offset": 210,
         "length": 13,
         "type": "bold"
       }
     ],
     "date": 1743006328,
     "createdAt": "2026-10-08T13:35:38.191Z",
-    "updatedAt": "2026-10-08T13:35:38.191Z"
+    "updatedAt": "2026-10-08T15:20:49.000Z",
+    "aliases": [
+      "Solo Leveling (Season 1 + دوبله فارسی)"
+    ],
+    "aliasesNormalized": [
+      "solo leveling season 1 دوبله فارسی"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": ""
   },
   {
     "id": "faarsimovie:150",
