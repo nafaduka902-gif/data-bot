@@ -5073,14 +5073,42 @@ async function nfReadArchive() {
   }
 }
 
+// #update
 async function nfWriteArchive(
   records
 ) {
-  return githubWriteFileV1(
-    NF_ARCHIVE_FILE,
-    records,
-    'channel'
-  );
+  try {
+    console.log(
+      '🟡 NF ARCHIVE WRITE START:',
+      NF_ARCHIVE_FILE,
+      'RECORDS:',
+      Array.isArray(records)
+        ? records.length
+        : 'NOT_ARRAY'
+    );
+
+    const result =
+      await githubWriteFileV1(
+        NF_ARCHIVE_FILE,
+        records,
+        'channel'
+      );
+
+    console.log(
+      '🟢 NF ARCHIVE WRITE RESULT:',
+      result
+    );
+
+    return result;
+  } catch (error) {
+    console.error(
+      '🔴 NF ARCHIVE WRITE ERROR:',
+      error?.message ||
+        error
+    );
+
+    return false;
+  }
 }
 
 
