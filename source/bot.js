@@ -4337,8 +4337,10 @@ async function nfDirect(
   return null;
 }
 
-// #update
-async function imdbGetBestPoster(imdbUrl) {
+// #new
+async function imdbGetImage(
+  imdbUrl
+) {
   const input =
     String(imdbUrl || '')
       .trim();
@@ -4352,7 +4354,7 @@ async function imdbGetBestPoster(imdbUrl) {
     return null;
   }
 
-  const imdbId =
+  const titleId =
     titleMatch[1];
 
   const mediaMatch =
@@ -4360,117 +4362,159 @@ async function imdbGetBestPoster(imdbUrl) {
       /mediaviewer\/(rm\d+)/i
     );
 
+  const mediaId =
+    mediaMatch?.[1] || '';
+
   try {
-    const response =
+    const page =
       await axios.get(
-        `https://api.imdbapi.dev/titles/${imdbId}/images`,
+        `https://www.imdb.com/title/${titleId}/`,
         {
-          timeout: 20000
+          timeout: 20000,
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36',
+            'Accept-Language':
+              'en-US,en;q=0.9'
+          }
         }
       );
 
-    const data =
-      response?.data || {};
+    const html =
+      String(
+        page?.data || ''
+      );
 
-    let images = [];
+    const candidates = [];
 
-    if (
-      Array.isArray(data)
+    const addImage =
+      (url, width = 0, height = 0) => {
+        const value =
+          String(url || '')
+            .replace(/\\u0026/g, '&')
+            .replace(/\\\//g, '/')
+            .replace(/&amp;/g, '&')
+            .trim();
+
+        if (
+          !value ||
+          !/^https?:\/\//i.test(value)
+        ) {
+          return;
+        }
+
+        if (
+          !/m\.media-amazon\.com\/images\//i
+            .test(value)
+        ) {
+          return;
+        }
+
+        candidates.push({
+          url: value,
+          width: Number(width) || 0,
+          height: Number(height) || 0
+        });
+      };
+
+    const imageRegex =
+      /https?:\\?\/\\?\/m\.media-amazon\.com\\?\/images\\?\/[^"'\\\s<>]+/gi;
+
+    const matches =
+      html.match(imageRegex) || [];
+
+    for (
+      const raw of matches
     ) {
-      images = data;
-    } else if (
-      Array.isArray(data.images)
-    ) {
-      images = data.images;
-    } else if (
-      Array.isArray(data.results)
-    ) {
-      images = data.results;
-    } else if (
-      Array.isArray(data.posters)
-    ) {
-      images = data.posters;
+      addImage(raw);
     }
 
-    const normalized =
-      images
-        .map(item => ({
-          id:
-            String(
-              item?.imageId ||
-              item?.id ||
-              ''
-            ).trim(),
+    const jsonImageRegex =
+      /"(?:image|url)"\s*:\s*"([^"]*m\.media-amazon\.com\/images\/[^"]+)"/gi;
 
-          url:
-            String(
-              item?.url ||
-              item?.image?.url ||
-              ''
-            ).trim(),
+    let match;
 
-          width:
-            Number(
-              item?.width ||
-              item?.image?.width ||
-              0
-            ),
-
-          height:
-            Number(
-              item?.height ||
-              item?.image?.height ||
-              0
-            )
-        }))
-        .filter(
-          item =>
-            item.url &&
-            /^https?:\/\//i.test(
-              item.url
-            )
-        );
-
-    if (!normalized.length) {
-      return null;
+    while (
+      (match =
+        jsonImageRegex.exec(html))
+    ) {
+      addImage(
+        match[1]
+      );
     }
 
-    if (mediaMatch) {
-      const requestedId =
-        mediaMatch[1];
+    const unique =
+      new Map();
 
-      const requested =
-        normalized.find(
-          item =>
-            item.id === requestedId ||
-            item.url.includes(
-              requestedId
-            )
+    for (
+      const item of candidates
+    ) {
+      const clean =
+        item.url
+          .replace(
+            /\._V1_[^.]*(\.[a-zA-Z0-9]+)$/i,
+            '$1'
+          );
+
+      if (
+        !unique.has(clean)
+      ) {
+        unique.set(
+          clean,
+          {
+            ...item,
+            url: clean
+          }
         );
-
-      if (requested?.url) {
-        return requested.url;
       }
     }
 
-    normalized.sort(
+    const images =
+      Array.from(
+        unique.values()
+      );
+
+    if (!images.length) {
+      return null;
+    }
+
+    if (mediaId) {
+      const mediaImage =
+        images.find(
+          item =>
+            item.url.includes(
+              mediaId
+            )
+        );
+
+      if (
+        mediaImage?.url
+      ) {
+        return mediaImage.url;
+      }
+    }
+
+    images.sort(
       (a, b) =>
         (
-          Number(b.width || 0) *
-          Number(b.height || 0)
+          b.width *
+          b.height
         ) -
         (
-          Number(a.width || 0) *
-          Number(a.height || 0)
+          a.width *
+          a.height
         )
     );
 
-    return normalized[0]?.url || null;
+    return (
+      images[0]?.url ||
+      null
+    );
 
   } catch (error) {
     console.error(
-      'IMDB POSTER ERROR:',
-      error?.response?.data ||
+      'IMDB IMAGE ERROR:',
+      error?.response?.status ||
       error?.message ||
       error
     );
@@ -4479,8 +4523,7 @@ async function imdbGetBestPoster(imdbUrl) {
   }
 }
 
-
-// #update
+// #new
 bot.command(
   'imdbphdl',
   async ctx => {
@@ -4500,7 +4543,7 @@ bot.command(
 
       if (!imdbUrl) {
         await ctx.reply(
-          '❌ لینک IMDb را ارسال کنید.\n\nمثال:\n/imdbphdl https://www.imdb.com/title/tt39400168/mediaviewer/rm1560928002/'
+          '❌ لینک IMDb را ارسال کنید.'
         );
         return;
       }
@@ -4515,12 +4558,12 @@ bot.command(
         return;
       }
 
-      const poster =
-        await imdbGetBestPoster(
+      const imageUrl =
+        await imdbGetImage(
           imdbUrl
         );
 
-      if (!poster) {
+      if (!imageUrl) {
         await ctx.reply(
           '❌ تصویر IMDb پیدا نشد.'
         );
@@ -4529,7 +4572,7 @@ bot.command(
 
       await ctx.replyWithPhoto(
         {
-          url: poster
+          url: imageUrl
         }
       );
 
