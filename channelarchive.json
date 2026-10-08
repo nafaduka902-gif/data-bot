@@ -5147,6 +5147,129 @@
     "updatedAt": "2026-10-08T15:21:04.226Z"
   },
   {
+    "id": "anime_faarsi:803",
+    "name": "قتل ابی",
+    "nameNormalized": "قتل ابی",
+    "link": "https://t.me/Anime_Faarsi/803",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 803,
+    "text": "🎬انیمه سریالی: \" قتل ابی \"\nKill Ao\n\n🍿ژانر: #کمدی #شونن #مدرسه‌ای #اکشن\n🇺🇸نام انگلیسی : Kill Blue\n✍زیرنویس فارسی چسبیده\n🗓سال انتشار : 2026\n🟢وضعیت : اتمام پخش\n🇯🇵محصول کشور : ژاپن\n⭐️امتیاز: ...\n🔞بدون سانسور و حذفیات \n\n🗯خلاصه داستان:\nجوزو اوگامی یک قاتل حرفه‌ای افسانه‌ای است که تا به حال هیچ مأموریتی را از دست نداده، هرچقدر هم غیرممکن باشد. روزی، پس از نابودی یک سازمان قدرتمند، نیش زنبور مرموزی می‌خورد و بیهوش می‌شود. وقتی به هوش می‌آید، قاتل ترسناک ۳۹ ساله به پسر ۱۳ ساله‌ای تبدیل شده...\n\n📦[ دانلود فصل 1 / 12 قسمت زیرنویس فارسی ] \n \n#Kill_Ao\n🧩 @Anime_Faarsi ❤️",
+    "caption": "🎬انیمه سریالی: \" قتل ابی \"\nKill Ao\n\n🍿ژانر: #کمدی #شونن #مدرسه‌ای #اکشن\n🇺🇸نام انگلیسی : Kill Blue\n✍زیرنویس فارسی چسبیده\n🗓سال انتشار : 2026\n🟢وضعیت : اتمام پخش\n🇯🇵محصول کشور : ژاپن\n⭐️امتیاز: ...\n🔞بدون سانسور و حذفیات \n\n🗯خلاصه داستان:\nجوزو اوگامی یک قاتل حرفه‌ای افسانه‌ای است که تا به حال هیچ مأموریتی را از دست نداده، هرچقدر هم غیرممکن باشد. روزی، پس از نابودی یک سازمان قدرتمند، نیش زنبور مرموزی می‌خورد و بیهوش می‌شود. وقتی به هوش می‌آید، قاتل ترسناک ۳۹ ساله به پسر ۱۳ ساله‌ای تبدیل شده...\n\n📦[ دانلود فصل 1 / 12 قسمت زیرنویس فارسی ] \n \n#Kill_Ao\n🧩 @Anime_Faarsi ❤️",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 45,
+        "type": "bold"
+      },
+      {
+        "offset": 45,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 45,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 50,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 51,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 51,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 56,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 57,
+        "length": 9,
+        "type": "hashtag"
+      },
+      {
+        "offset": 57,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 66,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 67,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 67,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 72,
+        "length": 426,
+        "type": "bold"
+      },
+      {
+        "offset": 504,
+        "length": 36,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_29659227"
+      },
+      {
+        "offset": 504,
+        "length": 36,
+        "type": "bold"
+      },
+      {
+        "offset": 545,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 546,
+        "length": 8,
+        "type": "hashtag"
+      },
+      {
+        "offset": 546,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 554,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 558,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 558,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1782341268,
+    "createdAt": "2026-10-08T17:31:10.467Z",
+    "updatedAt": "2026-10-08T17:31:10.467Z"
+  },
+  {
     "id": "anime_faarsi:800",
     "name": "بلک کلاور: شمشیر پادشاه جادوگر",
     "nameNormalized": "بلک کلاور شمشیر پادشاه جادوگر",
