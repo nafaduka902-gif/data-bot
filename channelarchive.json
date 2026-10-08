@@ -5945,6 +5945,54 @@
     "updatedAt": "2026-10-03T17:15:05.063Z"
   },
   {
+    "id": "anime_faarsi:543",
+    "name": "زنشو",
+    "nameNormalized": "زنشو",
+    "link": "https://t.me/Anime_Faarsi/543",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 543,
+    "text": "📼 انیمه سریالی « زنشو »\n\n📹 Zenshu\n⭐️ IMDB : 7.0\n\n🎭 ژانر : انیمیشن | فانتزی | کمدی | عاشقانه | ماجراجویی | درام\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Anna Nagase, Kazuki Ura, Rie Kugimiya, Minori Suzuki\n\n💬 خلاصه داستان : ناتسوکو هیروسه، کارگردان جوان انیمه، پس از مرگ ناگهانی وارد دنیای یکی از آثار مورد علاقه‌اش می‌شود؛ جایی که با شخصیت‌های داستان روبه‌رو شده و تلاش می‌کند سرنوشت آن‌ها را تغییر دهد.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n  \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « زنشو »\n\n📹 Zenshu\n⭐️ IMDB : 7.0\n\n🎭 ژانر : انیمیشن | فانتزی | کمدی | عاشقانه | ماجراجویی | درام\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 12 قسمت\n👤ستارگان : Anna Nagase, Kazuki Ura, Rie Kugimiya, Minori Suzuki\n\n💬 خلاصه داستان : ناتسوکو هیروسه، کارگردان جوان انیمه، پس از مرگ ناگهانی وارد دنیای یکی از آثار مورد علاقه‌اش می‌شود؛ جایی که با شخصیت‌های داستان روبه‌رو شده و تلاش می‌کند سرنوشت آن‌ها را تغییر دهد.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n  \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 476,
+        "type": "bold"
+      },
+      {
+        "offset": 477,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_376030296"
+      },
+      {
+        "offset": 477,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 485,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 487,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 487,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1743330979,
+    "createdAt": "2026-10-08T17:57:31.614Z",
+    "updatedAt": "2026-10-08T17:57:31.614Z"
+  },
+  {
     "id": "anime_faarsi:456",
     "name": "➖ Gintama Episode 1 ~ 30",
     "nameNormalized": "gintama episode 1 30",
