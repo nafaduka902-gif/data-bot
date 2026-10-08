@@ -6218,18 +6218,206 @@ bot.command(
 );
 
 // #new
+// #update
 function nfIsAiringQuestion(
   text
 ) {
-  const value =
+  let value =
     String(text || '')
-      .toLowerCase()
+      .trim()
+      .toLowerCase();
+
+  if (!value) {
+    return false;
+  }
+
+  value =
+    value
+      .replace(
+        /ي/g,
+        'ی'
+      )
+      .replace(
+        /ك/g,
+        'ک'
+      )
+      .replace(
+        /ۀ/g,
+        'ه'
+      )
+      .replace(
+        /ة/g,
+        'ه'
+      )
+      .replace(
+        /‌/g,
+        ' '
+      )
+      .replace(
+        /\s+/g,
+        ' '
+      )
       .trim();
 
-  return Boolean(
-    /(?:airing|پخش|شروع\s*(?:شد|شده|میشه|می‌شود)|قسمت\s*(?:بعدی|بعد)|قسمت\s*\d+|کی\s*(?:میاد|میاد؟|پخش)|چه\s*زمانی\s*(?:میاد|پخش)|زمان\s*پخش|تاریخ\s*پخش|تاریخ\s*انتشار|منتشر\s*(?:شد|شده)|اومد|آمد|نمیاد|نیمده|نیومده|فصل\s*\d+\s*(?:شروع|پخش|اومد|آمد))/iu
-      .test(value)
-  );
+  const repeatedPatterns = [
+    {
+      pattern:
+        /(?:قسمت\s*){2,}/giu,
+      replacement:
+        'قسمت '
+    },
+    {
+      pattern:
+        /(?:بعدی\s*){2,}/giu,
+      replacement:
+        'بعدی '
+    },
+    {
+      pattern:
+        /(?:پخش\s*){2,}/giu,
+      replacement:
+        'پخش '
+    },
+    {
+      pattern:
+        /(?:میاد\s*){2,}/giu,
+      replacement:
+        'میاد '
+    },
+    {
+      pattern:
+        /(?:میایه\s*){2,}/giu,
+      replacement:
+        'میایه '
+    },
+    {
+      pattern:
+        /(?:کی\s*){2,}/giu,
+      replacement:
+        'کی '
+    },
+    {
+      pattern:
+        /(?:چی\s*){2,}/giu,
+      replacement:
+        'چی '
+    }
+  ];
+
+  for (
+    const item of repeatedPatterns
+  ) {
+    value =
+      value.replace(
+        item.pattern,
+        item.replacement
+      );
+  }
+
+  const airingPatterns = [
+    /قسمت\s+بعدی/i,
+
+    /قسمت\s+جدید/i,
+
+    /قسمت\s+\d+\s+(?:کی|چه|چی)\s*وقت/i,
+
+    /(?:قسمت|اپیزود|episode)\s*(?:بعدی|جدید|next)/i,
+
+    /(?:کی|چه|چی)\s*وقت\s+(?:میاد|میایه|میاد؟|میادش|پخش|منتشر)/i,
+
+    /(?:چه|چی)\s*وقت\s+(?:پخش|منتشر)\s*(?:میشه|می‌شه|می‌شود|میشود|میشه؟)/i,
+
+    /(?:کی|چه|چی)\s+(?:میاد|میایه|میادش|پخش\s+میشه|پخش\s+می‌شه)/i,
+
+    /(?:کی|چه|چی)\s+پخش\s*(?:میشه|می‌شه|میشود|می‌شود)/i,
+
+    /(?:تاریخ|زمان)\s+(?:پخش|انتشار|عرضه)/i,
+
+    /(?:زمان|تاریخ)\s+قسمت/i,
+
+    /(?:تاریخ|زمان)\s+قسمت\s+بعدی/i,
+
+    /(?:قسمت|اپیزود)\s+بعدی.*(?:زمان|تاریخ|پخش|انتشار)/i,
+
+    /(?:قسمت|اپیزود).*?(?:کی|چه|چی)\s*وقت/i,
+
+    /(?:قسمت|اپیزود).*?(?:میاد|میایه|پخش\s+میشه|پخش\s+می‌شه)/i,
+
+    /(?:فصل|season)\s*\d+.*?(?:قسمت|اپیزود).*?(?:بعدی|جدید)/i,
+
+    /(?:فصل|season)\s*\d+.*?(?:کی|چه|چی)\s*وقت/i,
+
+    /(?:فصل|season)\s*\d+.*?(?:میاد|میایه|پخش|انتشار)/i,
+
+    /(?:پخش|انتشار).*?(?:قسمت|اپیزود|فصل)/i,
+
+    /(?:شروع|آغاز).*?(?:پخش|انتشار)/i,
+
+    /(?:شروع).*?(?:فصل|قسمت|اپیزود)/i,
+
+    /(?:کی|چه|چی)\s*وقت.*?(?:قسمت|اپیزود|فصل)/i,
+
+    /(?:next\s+episode|next\s+ep)/i,
+
+    /(?:when\s+is\s+the\s+next\s+episode)/i,
+
+    /(?:when\s+does).*?(?:episode|season).*?(?:air|release)/i,
+
+    /(?:release\s+date|air\s+date|airing\s+date)/i,
+
+    /(?:episode|ep).*?(?:release|airing|airs)/i,
+
+    /(?:season\s*\d+).*?(?:episode|ep).*?(?:release|air)/i
+  ];
+
+  for (
+    const pattern of airingPatterns
+  ) {
+    if (
+      pattern.test(value)
+    ) {
+      return true;
+    }
+  }
+
+  const strongWords = [
+    'قسمت بعدی',
+    'قسمت جدید',
+    'زمان پخش',
+    'تاریخ پخش',
+    'تاریخ انتشار',
+    'زمان انتشار',
+    'قسمت بعد',
+    'اپیزود بعدی',
+    'اپیزود جدید',
+    'کی میاد',
+    'کی میایه',
+    'چی وقت میاد',
+    'چی وقت میایه',
+    'چه وقت میاد',
+    'چه وقت میایه',
+    'کی پخش میشه',
+    'کی پخش می‌شه',
+    'چی وقت پخش میشه',
+    'چه وقت پخش میشه',
+    'release date',
+    'air date',
+    'airing date',
+    'next episode',
+    'next ep'
+  ];
+
+  for (
+    const word of strongWords
+  ) {
+    if (
+      value.includes(word)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 
@@ -7818,185 +8006,197 @@ async function nfProcess(
     }
 
     // #update
-    let archiveContext = '';
-
-    try {
-      const archiveResults =
-        await nfSearchRealArchive(
-          ctx,
-          directText
-        );
-
-      if (
-        Array.isArray(
-          archiveResults
-        ) &&
-        archiveResults.length
-      ) {
-        const output = [];
-
-        for (
-          const record of archiveResults.slice(
-            0,
-            3
-          )
-        ) {
-          const title =
-            String(
-              record.name ||
-              record.title ||
-              ''
-            ).trim();
-
-          const link =
-            String(
-              record.link ||
-              record.postUrl ||
-              ''
-            ).trim();
-
-          const channel =
-            String(
-              record.channel ||
-              ''
-            ).trim();
-
-          const messageId =
-            String(
-              record.messageId ||
-              record.id ||
-              ''
-            ).trim();
-
-          if (title) {
-            output.push(
-              `Title: ${title}`
-            );
-          }
-
-          if (record.animeName) {
-            output.push(
-              `Anime Name: ${String(
-                record.animeName
-              ).trim()}`
-            );
-          }
-
-          if (record.englishName) {
-            output.push(
-              `English Name: ${String(
-                record.englishName
-              ).trim()}`
-            );
-          }
-
-          if (record.persianName) {
-            output.push(
-              `Persian Name: ${String(
-                record.persianName
-              ).trim()}`
-            );
-          }
-
-          if (channel) {
-            output.push(
-              `Channel: ${channel}`
-            );
-          }
-
-          if (messageId) {
-            output.push(
-              `Message ID: ${messageId}`
-            );
-          }
-
-          if (link) {
-            output.push(
-              `Telegram Link: ${link}`
-            );
-          }
-
-          if (record.channelType) {
-            output.push(
-              `Channel Type: ${String(
-                record.channelType
-              ).trim()}`
-            );
-          }
-
-          if (record.category) {
-            output.push(
-              `Category: ${String(
-                record.category
-              ).trim()}`
-            );
-          }
-
-          if (record.kind) {
-            output.push(
-              `Kind: ${String(
-                record.kind
-              ).trim()}`
-            );
-          }
-
-          if (record.seasons) {
-            output.push(
-              `Seasons: ${String(
-                record.seasons
-              ).trim()}`
-            );
-          }
-
-          if (record.text) {
-            output.push(
-              `Post Content: ${String(
-                record.text
-              ).trim()}`
-            );
-          }
-
-          output.push(
-            '━━━━━━━━━━━━━━━━━━'
-          );
-        }
-
-        archiveContext =
-          output
-            .join('\n')
-            .slice(0, 10000);
-      }
-
-    } catch (error) {
-      console.error(
-        'NF ARCHIVE SEARCH ERROR:',
-        error?.response?.data ||
-        error?.message ||
-        error
-      );
-
-      archiveContext = '';
-    }
-
-    // #new
-    let airingContext = '';
-
-    if (
+    const isAiringQuestion =
       nfIsAiringQuestion(
         directText
-      )
-    ) {
+      );
+
+    // #update
+    let archiveContext = '';
+
+    if (!isAiringQuestion) {
+      try {
+        const archiveResults =
+          await nfSearchRealArchive(
+            ctx,
+            directText
+          );
+
+        if (
+          Array.isArray(
+            archiveResults
+          ) &&
+          archiveResults.length
+        ) {
+          const output = [];
+
+          for (
+            const record of archiveResults.slice(
+              0,
+              3
+            )
+          ) {
+            const title =
+              String(
+                record.name ||
+                record.title ||
+                ''
+              ).trim();
+
+            const link =
+              String(
+                record.link ||
+                record.postUrl ||
+                ''
+              ).trim();
+
+            const channel =
+              String(
+                record.channel ||
+                ''
+              ).trim();
+
+            const messageId =
+              String(
+                record.messageId ||
+                record.id ||
+                ''
+              ).trim();
+
+            if (title) {
+              output.push(
+                `Title: ${title}`
+              );
+            }
+
+            if (record.animeName) {
+              output.push(
+                `Anime Name: ${String(
+                  record.animeName
+                ).trim()}`
+              );
+            }
+
+            if (record.englishName) {
+              output.push(
+                `English Name: ${String(
+                  record.englishName
+                ).trim()}`
+              );
+            }
+
+            if (record.persianName) {
+              output.push(
+                `Persian Name: ${String(
+                  record.persianName
+                ).trim()}`
+              );
+            }
+
+            if (channel) {
+              output.push(
+                `Channel: ${channel}`
+              );
+            }
+
+            if (messageId) {
+              output.push(
+                `Message ID: ${messageId}`
+              );
+            }
+
+            if (link) {
+              output.push(
+                `Telegram Link: ${link}`
+              );
+            }
+
+            if (record.channelType) {
+              output.push(
+                `Channel Type: ${String(
+                  record.channelType
+                ).trim()}`
+              );
+            }
+
+            if (record.category) {
+              output.push(
+                `Category: ${String(
+                  record.category
+                ).trim()}`
+              );
+            }
+
+            if (record.kind) {
+              output.push(
+                `Kind: ${String(
+                  record.kind
+                ).trim()}`
+              );
+            }
+
+            if (record.seasons) {
+              output.push(
+                `Seasons: ${String(
+                  record.seasons
+                ).trim()}`
+              );
+            }
+
+            if (record.text) {
+              output.push(
+                `Post Content: ${String(
+                  record.text
+                ).trim()}`
+              );
+            }
+
+            output.push(
+              '━━━━━━━━━━━━━━━━━━'
+            );
+          }
+
+          archiveContext =
+            output
+              .join('\n')
+              .slice(0, 10000);
+        }
+
+      } catch (error) {
+        console.error(
+          'NF ARCHIVE SEARCH ERROR:',
+          error?.response?.data ||
+          error?.message ||
+          error
+        );
+
+        archiveContext = '';
+      }
+    }
+
+    // #update
+    let airingContext = '';
+
+    if (isAiringQuestion) {
       try {
         const airingSearch =
           String(
             directText || ''
           )
             .replace(
+              /(?:قسمت\s+)+/giu,
+              'قسمت '
+            )
+            .replace(
+              /(?:بعدی\s+)+/giu,
+              'بعدی '
+            )
+            .replace(
               /^(?:قسمت\s+بعدی|زمان\s+پخش|تاریخ\s+پخش|تاریخ\s+انتشار)\s*/iu,
               ''
             )
             .replace(
-              /(?:شروع\s+شده|شروع\s+شد|پخش\s+شده|پخش\s+شد|کی\s+میاد|کی\s+پخش\s+میشه|نیمده|نیومده|اومده|آمده|شروع|پخش)\s*[؟?]?/iu,
+              /(?:شروع\s+شده|شروع\s+شد|پخش\s+شده|پخش\s+شد|کی\s+میاد|کی\s+پخش\s+میشه|چی\s*وقت\s+میاد|چی\s*وقت\s+میایه|چه\s*وقت\s+میاد|چه\s*وقت\s+میایه|نیمده|نیومده|اومده|آمده|شروع|پخش)\s*[؟?]?/iu,
               ''
             )
             .replace(
