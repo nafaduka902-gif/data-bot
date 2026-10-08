@@ -4286,11 +4286,11 @@ async function nfDirect(
         );
 
       return (
-        `📊 تعداد دستورات واقعی bot.js: ${commands.length}`
+        `📊 تعداد دستورات واقعی ربات: ${commands.length}`
       );
     } catch {
       return (
-        '❌ نتوانستم تعداد واقعی دستورات را از bot.js بخوانم.'
+        '❌ نتوانستم تعداد واقعی دستورات را از ربات بخوانم.'
       );
     }
   }
@@ -4411,24 +4411,24 @@ function nfArchiveQueueUpsert(ctx) {
 const NF_TEAM_CHANNELS = [
   {
     name: 'Anime Faarsi',
-    description: 'کانال اصلی انیمه فارسی',
+    description: 'کانال اصلی انیمه فارسی رسمی تیم',
     username: '@Anime_Faarsi',
     url: 'https://t.me/Anime_Faarsi'
   },
   {
-    name: 'اخبار سینما انیمه',
-    description: 'کانال اخبار سینمای جهان',
+    name: 'اخبار سینما',
+    description: 'کانال اخبار سینمای جهان رسمی تیم',
     username: '@Anime_FaarsiNews',
     url: 'https://t.me/Anime_FaarsiNews'
   },
   {
     name: 'فارسی مووی',
-    description: 'کانال فیلم و سریال',
+    description: 'کانال فیلم و سریال رسمی تیم',
     username: '@FaarsiMovie',
     url: 'https://t.me/FaarsiMovie'
   },
   {
-    name: 'گروپ چت رسمی تیم',
+    name: 'گروه چت انیمه فارسی',
     description: 'گروه چت رسمی تیم',
     username: '@Anime_FaarsiChat',
     url: 'https://t.me/Anime_FaarsiChat'
@@ -4441,25 +4441,25 @@ const NF_TEAM_CHANNELS = [
   },
   {
     name: 'کانال اطلاعات و معرفی انیمه',
-    description: 'کانال اطلاعات و معرفی انیمه',
+    description: 'کانال اطلاعات تیم',
     username: '@Anime_Loveri',
     url: 'https://t.me/Anime_Loveri'
   },
   {
-    name: 'کانال ادیت انیمه فارسی',
-    description: 'کانال ادیت انیمه فارسی تیم',
+    name: 'کانال آیدیت انیمه فارسی',
+    description: 'کانال آیدیت رسمی تیم',
     username: '@Anime_FaarsiEdits',
     url: 'https://t.me/Anime_FaarsiEdits'
   },
   {
-    name: 'کانال زاپاس',
-    description: 'کانال زاپاس تیم',
+    name: 'زاپاس انیمه فارسی دوم',
+    description: 'کانال زاپاس دوم رسمی تیم',
     username: '@animefaarsi',
     url: 'https://t.me/animefaarsi'
   },
   {
-    name: 'کانال زاپاس دوبله',
-    description: 'کانال زاپاس تیم',
+    name: 'زاپاس انیمه فارسی اول',
+    description: 'کانال زاپاس اول رسمی تیم',
     username: '@Dubb_Anime',
     url: 'https://t.me/Dubb_Anime'
   }
@@ -13755,23 +13755,9 @@ async function handleNewMembers(
       ctx.chat.id
     );
 
-  if (!welcome.available) {
-    console.error(
-      'WELCOME DATA UNAVAILABLE; NEW-MEMBER VERIFICATION SKIPPED'
-    );
-
-    return;
-  }
-
-  const welcomeEnabled =
-    Boolean(
-      welcome.settings.enabled &&
-      groupSettings.welcomeEnabled
-    );
-
   if (
-    !welcomeEnabled &&
-    !groupSettings.captchaEnabled
+    !welcome.settings.enabled ||
+    !groupSettings.welcomeEnabled
   ) {
     return;
   }
@@ -13782,35 +13768,42 @@ async function handleNewMembers(
   for (
     const user of members
   ) {
-    if (
-      user.is_bot
-    ) {
+    if (user.is_bot) {
+      continue;
+    }
+
+    const muted =
+      groupSettings.captchaEnabled
+        ? await muteUser(
+            ctx,
+            ctx.chat.id,
+            user.id
+          )
+        : true;
+
+    if (!muted) {
       continue;
     }
 
     const pending =
-      welcome.pending.filter(
-        item =>
-          !(
-            Number(item.userId) ===
-              Number(user.id) &&
-            Number(item.chatId) ===
-              Number(ctx.chat.id)
+      Array.isArray(welcome.pending)
+        ? welcome.pending.filter(
+            item =>
+              !(
+                Number(item.userId) ===
+                Number(user.id) &&
+                Number(item.chatId) ===
+                Number(ctx.chat.id)
+              )
           )
-      );
+        : [];
 
     const welcomeMessageText =
-      welcomeEnabled
-        ? welcomeGroupText(
-            welcome.settings.welcomeText,
-            user,
-            ctx.chat
-          )
-        : welcomeGroupText(
-            '👋 {user}، برای ورود به {chat} لطفاً قوانین گروه را از دکمهٔ زیر بخوانید و تأیید کنید.',
-            user,
-            ctx.chat
-          );
+      welcomeGroupText(
+        welcome.settings.welcomeText,
+        user,
+        ctx.chat
+      );
 
     const captchaToken =
       `${Date.now().toString(36)}_${Math.random()
@@ -13835,9 +13828,9 @@ async function handleNewMembers(
                       [
                         {
                           text:
-                            welcome.settings
-                              .buttonText,
-                          url: startUrl
+                            welcome.settings.buttonText,
+                          url:
+                            startUrl
                         }
                       ]
                     ]
@@ -13862,59 +13855,41 @@ async function handleNewMembers(
       pending.push({
         userId:
           Number(user.id),
+
         chatId:
           Number(ctx.chat.id),
+
         chatTitle:
           ctx.chat.title || '',
+
         welcomeMessageId:
-          sent.message_id,
-        rulesMessageId:
-          null,
+          Number(
+            sent.message_id
+          ),
+
         captchaToken,
+
         createdAt:
           new Date().toISOString()
       });
+
+      welcome.pending =
+        pending;
+
+      await saveWelcomeData(
+        welcome.settings,
+        welcome.pending
+      );
     }
 
-    welcome.pending =
-      pending;
-
-    if (
-      groupSettings.captchaEnabled
-    ) {
-      let saved = false;
-
-      try {
-        saved =
-          await saveWelcomeData(
-            welcome.settings,
-            welcome.pending
-          );
-      } catch (error) {
-        console.error(
-          'WELCOME CAPTCHA SAVE ERROR:',
-          error?.message ||
-            error
-        );
-      }
-
-      if (!saved) {
-        try {
-          await ctx.telegram.deleteMessage(
-            ctx.chat.id,
-            sent.message_id
-          );
-        } catch {}
-
-        try {
-          await ctx.reply(
-            '⚠️ ذخیرهٔ وضعیت تأیید انجام نشد؛ لطفاً مدیر گروه اتصال GitHub را بررسی کند.'
-          );
-        } catch {}
-
-        continue;
-      }
-    }
+    const deleteAfter =
+      Math.max(
+        10,
+        Number(
+          groupSettings
+            .welcomeDeleteAfterSeconds
+        ) || 120
+      );
 
     setTimeout(
       async () => {
@@ -13923,32 +13898,101 @@ async function handleNewMembers(
             ctx.chat.id,
             sent.message_id
           );
-        } catch {}
+
+          console.log(
+            'WELCOME MESSAGE DELETED:',
+            ctx.chat.id,
+            sent.message_id
+          );
+        } catch (error) {
+          console.error(
+            'WELCOME MESSAGE DELETE ERROR:',
+            error?.message ||
+              error
+          );
+        }
+
+        if (
+          groupSettings.captchaEnabled
+        ) {
+          try {
+            const latest =
+              await getWelcomeData();
+
+            if (
+              Array.isArray(
+                latest.pending
+              )
+            ) {
+              latest.pending =
+                latest.pending.filter(
+                  item =>
+                    !(
+                      Number(
+                        item.chatId
+                      ) ===
+                        Number(
+                          ctx.chat.id
+                        ) &&
+                      Number(
+                        item.welcomeMessageId
+                      ) ===
+                        Number(
+                          sent.message_id
+                        )
+                    )
+                );
+
+              await saveWelcomeData(
+                latest.settings,
+                latest.pending
+              );
+            }
+          } catch (error) {
+            console.error(
+              'WELCOME PENDING CLEAN ERROR:',
+              error?.message ||
+                error
+            );
+          }
+        }
       },
-      Math.max(
-        10,
-        Number(
-          groupSettings.welcomeDeleteAfterSeconds ??
-            120
-        )
-      ) * 1000
+      deleteAfter * 1000
     );
   }
 
   if (joinNoticeId) {
-    setTimeout(
-      () =>
-        safeDelete(
-          ctx,
-          joinNoticeId
-        ),
+    const deleteAfter =
       Math.max(
         1,
         Number(
-          groupSettings.joinNoticeDeleteAfterSeconds ||
-            1
-        )
-      ) * 1000
+          groupSettings
+            .joinNoticeDeleteAfterSeconds
+        ) || 1
+      );
+
+    setTimeout(
+      async () => {
+        try {
+          await ctx.telegram.deleteMessage(
+            ctx.chat.id,
+            joinNoticeId
+          );
+
+          console.log(
+            'JOIN NOTICE DELETED:',
+            ctx.chat.id,
+            joinNoticeId
+          );
+        } catch (error) {
+          console.error(
+            'JOIN NOTICE DELETE ERROR:',
+            error?.message ||
+              error
+          );
+        }
+      },
+      deleteAfter * 1000
     );
   }
 }
