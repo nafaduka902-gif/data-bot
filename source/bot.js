@@ -4337,58 +4337,85 @@ async function nfDirect(
   return null;
 }
 
-
-
-// #new
+// #update
 async function imdbGetBestPoster(imdbUrl) {
-  const match = String(imdbUrl || '')
-    .trim()
-    .match(/imdb\.com\/title\/(tt\d+)/i);
+  const input =
+    String(imdbUrl || '')
+      .trim();
 
-  if (!match) {
+  const titleMatch =
+    input.match(
+      /imdb\.com\/title\/(tt\d+)/i
+    );
+
+  if (!titleMatch) {
     return null;
   }
 
-  const imdbId = match[1];
+  const imdbId =
+    titleMatch[1];
 
-  try {
-    const response = await axios.get(
-      `https://api.imdbapi.dev/titles/${imdbId}/images`,
-      {
-        timeout: 15000
-      }
+  const mediaMatch =
+    input.match(
+      /mediaviewer\/(rm\d+)/i
     );
 
-    const data = response?.data || {};
+  try {
+    const response =
+      await axios.get(
+        `https://api.imdbapi.dev/titles/${imdbId}/images`,
+        {
+          timeout: 20000
+        }
+      );
 
-    const images =
+    const data =
+      response?.data || {};
+
+    let images = [];
+
+    if (
       Array.isArray(data)
-        ? data
-        : Array.isArray(data.images)
-          ? data.images
-          : Array.isArray(data.results)
-            ? data.results
-            : [];
-
-    if (!images.length) {
-      return null;
+    ) {
+      images = data;
+    } else if (
+      Array.isArray(data.images)
+    ) {
+      images = data.images;
+    } else if (
+      Array.isArray(data.results)
+    ) {
+      images = data.results;
+    } else if (
+      Array.isArray(data.posters)
+    ) {
+      images = data.posters;
     }
 
-    const validImages =
+    const normalized =
       images
         .map(item => ({
+          id:
+            String(
+              item?.imageId ||
+              item?.id ||
+              ''
+            ).trim(),
+
           url:
             String(
               item?.url ||
               item?.image?.url ||
               ''
             ).trim(),
+
           width:
             Number(
               item?.width ||
               item?.image?.width ||
               0
             ),
+
           height:
             Number(
               item?.height ||
@@ -4396,22 +4423,49 @@ async function imdbGetBestPoster(imdbUrl) {
               0
             )
         }))
-        .filter(item =>
-          item.url &&
-          /^https?:\/\//i.test(item.url)
+        .filter(
+          item =>
+            item.url &&
+            /^https?:\/\//i.test(
+              item.url
+            )
         );
 
-    if (!validImages.length) {
+    if (!normalized.length) {
       return null;
     }
 
-    validImages.sort(
+    if (mediaMatch) {
+      const requestedId =
+        mediaMatch[1];
+
+      const requested =
+        normalized.find(
+          item =>
+            item.id === requestedId ||
+            item.url.includes(
+              requestedId
+            )
+        );
+
+      if (requested?.url) {
+        return requested.url;
+      }
+    }
+
+    normalized.sort(
       (a, b) =>
-        (b.width * b.height) -
-        (a.width * a.height)
+        (
+          Number(b.width || 0) *
+          Number(b.height || 0)
+        ) -
+        (
+          Number(a.width || 0) *
+          Number(a.height || 0)
+        )
     );
 
-    return validImages[0].url;
+    return normalized[0]?.url || null;
 
   } catch (error) {
     console.error(
@@ -4425,7 +4479,8 @@ async function imdbGetBestPoster(imdbUrl) {
   }
 }
 
-// #new
+
+// #update
 bot.command(
   'imdbphdl',
   async ctx => {
@@ -4435,21 +4490,23 @@ bot.command(
           ctx.message?.text || ''
         ).trim();
 
-      const parts =
-        text.split(/\s+/);
-
       const imdbUrl =
-        parts[1] || '';
+        text
+          .replace(
+            /^\/imdbphdl(?:@\w+)?\s*/i,
+            ''
+          )
+          .trim();
 
       if (!imdbUrl) {
         await ctx.reply(
-          '❌ لینک IMDb را وارد کنید.\n\nمثال:\n/imdbphdl https://www.imdb.com/title/tt0111161/'
+          '❌ لینک IMDb را ارسال کنید.\n\nمثال:\n/imdbphdl https://www.imdb.com/title/tt39400168/mediaviewer/rm1560928002/'
         );
         return;
       }
 
       if (
-        !/https?:\/\/(?:www\.)?imdb\.com\/title\/tt\d+/i
+        !/imdb\.com\/title\/tt\d+/i
           .test(imdbUrl)
       ) {
         await ctx.reply(
@@ -4473,16 +4530,13 @@ bot.command(
       await ctx.replyWithPhoto(
         {
           url: poster
-        },
-        {
-          caption:
-            '🖼 پوستر IMDb'
         }
       );
 
     } catch (error) {
       console.error(
         'IMDBPHDL ERROR:',
+        error?.response?.data ||
         error?.message ||
         error
       );
@@ -4493,8 +4547,6 @@ bot.command(
     }
   }
 );
-
-
 
 const NF_BOT_NAME =
   'Anime Faarsi Bot';
