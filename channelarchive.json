@@ -7498,6 +7498,132 @@
     "updatedAt": "2026-10-08T19:40:26.904Z"
   },
   {
+    "id": "anime_faarsi:218",
+    "name": "عالیجناب سایه",
+    "nameNormalized": "عالیجناب سایه",
+    "aliases": [
+      "عالیجناب سایه",
+      "Kage no Jitsuryokusha ni Naritakute",
+      "The Eminence in Shadow"
+    ],
+    "aliasesNormalized": [
+      "عالیجناب سایه",
+      "kage no jitsuryokusha ni naritakute",
+      "the eminence in shadow"
+    ],
+    "animeName": "Kage no Jitsuryokusha ni Naritakute",
+    "englishName": "The Eminence in Shadow",
+    "persianName": "عالیجناب سایه",
+    "link": "https://t.me/Anime_Faarsi/218",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 218,
+    "text": "نام انیمه: Kage no Jitsuryokusha ni Naritakute\nنام انگلیسی: The Eminence in Shadow\nنام فارسی: عالیجناب سایه\nفصل: 1\nامتیاز: 8.5\nنوع: سریالی\nژانر: #اکشن #ماجراجویی #فانتزی #کمدی\nسال ساخت: 2022\nتعداد قسمت‌ها: 20\nوضعیت: اتمام پخش\nزمان هر قسمت: 23 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nدوبله اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 دانلود فصل 1 / 20 دوبله فارسی | نماوا ]\n \nدوبله از: Anime Faarsi\n#The_Eminence_in_Shadow\n#Kage_no_Jitsuryokusha_ni_Naritakute\n@Anime_Faarsi✨",
+    "caption": "نام انیمه: Kage no Jitsuryokusha ni Naritakute\nنام انگلیسی: The Eminence in Shadow\nنام فارسی: عالیجناب سایه\nفصل: 1\nامتیاز: 8.5\nنوع: سریالی\nژانر: #اکشن #ماجراجویی #فانتزی #کمدی\nسال ساخت: 2022\nتعداد قسمت‌ها: 20\nوضعیت: اتمام پخش\nزمان هر قسمت: 23 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nدوبله اختصاصی انیمه فارسی\n\n📥 لینک‌ های دانلود:\n\n🔻 دانلود فصل 1 / 20 دوبله فارسی | نماوا ]\n \nدوبله از: Anime Faarsi\n#The_Eminence_in_Shadow\n#Kage_no_Jitsuryokusha_ni_Naritakute\n@Anime_Faarsi✨",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 145,
+        "type": "bold"
+      },
+      {
+        "offset": 145,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 150,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 151,
+        "length": 10,
+        "type": "hashtag"
+      },
+      {
+        "offset": 161,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 162,
+        "length": 7,
+        "type": "hashtag"
+      },
+      {
+        "offset": 169,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 170,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 175,
+        "length": 174,
+        "type": "bold"
+      },
+      {
+        "offset": 354,
+        "length": 29,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_760846357"
+      },
+      {
+        "offset": 354,
+        "length": 29,
+        "type": "bold"
+      },
+      {
+        "offset": 384,
+        "length": 9,
+        "type": "bold"
+      },
+      {
+        "offset": 396,
+        "length": 23,
+        "type": "bold"
+      },
+      {
+        "offset": 419,
+        "length": 23,
+        "type": "hashtag"
+      },
+      {
+        "offset": 442,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 443,
+        "length": 36,
+        "type": "hashtag"
+      },
+      {
+        "offset": 479,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 480,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 493,
+        "length": 1,
+        "type": "bold"
+      }
+    ],
+    "date": 1739293266,
+    "createdAt": "2026-10-08T19:42:19.530Z",
+    "updatedAt": "2026-10-08T19:42:19.530Z"
+  },
+  {
     "id": "anime_faarsi:207",
     "name": "تک رو | سولو لیولینگ فصل اول",
     "nameNormalized": "تک رو سولو لیولینگ فصل اول",
