@@ -5669,8 +5669,8 @@
     "channelNormalized": "anime_faarsi",
     "channelType": "anime",
     "messageId": 426,
-    "text": "➖ Solo Leveling (Season 1 + دوبله فارسی)\n\n➖ Solo Leveling (Season 2 + دوبله فارسی)\n\n➖ Solo Leveling (Movie 1 + دوبله فارسی)\n\nنوت: سینک اختصاصی مخصوص چنلمون میباشد.\n\n#دسترسی_سریع\n#کالکشن\n#سولو_لیولینگ\n#تک_رو\n🆔 @Anime_Faarsi",
-    "caption": "➖ Solo Leveling (Season 1 + دوبله فارسی)\n\n➖ Solo Leveling (Season 2 + دوبله فارسی)\n\n➖ Solo Leveling (Movie 1 + دوبله فارسی)\n\nنوت: سینک اختصاصی مخصوص چنلمون میباشد.\n\n#دسترسی_سریع\n#کالکشن\n#سولو_لیولینگ\n#تک_رو\n🆔 @Anime_Faarsi",
+    "text": "➖ Solo Leveling (Season 1 + دوبله فارسی)\n\n➖ Solo Leveling (Season 2 + دوبله فارسی)\n\n➖ Solo Leveling (Movie 1 + دوبله فارسی)\n\nنوت: سینک اختصاصی مخصوص چنلمون میباشد.\n\n#دسترسی_سریع\n#کالکشن\n#سولو_لیولینگ\n#تک_رو \n🆔 @Anime_Faarsi",
+    "caption": "➖ Solo Leveling (Season 1 + دوبله فارسی)\n\n➖ Solo Leveling (Season 2 + دوبله فارسی)\n\n➖ Solo Leveling (Movie 1 + دوبله فارسی)\n\nنوت: سینک اختصاصی مخصوص چنلمون میباشد.\n\n#دسترسی_سریع\n#کالکشن\n#سولو_لیولینگ\n#تک_رو \n🆔 @Anime_Faarsi",
     "entities": [
       {
         "offset": 2,
@@ -5783,24 +5783,24 @@
         "type": "bold"
       },
       {
-        "offset": 206,
+        "offset": 207,
         "length": 4,
         "type": "bold"
       },
       {
-        "offset": 210,
+        "offset": 211,
         "length": 13,
         "type": "mention"
       },
       {
-        "offset": 210,
+        "offset": 211,
         "length": 13,
         "type": "bold"
       }
     ],
     "date": 1743006328,
     "createdAt": "2026-10-08T13:35:38.191Z",
-    "updatedAt": "2026-10-08T15:20:49.000Z",
+    "updatedAt": "2026-10-08T17:09:18.004Z",
     "aliases": [
       "Solo Leveling (Season 1 + دوبله فارسی)"
     ],
