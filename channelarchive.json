@@ -1,5 +1,136 @@
 [
   {
+    "id": "animefaarsi:6",
+    "name": "🔻 لیست کانال های ما",
+    "nameNormalized": "لیست کانال های ما",
+    "link": "https://t.me/animefaarsi/6",
+    "channel": "animefaarsi",
+    "channelNormalized": "animefaarsi",
+    "channelType": "anime",
+    "messageId": 6,
+    "text": "🔻 لیست کانال های ما\n\n➖ کانال انیمه\n\n➖ کانال انیمیشن‌\n\n➖ کانال فیلم و سریال\n\n➖ کانال اخبار\n\n➖ کانال معلومات\n\n➖ کانال ایدیت\n\n➖ گروپ چت\n\n➖ کانال زاپاس\n\n➖ کانال زاپاس دوم\n\n✅ t.me/dubb_Anime",
+    "caption": "",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 24,
+        "length": 11,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Faarsi"
+      },
+      {
+        "offset": 24,
+        "length": 11,
+        "type": "bold"
+      },
+      {
+        "offset": 39,
+        "length": 14,
+        "type": "text_link",
+        "url": "https://t.me/AnimitionFaarsi"
+      },
+      {
+        "offset": 39,
+        "length": 14,
+        "type": "bold"
+      },
+      {
+        "offset": 57,
+        "length": 18,
+        "type": "text_link",
+        "url": "https://t.me/FaarsiMovie"
+      },
+      {
+        "offset": 57,
+        "length": 18,
+        "type": "bold"
+      },
+      {
+        "offset": 79,
+        "length": 11,
+        "type": "text_link",
+        "url": "https://t.me/Anime_FaarsiNews"
+      },
+      {
+        "offset": 79,
+        "length": 11,
+        "type": "bold"
+      },
+      {
+        "offset": 94,
+        "length": 13,
+        "type": "text_link",
+        "url": "https://t.me/Anime_Loveri"
+      },
+      {
+        "offset": 94,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 111,
+        "length": 11,
+        "type": "text_link",
+        "url": "https://t.me/Anime_FaarsiEdits"
+      },
+      {
+        "offset": 111,
+        "length": 11,
+        "type": "bold"
+      },
+      {
+        "offset": 126,
+        "length": 7,
+        "type": "text_link",
+        "url": "https://t.me/Anime_FaarsiChat"
+      },
+      {
+        "offset": 126,
+        "length": 7,
+        "type": "bold"
+      },
+      {
+        "offset": 137,
+        "length": 11,
+        "type": "text_link",
+        "url": "https://t.me/Dubb_Anime"
+      },
+      {
+        "offset": 137,
+        "length": 11,
+        "type": "bold"
+      },
+      {
+        "offset": 152,
+        "length": 15,
+        "type": "text_link",
+        "url": "https://t.me/AnimeFaarsi"
+      },
+      {
+        "offset": 152,
+        "length": 15,
+        "type": "bold"
+      },
+      {
+        "offset": 169,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 171,
+        "length": 15,
+        "type": "url"
+      }
+    ],
+    "date": 1791463445,
+    "createdAt": "2026-10-08T12:44:06.238Z",
+    "updatedAt": "2026-10-08T12:44:06.238Z"
+  },
+  {
     "id": "animefaarsi:5",
     "name": "Post 5",
     "nameNormalized": "post 5",
