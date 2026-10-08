@@ -1,5 +1,36 @@
 [
   {
+    "id": "anime_faarsi:1016",
+    "name": "نسخه اختصاصی هاردساب انیمه فارسی اضافه شد.",
+    "nameNormalized": "نسخه اختصاصی هاردساب انیمه فارسی اضافه شد",
+    "aliases": [
+      "نسخه اختصاصی هاردساب انیمه فارسی اضافه شد."
+    ],
+    "aliasesNormalized": [
+      "نسخه اختصاصی هاردساب انیمه فارسی اضافه شد"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "",
+    "link": "https://t.me/Anime_Faarsi/1016",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1016,
+    "text": "نسخه اختصاصی هاردساب انیمه فارسی اضافه شد.",
+    "caption": "",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 42,
+        "type": "bold"
+      }
+    ],
+    "date": 1791478923,
+    "createdAt": "2026-10-08T17:02:03.837Z",
+    "updatedAt": "2026-10-08T17:02:03.837Z"
+  },
+  {
     "id": "faarsimovie:471",
     "name": "آماده دوتا از بزرگترین پروژه های 2026 هستید؟",
     "nameNormalized": "آماده دوتا از بزرگترین پروژه های 2026 هستید",
