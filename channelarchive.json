@@ -4325,6 +4325,63 @@
     "updatedAt": "2026-10-03T07:40:32.916Z"
   },
   {
+    "id": "anime_faarsi:963",
+    "name": "آشپزی در سیاه چال",
+    "nameNormalized": "آشپزی در سیاه چال",
+    "aliases": [
+      "آشپزی در سیاه چال"
+    ],
+    "aliasesNormalized": [
+      "آشپزی در سیاه چال"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "",
+    "link": "https://t.me/Anime_Faarsi/963",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 963,
+    "text": "📼 انیمه سریالی « آشپزی در سیاه‌چال »\n\n📹 Delicious in Dungeon\n⭐️ IMDB : 8.1\n\n🎭 ژانر : انیمیشن | فانتزی | ماجراجویی | کمدی | اکشن\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 24 قسمت\n👤ستارگان : Kentarô Kumagai, Sayaka Senbongi, Asuna Tomari, Hiroshi Naka\n\n💬 خلاصه داستان : لایوس و همراهانش برای نجات خواهرش فالین که در اعماق سیاه‌چال گرفتار شده، سفری خطرناک را آغاز می‌کنند. آن‌ها برای زنده ماندن، به‌جای غذاهای معمولی، از هیولاهای داخل سیاه‌چال برای تهیه غذا استفاده می‌کنند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "caption": "📼 انیمه سریالی « آشپزی در سیاه‌چال »\n\n📹 Delicious in Dungeon\n⭐️ IMDB : 8.1\n\n🎭 ژانر : انیمیشن | فانتزی | ماجراجویی | کمدی | اکشن\n🌐 محصول : ژاپن\n⌨ وضعیت : 1 فصل 24 قسمت\n👤ستارگان : Kentarô Kumagai, Sayaka Senbongi, Asuna Tomari, Hiroshi Naka\n\n💬 خلاصه داستان : لایوس و همراهانش برای نجات خواهرش فالین که در اعماق سیاه‌چال گرفتار شده، سفری خطرناک را آغاز می‌کنند. آن‌ها برای زنده ماندن، به‌جای غذاهای معمولی، از هیولاهای داخل سیاه‌چال برای تهیه غذا استفاده می‌کنند.\n\n🚫 بدون سانسور و حذفیات\n\n📥 فصل 01 دوبله فارسی | نماوا | 720p\n \n✅ @Anime_Faarsi",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 524,
+        "type": "bold"
+      },
+      {
+        "offset": 525,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_381585334"
+      },
+      {
+        "offset": 525,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 532,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 534,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 534,
+        "length": 13,
+        "type": "bold"
+      }
+    ],
+    "date": 1790159203,
+    "createdAt": "2026-10-08T15:21:53.628Z",
+    "updatedAt": "2026-10-08T15:21:53.628Z"
+  },
+  {
     "id": "dubb_anime:7",
     "name": "🔻 لیست کانال های ما",
     "nameNormalized": "لیست کانال های ما",
