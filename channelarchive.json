@@ -1,5 +1,62 @@
 [
   {
+    "id": "faarsimovie:471",
+    "name": "آماده دوتا از بزرگترین پروژه های 2026 هستید؟",
+    "nameNormalized": "آماده دوتا از بزرگترین پروژه های 2026 هستید",
+    "link": "https://t.me/FaarsiMovie/471",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 471,
+    "text": "آماده دوتا از بزرگترین پروژه های 2026 هستید؟\n\n1: Blue Lock Movie 2026\n2: Blue Lock Season 3 Anime 2026\n\n✅ @Dubb_Anime",
+    "caption": "آماده دوتا از بزرگترین پروژه های 2026 هستید؟\n\n1: Blue Lock Movie 2026\n2: Blue Lock Season 3 Anime 2026\n\n✅ @Dubb_Anime",
+    "entities": [
+      {
+        "offset": 14,
+        "length": 8,
+        "type": "bold"
+      },
+      {
+        "offset": 46,
+        "length": 3,
+        "type": "bold"
+      },
+      {
+        "offset": 49,
+        "length": 20,
+        "type": "underline"
+      },
+      {
+        "offset": 69,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 73,
+        "length": 29,
+        "type": "underline"
+      },
+      {
+        "offset": 104,
+        "length": 2,
+        "type": "bold"
+      },
+      {
+        "offset": 106,
+        "length": 11,
+        "type": "mention"
+      },
+      {
+        "offset": 106,
+        "length": 11,
+        "type": "bold"
+      }
+    ],
+    "date": 1791469482,
+    "createdAt": "2026-10-08T14:24:42.591Z",
+    "updatedAt": "2026-10-08T14:24:42.591Z"
+  },
+  {
     "id": "anime_faarsi:1014",
     "name": "آماده دوتا از بزرگترین پروژه های 2026 هستید؟",
     "nameNormalized": "آماده دوتا از بزرگترین پروژه های 2026 هستید",
