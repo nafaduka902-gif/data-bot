@@ -4338,163 +4338,50 @@ async function nfDirect(
 }
 
 // #new
-async function imdbGetBestImage(imdbUrl) {
+async function imdbGetPosterNx(imdbUrl) {
   const input =
     String(imdbUrl || '').trim();
 
-  const titleMatch =
+  const match =
     input.match(
       /imdb\.com\/title\/(tt\d+)/i
     );
 
-  const mediaMatch =
-    input.match(
-      /mediaviewer\/(rm\d+)/i
-    );
-
-  if (!titleMatch) {
+  if (!match) {
     return null;
   }
 
-  const titleId =
-    titleMatch[1];
-
-  const mediaId =
-    mediaMatch?.[1] || '';
+  const imdbId =
+    match[1];
 
   try {
-    if (mediaId) {
-      const apiUrl =
-        `https://api.imdbapi.dev/images/${mediaId}`;
-
-      try {
-        const imageResponse =
-          await axios.get(
-            apiUrl,
-            {
-              timeout: 15000
-            }
-          );
-
-        const imageData =
-          imageResponse?.data || {};
-
-        const directUrl =
-          String(
-            imageData?.url ||
-            imageData?.image?.url ||
-            imageData?.imageUrl ||
-            ''
-          ).trim();
-
-        if (
-          directUrl &&
-          /^https?:\/\//i.test(
-            directUrl
-          )
-        ) {
-          return directUrl;
-        }
-      } catch {}
-    }
-
     const response =
       await axios.get(
-        `https://api.imdbapi.dev/titles/${titleId}/images`,
+        `https://v3-cinemeta.strem.io/meta/movie/${imdbId}.json`,
         {
-          timeout: 20000
+          timeout: 15000
         }
       );
 
-    const data =
-      response?.data || {};
+    const meta =
+      response?.data?.meta;
 
-    const images =
-      Array.isArray(data)
-        ? data
-        : Array.isArray(data.images)
-          ? data.images
-          : [];
-
-    if (!images.length) {
-      return null;
+    if (
+      meta?.poster &&
+      /^https?:\/\//i.test(
+        String(meta.poster)
+      )
+    ) {
+      return String(
+        meta.poster
+      ).trim();
     }
 
-    const valid =
-      images
-        .map(item => ({
-          id:
-            String(
-              item?.imageId ||
-              item?.id ||
-              ''
-            ).trim(),
-
-          url:
-            String(
-              item?.url ||
-              item?.image?.url ||
-              ''
-            ).trim(),
-
-          width:
-            Number(
-              item?.width ||
-              item?.image?.width ||
-              0
-            ),
-
-          height:
-            Number(
-              item?.height ||
-              item?.image?.height ||
-              0
-            )
-        }))
-        .filter(
-          item =>
-            item.url &&
-            /^https?:\/\//i.test(
-              item.url
-            )
-        );
-
-    if (!valid.length) {
-      return null;
-    }
-
-    if (mediaId) {
-      const exact =
-        valid.find(
-          item =>
-            item.id === mediaId
-        );
-
-      if (exact?.url) {
-        return exact.url;
-      }
-    }
-
-    valid.sort(
-      (a, b) =>
-        (
-          b.width *
-          b.height
-        ) -
-        (
-          a.width *
-          a.height
-        )
-    );
-
-    return (
-      valid[0]?.url ||
-      null
-    );
+    return null;
 
   } catch (error) {
     console.error(
-      'IMDB IMAGE ERROR:',
+      'IMDB POSTER ERROR:',
       error?.response?.data ||
       error?.message ||
       error
@@ -4509,13 +4396,13 @@ bot.command(
   'imdbphdl',
   async ctx => {
     try {
-      const text =
+      const messageText =
         String(
           ctx.message?.text || ''
         ).trim();
 
       const imdbUrl =
-        text
+        messageText
           .replace(
             /^\/imdbphdl(?:@\w+)?\s*/i,
             ''
@@ -4524,7 +4411,7 @@ bot.command(
 
       if (!imdbUrl) {
         await ctx.reply(
-          '❌ لینک IMDb را ارسال کنید.'
+          '❌ لینک IMDb را ارسال کنید.\n\nمثال:\n/imdbphdl https://www.imdb.com/title/tt39400168/'
         );
         return;
       }
@@ -4539,21 +4426,23 @@ bot.command(
         return;
       }
 
-      const imageUrl =
-        await imdbGetBestImage(
+      const poster =
+        await imdbGetPosterNx(
           imdbUrl
         );
 
-      if (!imageUrl) {
+      if (!poster) {
         await ctx.reply(
-          '❌ تصویر IMDb پیدا نشد.'
+          '❌ پوستر پیدا نشد.'
         );
         return;
       }
 
-      await ctx.replyWithPhoto({
-        url: imageUrl
-      });
+      await ctx.replyWithPhoto(
+        {
+          url: poster
+        }
+      );
 
     } catch (error) {
       console.error(
@@ -4564,7 +4453,7 @@ bot.command(
       );
 
       await ctx.reply(
-        '❌ دریافت تصویر با خطا مواجه شد.'
+        '❌ دریافت پوستر با خطا مواجه شد.'
       );
     }
   }
