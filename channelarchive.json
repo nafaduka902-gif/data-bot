@@ -7379,6 +7379,146 @@
     "updatedAt": "2026-10-03T18:22:38.540Z"
   },
   {
+    "id": "anime_faarsi:254",
+    "name": "قفل ابی",
+    "nameNormalized": "قفل ابی",
+    "aliases": [
+      "قفل ابی",
+      "Blue Lock"
+    ],
+    "aliasesNormalized": [
+      "قفل ابی",
+      "blue lock"
+    ],
+    "animeName": "Blue Lock",
+    "englishName": "Blue Lock",
+    "persianName": "قفل ابی",
+    "link": "https://t.me/Anime_Faarsi/254",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 254,
+    "text": "نام انیمه: Blue Lock\nنام انگلیسی: Blue Lock\nنام فارسی: قفل ابی\nفصل: 1\nامتیاز: 8.2\nنوع: سریالی\nژانر: #شونن #ورزشی\nسال ساخت: 2022\nتعداد قسمت‌ها: 24\nوضعیت: اتمام پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nدوبله اختصاصی انیمه لاوو\n\n📥 لینک‌ های دانلود:\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n \nدوبله از: Anime Lovers\n#Blue_Lock\n#Blue_Lock_24\n@Anime_Faarsi✨",
+    "caption": "نام انیمه: Blue Lock\nنام انگلیسی: Blue Lock\nنام فارسی: قفل ابی\nفصل: 1\nامتیاز: 8.2\nنوع: سریالی\nژانر: #شونن #ورزشی\nسال ساخت: 2022\nتعداد قسمت‌ها: 24\nوضعیت: اتمام پخش\nزمان هر قسمت: 24 دقیقه\nکیفیت: 720p\nرده‌بندی سنی: +17\nاطلاعات - خلاصه داستان\nدوبله اختصاصی انیمه لاوو\n\n📥 لینک‌ های دانلود:\n\n📥 فصل 01 دوبله فارسی | گپ فیلم | 720p\n \nدوبله از: Anime Lovers\n#Blue_Lock\n#Blue_Lock_24\n@Anime_Faarsi✨",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 100,
+        "type": "bold"
+      },
+      {
+        "offset": 100,
+        "length": 5,
+        "type": "hashtag"
+      },
+      {
+        "offset": 100,
+        "length": 5,
+        "type": "bold"
+      },
+      {
+        "offset": 105,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 106,
+        "length": 6,
+        "type": "hashtag"
+      },
+      {
+        "offset": 106,
+        "length": 6,
+        "type": "bold"
+      },
+      {
+        "offset": 112,
+        "length": 101,
+        "type": "bold"
+      },
+      {
+        "offset": 216,
+        "length": 22,
+        "type": "text_link",
+        "url": "https://t.me/Anime_loveri/248"
+      },
+      {
+        "offset": 239,
+        "length": 45,
+        "type": "bold"
+      },
+      {
+        "offset": 287,
+        "length": 33,
+        "type": "bold"
+      },
+      {
+        "offset": 321,
+        "length": 4,
+        "type": "text_link",
+        "url": "https://t.me/Uploaderpro01Bot?start=7643360501_253515150"
+      },
+      {
+        "offset": 321,
+        "length": 4,
+        "type": "bold"
+      },
+      {
+        "offset": 328,
+        "length": 23,
+        "type": "bold"
+      },
+      {
+        "offset": 351,
+        "length": 10,
+        "type": "hashtag"
+      },
+      {
+        "offset": 351,
+        "length": 10,
+        "type": "bold"
+      },
+      {
+        "offset": 361,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 362,
+        "length": 13,
+        "type": "hashtag"
+      },
+      {
+        "offset": 362,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 375,
+        "length": 1,
+        "type": "bold"
+      },
+      {
+        "offset": 376,
+        "length": 13,
+        "type": "mention"
+      },
+      {
+        "offset": 376,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 389,
+        "length": 1,
+        "type": "bold"
+      }
+    ],
+    "date": 1739538173,
+    "createdAt": "2026-10-08T19:43:08.536Z",
+    "updatedAt": "2026-10-08T19:43:08.536Z"
+  },
+  {
     "id": "anime_faarsi:253",
     "name": "بلو لاک: قسمت ناگی",
     "nameNormalized": "بلو لاک قسمت ناگی",
