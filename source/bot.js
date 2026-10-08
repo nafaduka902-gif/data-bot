@@ -4338,16 +4338,18 @@ async function nfDirect(
 }
 
 // #new
-async function imdbGetImage(
-  imdbUrl
-) {
+async function imdbGetBestImage(imdbUrl) {
   const input =
-    String(imdbUrl || '')
-      .trim();
+    String(imdbUrl || '').trim();
 
   const titleMatch =
     input.match(
       /imdb\.com\/title\/(tt\d+)/i
+    );
+
+  const mediaMatch =
+    input.match(
+      /mediaviewer\/(rm\d+)/i
     );
 
   if (!titleMatch) {
@@ -4357,144 +4359,123 @@ async function imdbGetImage(
   const titleId =
     titleMatch[1];
 
-  const mediaMatch =
-    input.match(
-      /mediaviewer\/(rm\d+)/i
-    );
-
   const mediaId =
     mediaMatch?.[1] || '';
 
   try {
-    const page =
-      await axios.get(
-        `https://www.imdb.com/title/${titleId}/`,
-        {
-          timeout: 20000,
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36',
-            'Accept-Language':
-              'en-US,en;q=0.9'
-          }
-        }
-      );
+    if (mediaId) {
+      const apiUrl =
+        `https://api.imdbapi.dev/images/${mediaId}`;
 
-    const html =
-      String(
-        page?.data || ''
-      );
-
-    const candidates = [];
-
-    const addImage =
-      (url, width = 0, height = 0) => {
-        const value =
-          String(url || '')
-            .replace(/\\u0026/g, '&')
-            .replace(/\\\//g, '/')
-            .replace(/&amp;/g, '&')
-            .trim();
-
-        if (
-          !value ||
-          !/^https?:\/\//i.test(value)
-        ) {
-          return;
-        }
-
-        if (
-          !/m\.media-amazon\.com\/images\//i
-            .test(value)
-        ) {
-          return;
-        }
-
-        candidates.push({
-          url: value,
-          width: Number(width) || 0,
-          height: Number(height) || 0
-        });
-      };
-
-    const imageRegex =
-      /https?:\\?\/\\?\/m\.media-amazon\.com\\?\/images\\?\/[^"'\\\s<>]+/gi;
-
-    const matches =
-      html.match(imageRegex) || [];
-
-    for (
-      const raw of matches
-    ) {
-      addImage(raw);
-    }
-
-    const jsonImageRegex =
-      /"(?:image|url)"\s*:\s*"([^"]*m\.media-amazon\.com\/images\/[^"]+)"/gi;
-
-    let match;
-
-    while (
-      (match =
-        jsonImageRegex.exec(html))
-    ) {
-      addImage(
-        match[1]
-      );
-    }
-
-    const unique =
-      new Map();
-
-    for (
-      const item of candidates
-    ) {
-      const clean =
-        item.url
-          .replace(
-            /\._V1_[^.]*(\.[a-zA-Z0-9]+)$/i,
-            '$1'
+      try {
+        const imageResponse =
+          await axios.get(
+            apiUrl,
+            {
+              timeout: 15000
+            }
           );
 
-      if (
-        !unique.has(clean)
-      ) {
-        unique.set(
-          clean,
-          {
-            ...item,
-            url: clean
-          }
-        );
-      }
+        const imageData =
+          imageResponse?.data || {};
+
+        const directUrl =
+          String(
+            imageData?.url ||
+            imageData?.image?.url ||
+            imageData?.imageUrl ||
+            ''
+          ).trim();
+
+        if (
+          directUrl &&
+          /^https?:\/\//i.test(
+            directUrl
+          )
+        ) {
+          return directUrl;
+        }
+      } catch {}
     }
 
-    const images =
-      Array.from(
-        unique.values()
+    const response =
+      await axios.get(
+        `https://api.imdbapi.dev/titles/${titleId}/images`,
+        {
+          timeout: 20000
+        }
       );
+
+    const data =
+      response?.data || {};
+
+    const images =
+      Array.isArray(data)
+        ? data
+        : Array.isArray(data.images)
+          ? data.images
+          : [];
 
     if (!images.length) {
       return null;
     }
 
-    if (mediaId) {
-      const mediaImage =
-        images.find(
+    const valid =
+      images
+        .map(item => ({
+          id:
+            String(
+              item?.imageId ||
+              item?.id ||
+              ''
+            ).trim(),
+
+          url:
+            String(
+              item?.url ||
+              item?.image?.url ||
+              ''
+            ).trim(),
+
+          width:
+            Number(
+              item?.width ||
+              item?.image?.width ||
+              0
+            ),
+
+          height:
+            Number(
+              item?.height ||
+              item?.image?.height ||
+              0
+            )
+        }))
+        .filter(
           item =>
-            item.url.includes(
-              mediaId
+            item.url &&
+            /^https?:\/\//i.test(
+              item.url
             )
         );
 
-      if (
-        mediaImage?.url
-      ) {
-        return mediaImage.url;
+    if (!valid.length) {
+      return null;
+    }
+
+    if (mediaId) {
+      const exact =
+        valid.find(
+          item =>
+            item.id === mediaId
+        );
+
+      if (exact?.url) {
+        return exact.url;
       }
     }
 
-    images.sort(
+    valid.sort(
       (a, b) =>
         (
           b.width *
@@ -4507,14 +4488,14 @@ async function imdbGetImage(
     );
 
     return (
-      images[0]?.url ||
+      valid[0]?.url ||
       null
     );
 
   } catch (error) {
     console.error(
       'IMDB IMAGE ERROR:',
-      error?.response?.status ||
+      error?.response?.data ||
       error?.message ||
       error
     );
@@ -4559,7 +4540,7 @@ bot.command(
       }
 
       const imageUrl =
-        await imdbGetImage(
+        await imdbGetBestImage(
           imdbUrl
         );
 
@@ -4570,11 +4551,9 @@ bot.command(
         return;
       }
 
-      await ctx.replyWithPhoto(
-        {
-          url: imageUrl
-        }
-      );
+      await ctx.replyWithPhoto({
+        url: imageUrl
+      });
 
     } catch (error) {
       console.error(
@@ -4585,7 +4564,7 @@ bot.command(
       );
 
       await ctx.reply(
-        '❌ دریافت تصویر IMDb با خطا مواجه شد.'
+        '❌ دریافت تصویر با خطا مواجه شد.'
       );
     }
   }
