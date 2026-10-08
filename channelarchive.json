@@ -1,5 +1,21 @@
 [
   {
+    "id": "dubb_anime:12",
+    "name": "Post 12",
+    "nameNormalized": "post 12",
+    "link": "https://t.me/Dubb_Anime/12",
+    "channel": "Dubb_Anime",
+    "channelNormalized": "dubb_anime",
+    "channelType": "anime",
+    "messageId": 12,
+    "text": "",
+    "caption": "",
+    "entities": [],
+    "date": 1791463472,
+    "createdAt": "2026-10-08T12:44:33.051Z",
+    "updatedAt": "2026-10-08T12:44:33.051Z"
+  },
+  {
     "id": "animefaarsi:6",
     "name": "🔻 لیست کانال های ما",
     "nameNormalized": "لیست کانال های ما",
