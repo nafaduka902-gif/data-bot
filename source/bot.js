@@ -7827,43 +7827,7 @@ async function nfAskAI(
 }
 
 
-// #new
-let nfGeneration = 0;
-
-const nfActiveRequests = new Map();
-
-function nfIsCurrentGeneration(generation) {
-  return (
-    nfEnabled.get('GLOBAL') === true &&
-    nfGeneration === generation
-  );
-}
-
-function nfIsRequestActive(key, generation) {
-  return (
-    nfIsCurrentGeneration(generation) &&
-    nfActiveRequests.get(key)?.generation === generation
-  );
-}
-
-function nfInvalidateRequests() {
-  nfGeneration++;
-
-  for (const request of nfActiveRequests.values()) {
-    try {
-      request.controller?.abort();
-    } catch (error) {
-      console.error(
-        'NF REQUEST ABORT ERROR:',
-        error?.message || error
-      );
-    }
-  }
-
-  nfActiveRequests.clear();
-}
-
-
+// #update
 // #update
 async function nfProcess(
   ctx,
