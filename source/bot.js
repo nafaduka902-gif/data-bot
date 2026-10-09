@@ -7827,6 +7827,45 @@ async function nfAskAI(
 }
 
 
+// #new
+async function nfWithTimeout(
+  operation,
+  timeoutMs,
+  stage
+) {
+  let timer;
+
+  const operationPromise = Promise.resolve().then(
+    operation
+  );
+
+  const timeoutPromise = new Promise(
+    (_, reject) => {
+      timer = setTimeout(() => {
+        const error = new Error(
+          `NF_TIMEOUT:${stage}`
+        );
+
+        error.code = 'NF_PROCESS_TIMEOUT';
+
+        reject(error);
+      }, timeoutMs);
+    }
+  );
+
+  try {
+    return await Promise.race([
+      operationPromise,
+      timeoutPromise
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+
+
+// #update
 // #update
 // #update
 async function nfProcess(
@@ -7836,14 +7875,35 @@ async function nfProcess(
   const key = nfKey(ctx);
 
   if (nfLocks.has(key)) {
+    console.warn(
+      '[NF] Request skipped: lock active',
+      key
+    );
+
     return;
   }
 
-  nfLocks.set(key, true);
+  const requestId =
+    `${key}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
 
   let thinking = null;
+  let stage = 'START';
+  let timedOut = false;
+
+  nfLocks.set(key, requestId);
+
+  const logStage = (name) => {
+    stage = name;
+
+    console.log(
+      `[NF] ${name}`,
+      requestId
+    );
+  };
 
   try {
+    logStage('START');
+
     nfTrackUserMessage(ctx);
 
     const directText =
@@ -7872,42 +7932,68 @@ async function nfProcess(
 
     if (!isDeleteRequest) {
       try {
-        thinking = await ctx.reply(
-          '🤖 Thinking...',
-          ctx.message?.message_id
-            ? {
-                reply_parameters: {
-                  message_id:
-                    ctx.message.message_id
+        logStage('THINKING_SEND');
+
+        thinking = await nfWithTimeout(
+          () => ctx.reply(
+            '🤖 Thinking...',
+            ctx.message?.message_id
+              ? {
+                  reply_parameters: {
+                    message_id:
+                      ctx.message.message_id
+                  }
                 }
-              }
-            : undefined
+              : undefined
+          ),
+          10000,
+          'THINKING_SEND'
         );
 
         nfTrackBotMessage(
           ctx,
           thinking.message_id
         );
+
       } catch (error) {
         console.error(
-          'NF THINKING ERROR:',
+          '[NF] THINKING ERROR:',
           error?.message || error
         );
       }
     }
 
+    if (
+      nfLocks.get(key) !== requestId
+    ) {
+      return;
+    }
+
     let direct = null;
 
     try {
-      direct = await nfDirect(
-        ctx,
-        directText
+      logStage('DIRECT');
+
+      direct = await nfWithTimeout(
+        () => nfDirect(
+          ctx,
+          directText
+        ),
+        10000,
+        'DIRECT'
       );
+
     } catch (error) {
       console.error(
-        'NF DIRECT ERROR:',
+        '[NF] DIRECT ERROR:',
         error?.message || error
       );
+    }
+
+    if (
+      nfLocks.get(key) !== requestId
+    ) {
+      return;
     }
 
     if (direct) {
@@ -7917,10 +8003,16 @@ async function nfProcess(
         direct
       );
 
-      await nfSendResult(
-        ctx,
-        direct,
-        thinking?.message_id
+      logStage('DIRECT_RESULT');
+
+      await nfWithTimeout(
+        () => nfSendResult(
+          ctx,
+          direct,
+          thinking?.message_id
+        ),
+        15000,
+        'DIRECT_RESULT_SEND'
       );
 
       return;
@@ -7930,7 +8022,7 @@ async function nfProcess(
       return;
     }
 
-    // دستورات حافظه مالک
+    // Owner memory commands.
     if (owner) {
       const memoryMatch =
         directText.match(
@@ -7939,21 +8031,36 @@ async function nfProcess(
 
       if (memoryMatch) {
         const memory =
-          String(memoryMatch[1] || '').trim();
+          String(
+            memoryMatch[1] || ''
+          ).trim();
 
         if (memory) {
           let saved = false;
 
           try {
-            saved = await nfAddOwnerMemory(
-              ctx,
-              memory
+            logStage('OWNER_MEMORY_SAVE');
+
+            saved = await nfWithTimeout(
+              () => nfAddOwnerMemory(
+                ctx,
+                memory
+              ),
+              10000,
+              'OWNER_MEMORY_SAVE'
             );
+
           } catch (error) {
             console.error(
-              'NF MEMORY SAVE ERROR:',
+              '[NF] MEMORY SAVE ERROR:',
               error?.message || error
             );
+          }
+
+          if (
+            nfLocks.get(key) !== requestId
+          ) {
+            return;
           }
 
           const answer = saved
@@ -7966,17 +8073,23 @@ async function nfProcess(
             answer
           );
 
-          await nfSendResult(
-            ctx,
-            answer,
-            thinking?.message_id
+          logStage('OWNER_MEMORY_RESULT');
+
+          await nfWithTimeout(
+            () => nfSendResult(
+              ctx,
+              answer,
+              thinking?.message_id
+            ),
+            15000,
+            'OWNER_MEMORY_RESULT_SEND'
           );
 
           return;
         }
       }
 
-      // دستورات فهرست کارهای مالک
+      // Owner task-list commands.
       const taskMatch =
         directText.match(
           /^(?:اضافه کن|اضافه|افزودن|ثبت کن|ثبت|بذار|قرار بده)\s*(?:به\s*)?(?:لیست کارها|لیست کار ها|کارها|کار ها|تسک‌ها|تسک ها|تسک|task(?:s)?)\s*[:：-]?\s*(.+)$/i
@@ -7984,13 +8097,20 @@ async function nfProcess(
 
       if (taskMatch) {
         const rawTasks =
-          String(taskMatch[1] || '').trim();
+          String(
+            taskMatch[1] || ''
+          ).trim();
 
         const tasks = rawTasks
-          .split(/\s*(?:\n|،|,|;)\s*/)
+          .split(
+            /\s*(?:\n|،|,|;)\s*/
+          )
           .map(item =>
             item
-              .replace(/^\s*[-•]\s*/, '')
+              .replace(
+                /^\s*[-•]\s*/,
+                ''
+              )
               .trim()
           )
           .filter(Boolean);
@@ -7998,13 +8118,29 @@ async function nfProcess(
         let savedCount = 0;
 
         for (const task of tasks) {
+          if (
+            nfLocks.get(key) !== requestId
+          ) {
+            return;
+          }
+
           try {
-            if (await nfAddTask(ctx, task)) {
+            const saved = await nfWithTimeout(
+              () => nfAddTask(
+                ctx,
+                task
+              ),
+              10000,
+              'OWNER_TASK_SAVE'
+            );
+
+            if (saved) {
               savedCount++;
             }
+
           } catch (error) {
             console.error(
-              'NF TASK SAVE ERROR:',
+              '[NF] TASK SAVE ERROR:',
               error?.message || error
             );
           }
@@ -8021,62 +8157,104 @@ async function nfProcess(
           answer
         );
 
-        await nfSendResult(
-          ctx,
-          answer,
-          thinking?.message_id
+        logStage('OWNER_TASK_RESULT');
+
+        await nfWithTimeout(
+          () => nfSendResult(
+            ctx,
+            answer,
+            thinking?.message_id
+          ),
+          15000,
+          'OWNER_TASK_RESULT_SEND'
         );
 
         return;
       }
     }
 
-    // #update
-    // جست‌وجوی آرشیو برای سؤال فعلی
+    // Archive question detection.
+    logStage('ARCHIVE_COUNT_CHECK');
+
     const normalizedQuestion =
-      nfArchiveNormalize(directText);
+      nfArchiveNormalize(
+        directText
+      );
 
     const isArchiveCountQuestion =
       /(?:چند|تعداد|آمار|مجموع|کل|همه).*(?:انیمه|انیمیشن|سینمایی|فیلم|سریال|آرشیو|رکورد|محتوا)|(?:انیمه|انیمیشن|سینمایی|فیلم|سریال|آرشیو).*(?:چند|تعداد|مجموع|کل|دارید|داریم)/iu.test(
         normalizedQuestion
       );
 
-    // آمار باید از هر دو منبع خوانده شود.
+    // Read both archive sources for count questions.
     if (isArchiveCountQuestion) {
       let mainRecords = [];
       let addedPosts = [];
 
       try {
-        mainRecords = await nfReadArchive();
+        logStage('ARCHIVE_COUNT_MAIN');
+
+        mainRecords = await nfWithTimeout(
+          () => nfReadArchive(),
+          10000,
+          'ARCHIVE_COUNT_MAIN'
+        );
+
       } catch (error) {
         console.error(
-          'NF ARCHIVE COUNT READ ERROR:',
+          '[NF] ARCHIVE COUNT READ ERROR:',
           error?.message || error
         );
+      }
+
+      if (
+        nfLocks.get(key) !== requestId
+      ) {
+        return;
       }
 
       try {
-        addedPosts = await nfReadAddedArchivePosts();
+        logStage('ARCHIVE_COUNT_ADDED');
+
+        addedPosts = await nfWithTimeout(
+          () => nfReadAddedArchivePosts(),
+          10000,
+          'ARCHIVE_COUNT_ADDED'
+        );
+
       } catch (error) {
         console.error(
-          'NF ADDED COUNT READ ERROR:',
+          '[NF] ADDED COUNT READ ERROR:',
           error?.message || error
         );
       }
 
+      if (
+        nfLocks.get(key) !== requestId
+      ) {
+        return;
+      }
+
       const allRecords = [
-        ...(Array.isArray(mainRecords)
-          ? mainRecords
-          : []),
-        ...(Array.isArray(addedPosts)
-          ? addedPosts
-          : [])
+        ...(
+          Array.isArray(mainRecords)
+            ? mainRecords
+            : []
+        ),
+        ...(
+          Array.isArray(addedPosts)
+            ? addedPosts
+            : []
+        )
       ];
 
       const uniqueRecords = new Map();
 
       for (const record of allRecords) {
-        if (!record || typeof record !== 'object') {
+        if (
+          !record ||
+          typeof record !== 'object'
+        ) {
           continue;
         }
 
@@ -8084,20 +8262,26 @@ async function nfProcess(
           record.link ||
           record.postUrl ||
           (
-            record.channel && record.messageId
+            record.channel &&
+            record.messageId
               ? `${record.channel}:${record.messageId}`
               : ''
           ) ||
           record.id ||
           [
-            record.name || record.title || '',
+            record.name ||
+            record.title ||
+            '',
             record.channel || '',
             record.text || ''
           ].join('|')
         ).trim();
 
         if (recordKey) {
-          uniqueRecords.set(recordKey, record);
+          uniqueRecords.set(
+            recordKey,
+            record
+          );
         }
       }
 
@@ -8119,27 +8303,51 @@ async function nfProcess(
         answer
       );
 
-      await nfSendResult(
-        ctx,
-        answer,
-        thinking?.message_id
+      logStage('ARCHIVE_COUNT_RESULT');
+
+      await nfWithTimeout(
+        () => nfSendResult(
+          ctx,
+          answer,
+          thinking?.message_id
+        ),
+        15000,
+        'ARCHIVE_COUNT_RESULT_SEND'
       );
 
       return;
     }
 
+    // Determine whether the question is about airing.
+    logStage('QUESTION_CLASSIFICATION');
+
     const isAiringQuestion =
-      nfIsAiringQuestion(directText);
+      nfIsAiringQuestion(
+        directText
+      );
 
     let archiveContext = '';
 
+    // Search the real archive for non-airing questions.
     if (!isAiringQuestion) {
       try {
+        logStage('ARCHIVE_SEARCH');
+
         const archiveResults =
-          await nfSearchRealArchive(
-            ctx,
-            directText
+          await nfWithTimeout(
+            () => nfSearchRealArchive(
+              ctx,
+              directText
+            ),
+            10000,
+            'ARCHIVE_SEARCH'
           );
+
+        if (
+          nfLocks.get(key) !== requestId
+        ) {
+          return;
+        }
 
         if (
           Array.isArray(archiveResults) &&
@@ -8155,17 +8363,32 @@ async function nfProcess(
             );
 
             const fields = [
-              ['Title', record.name || record.title],
-              ['Anime Name', record.animeName],
-              ['English Name', record.englishName],
-              ['Persian Name', record.persianName],
+              [
+                'Title',
+                record.name || record.title
+              ],
+              [
+                'Anime Name',
+                record.animeName
+              ],
+              [
+                'English Name',
+                record.englishName
+              ],
+              [
+                'Persian Name',
+                record.persianName
+              ],
               [
                 'Aliases',
                 Array.isArray(record.aliases)
                   ? record.aliases.join(', ')
                   : ''
               ],
-              ['Channel', record.channel],
+              [
+                'Channel',
+                record.channel
+              ],
               [
                 'Message ID',
                 record.messageId || record.id
@@ -8174,14 +8397,31 @@ async function nfProcess(
                 'Telegram Link',
                 record.link || record.postUrl
               ],
-              ['Channel Type', record.channelType],
-              ['Category', record.category],
-              ['Kind', record.kind],
-              ['Seasons', record.seasons],
-              ['Post Content', record.text]
+              [
+                'Channel Type',
+                record.channelType
+              ],
+              [
+                'Category',
+                record.category
+              ],
+              [
+                'Kind',
+                record.kind
+              ],
+              [
+                'Seasons',
+                record.seasons
+              ],
+              [
+                'Post Content',
+                record.text
+              ]
             ];
 
-            for (const [label, value] of fields) {
+            for (
+              const [label, value] of fields
+            ) {
               if (
                 value !== undefined &&
                 value !== null &&
@@ -8195,18 +8435,26 @@ async function nfProcess(
           }
 
           archiveContext =
-            output.join('\n\n').slice(0, 14000);
+            output
+              .join('\n\n')
+              .slice(0, 14000);
         }
+
       } catch (error) {
         console.error(
-          'NF ARCHIVE SEARCH ERROR:',
-          error?.response?.data ||
-          error?.message ||
-          error
+          '[NF] ARCHIVE SEARCH ERROR:',
+          error?.message || error
         );
       }
     }
 
+    if (
+      nfLocks.get(key) !== requestId
+    ) {
+      return;
+    }
+
+    // Fetch airing information when relevant.
     let airingContext = '';
 
     if (isAiringQuestion) {
@@ -8229,71 +8477,127 @@ async function nfProcess(
               /(?:شروع\s+شده|شروع\s+شد|پخش\s+شده|پخش\s+شد|کی\s+میاد|کی\s+پخش\s+میشه|چی\s*وقت\s+میاد|چی\s*وقت\s+میایه|چه\s*وقت\s+میاد|چه\s*وقت\s+میایه|نیمده|نیومده|اومده|آمده|شروع|پخش)\s*[؟?]?/iu,
               ''
             )
-            .replace(/[؟?]+$/u, '')
+            .replace(
+              /[؟?]+$/u,
+              ''
+            )
             .trim();
 
         if (airingSearch) {
+          logStage('AIRING_SEARCH');
+
           airingContext =
-            await nfGetAiringContext(
-              airingSearch
+            await nfWithTimeout(
+              () => nfGetAiringContext(
+                airingSearch
+              ),
+              10000,
+              'AIRING_SEARCH'
             );
         }
+
       } catch (error) {
         console.error(
-          'NF AIRING SEARCH ERROR:',
+          '[NF] AIRING SEARCH ERROR:',
           error?.message || error
         );
       }
     }
 
-    // #update
-    // آرشیو و اطلاعات پخش به مدل داده می‌شوند.
+    if (
+      nfLocks.get(key) !== requestId
+    ) {
+      return;
+    }
+
+    // Combine archive and airing context.
     const combinedContext = [
       archiveContext,
       airingContext
-    ].filter(Boolean).join(
-      '\n\n━━━━━━━━━━━━━━━━━━\n\n'
-    );
+    ]
+      .filter(Boolean)
+      .join(
+        '\n\n━━━━━━━━━━━━━━━━━━\n\n'
+      );
 
     let answer = '';
 
     try {
-      answer = await nfAskAI(
-        ctx,
-        directText,
-        combinedContext
+      logStage('AI_START');
+
+      answer = await nfWithTimeout(
+        () => nfAskAI(
+          ctx,
+          directText,
+          combinedContext
+        ),
+        30000,
+        'AI_REQUEST'
       );
+
+      logStage('AI_DONE');
+
     } catch (error) {
       const status =
-        Number(error?.response?.status);
+        Number(
+          error?.response?.status
+        );
 
       const errorCode =
-        String(error?.message || '');
+        String(
+          error?.message || ''
+        );
 
       if (
+        error?.code === 'NF_PROCESS_TIMEOUT' ||
+        errorCode.startsWith(
+          'NF_TIMEOUT:'
+        )
+      ) {
+        timedOut = true;
+
+        console.error(
+          '[NF] TIMEOUT:',
+          errorCode
+        );
+
+        answer =
+          '⏱ پاسخ‌گویی بیش از حد طول کشید. لطفاً دوباره تلاش کن.';
+
+      } else if (
         status === 429 ||
         errorCode === 'NF_AI_RATE_LIMITED'
       ) {
         answer =
           '⏳ سرویس AI فعلاً به محدودیت درخواست رسیده. کمی بعد دوباره امتحان کن.';
+
       } else if (
         error?.code === 'ECONNABORTED' ||
         error?.code === 'ETIMEDOUT'
       ) {
         answer =
-          '⏱ پاسخ AI بیش از حد طول کشید. دوباره امتحان کن.';
+          '⏱ ارتباط با سرویس AI بیش از حد طول کشید. دوباره امتحان کن.';
+
       } else if (
         errorCode === 'NF_API_KEY_MISSING'
       ) {
         answer =
           '⚠️ کلید سرویس AI تنظیم نشده است.';
+
       } else {
         throw error;
       }
     }
 
+    if (
+      nfLocks.get(key) !== requestId
+    ) {
+      return;
+    }
+
     if (!answer) {
-      answer = '❌ پاسخی دریافت نشد.';
+      answer =
+        '❌ پاسخی دریافت نشد.';
     }
 
     nfRemember(
@@ -8302,22 +8606,45 @@ async function nfProcess(
       answer
     );
 
-    await nfSendResult(
-      ctx,
-      answer,
-      thinking?.message_id
+    logStage('RESULT_SEND');
+
+    await nfWithTimeout(
+      () => nfSendResult(
+        ctx,
+        answer,
+        thinking?.message_id
+      ),
+      15000,
+      'RESULT_SEND'
     );
+
+    logStage('DONE');
 
   } catch (error) {
     console.error(
-      'NF PROCESS ERROR:',
-      error?.response?.data ||
-      error?.message ||
-      error
+      '[NF] PROCESS ERROR:',
+      {
+        requestId,
+        stage,
+        code: error?.code || '',
+        message: error?.message || String(error),
+        status: error?.response?.status || ''
+      }
     );
 
+    if (
+      nfLocks.get(key) !== requestId
+    ) {
+      return;
+    }
+
     const fallback =
-      '❌ هنگام پردازش درخواست خطایی رخ داد. خطا برای بررسی ثبت شد.';
+      error?.code === 'NF_PROCESS_TIMEOUT' ||
+      String(error?.message || '').startsWith(
+        'NF_TIMEOUT:'
+      )
+        ? '⏱ پردازش درخواست بیش از حد طول کشید. لطفاً دوباره تلاش کن.'
+        : '❌ هنگام پردازش درخواست خطایی رخ داد. خطا برای بررسی ثبت شد.';
 
     try {
       nfRemember(
@@ -8328,16 +8655,20 @@ async function nfProcess(
     } catch {}
 
     try {
-      await nfSendResult(
-        ctx,
-        fallback,
-        thinking?.message_id
+      await nfWithTimeout(
+        () => nfSendResult(
+          ctx,
+          fallback,
+          thinking?.message_id
+        ),
+        10000,
+        'FALLBACK_SEND'
       );
+
     } catch (sendError) {
       console.error(
-        'NF FINAL SEND ERROR:',
-        sendError?.message ||
-        sendError
+        '[NF] FALLBACK SEND ERROR:',
+        sendError?.message || sendError
       );
     }
 
@@ -8346,33 +8677,48 @@ async function nfProcess(
         const errorReport = [
           '⚠️ گزارش خطای AI Agent',
           '',
-          `خطا: ${String(
+          `Stage: ${stage}`,
+          `Request: ${requestId}`,
+          `Error: ${String(
             error?.message || error
-          ).slice(0, 1500)}`,
-          `کد: ${String(
-            error?.code || 'نامشخص'
+          ).slice(0, 1000)}`,
+          `Code: ${String(
+            error?.code || 'UNKNOWN'
           )}`,
           `HTTP: ${String(
-            error?.response?.status || 'نامشخص'
+            error?.response?.status || 'UNKNOWN'
           )}`,
-          `زمان: ${new Date().toISOString()}`
+          `Timed out: ${timedOut ? 'YES' : 'NO'}`,
+          `Time: ${new Date().toISOString()}`
         ].join('\n');
 
-        await ctx.telegram.sendMessage(
-          ctx.from.id,
-          errorReport
+        await nfWithTimeout(
+          () => ctx.telegram.sendMessage(
+            ctx.from.id,
+            errorReport
+          ),
+          10000,
+          'OWNER_ERROR_REPORT'
         );
       }
+
     } catch (reportError) {
       console.error(
-        'NF OWNER ERROR REPORT FAILED:',
-        reportError?.message ||
-        reportError
+        '[NF] OWNER ERROR REPORT FAILED:',
+        reportError?.message || reportError
       );
     }
 
   } finally {
-    nfLocks.delete(key);
+    if (
+      nfLocks.get(key) === requestId
+    ) {
+      nfLocks.delete(key);
+    }
+
+    console.log(
+      `[NF] FINISHED ${requestId} at ${stage}`
+    );
   }
 }
     
