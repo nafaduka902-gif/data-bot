@@ -52,23 +52,15 @@ jobs:
           set -eu
 
           MESSAGE=$(cat <<EOF
-          📦 GitHub Update Detected
+          📦 Bot Updated
 
-          📄 File: source/bot.js
+          📄 File: Anime Faarsi Bot
           📁 Repository: ${REPOSITORY}
           🌿 Branch: ${BRANCH}
           👤 Updated by: ${ACTOR}
           🔖 Commit: ${COMMIT_SHA}
           📝 Message: ${COMMIT_MESSAGE}
           ⚙️ Event: ${EVENT_NAME}
-
-          🔗 Commit:
-          https://github.com/${REPOSITORY}/commit/${COMMIT_SHA}
-
-          🔍 Workflow:
-          ${RUN_URL}
-
-          ⚠️ This confirms the GitHub change only. Check the deployment workflow to confirm that NxCreator started the new version.
           EOF
           )
 
