@@ -7865,47 +7865,19 @@ function nfInvalidateRequests() {
 
 
 // #update
-// #update
-async function nfProcess(ctx, text) {
+async function nfProcess(
+  ctx,
+  text
+) {
   const key = nfKey(ctx);
 
-  if (
-    nfEnabled.get('GLOBAL') !== true ||
-    nfLocks.has(key)
-  ) {
+  if (nfLocks.has(key)) {
     return;
   }
 
-  const generation = nfGeneration;
-
-  const controller = new AbortController();
-
-  const request = {
-    generation,
-    controller
-  };
-
   nfLocks.set(key, true);
-  nfActiveRequests.set(key, request);
 
   let thinking = null;
-
-  const isActive = () =>
-    nfIsRequestActive(key, generation);
-
-  const sendResult = async answer => {
-    if (!isActive()) {
-      return false;
-    }
-
-    await nfSendResult(
-      ctx,
-      answer,
-      thinking?.message_id
-    );
-
-    return true;
-  };
 
   try {
     nfTrackUserMessage(ctx);
@@ -7913,7 +7885,7 @@ async function nfProcess(ctx, text) {
     const directText =
       String(text || '').trim();
 
-    if (!directText || !isActive()) {
+    if (!directText) {
       return;
     }
 
@@ -7926,17 +7898,16 @@ async function nfProcess(ctx, text) {
     const owner = nfIsOwner(ctx);
 
     const isDeleteRequest =
-      nfIsDeleteReply(directText, ctx) ||
+      nfIsDeleteReply(
+        directText,
+        ctx
+      ) ||
       /(?:حذف|پاک|پاک کن|حذف کن)/i.test(
         directText
       );
 
     if (!isDeleteRequest) {
       try {
-        if (!isActive()) {
-          return;
-        }
-
         thinking = await ctx.reply(
           '🤖 Thinking...',
           ctx.message?.message_id
@@ -7948,17 +7919,6 @@ async function nfProcess(ctx, text) {
               }
             : undefined
         );
-
-        if (!isActive()) {
-          try {
-            await ctx.telegram.deleteMessage(
-              ctx.chat.id,
-              thinking.message_id
-            );
-          } catch {}
-
-          return;
-        }
 
         nfTrackBotMessage(
           ctx,
@@ -7972,46 +7932,18 @@ async function nfProcess(ctx, text) {
       }
     }
 
-    if (!isActive()) {
-      return;
-    }
-
     let direct = null;
 
     try {
-      direct = await Promise.race([
-        nfDirect(ctx, directText),
-        new Promise((_, reject) => {
-          const timeout = setTimeout(() => {
-            reject(
-              new Error('NF_DIRECT_TIMEOUT')
-            );
-          }, 45000);
-
-          controller.signal.addEventListener(
-            'abort',
-            () => {
-              clearTimeout(timeout);
-
-              reject(
-                new Error('NF_REQUEST_ABORTED')
-              );
-            },
-            { once: true }
-          );
-        })
-      ]);
+      direct = await nfDirect(
+        ctx,
+        directText
+      );
     } catch (error) {
-      if (isActive()) {
-        console.error(
-          'NF DIRECT ERROR:',
-          error?.message || error
-        );
-      }
-    }
-
-    if (!isActive()) {
-      return;
+      console.error(
+        'NF DIRECT ERROR:',
+        error?.message || error
+      );
     }
 
     if (direct) {
@@ -8021,7 +7953,12 @@ async function nfProcess(ctx, text) {
         direct
       );
 
-      await sendResult(direct);
+      await nfSendResult(
+        ctx,
+        direct,
+        thinking?.message_id
+      );
+
       return;
     }
 
@@ -8029,6 +7966,7 @@ async function nfProcess(ctx, text) {
       return;
     }
 
+    // دستورات حافظه مالک
     if (owner) {
       const memoryMatch =
         directText.match(
@@ -8039,7 +7977,7 @@ async function nfProcess(ctx, text) {
         const memory =
           String(memoryMatch[1] || '').trim();
 
-        if (memory && isActive()) {
+        if (memory) {
           let saved = false;
 
           try {
@@ -8054,13 +7992,9 @@ async function nfProcess(ctx, text) {
             );
           }
 
-          if (!isActive()) {
-            return;
-          }
-
           const answer = saved
-            ? 'Memory saved successfully.'
-            : 'Memory could not be saved.';
+            ? '✅ ذخیره شد و در حافظه دائمی مالک قرار گرفت.'
+            : '❌ ذخیره حافظه انجام نشد.';
 
           nfRemember(
             ctx,
@@ -8068,11 +8002,17 @@ async function nfProcess(ctx, text) {
             answer
           );
 
-          await sendResult(answer);
+          await nfSendResult(
+            ctx,
+            answer,
+            thinking?.message_id
+          );
+
           return;
         }
       }
 
+      // دستورات فهرست کارهای مالک
       const taskMatch =
         directText.match(
           /^(?:اضافه کن|اضافه|افزودن|ثبت کن|ثبت|بذار|قرار بده)\s*(?:به\s*)?(?:لیست کارها|لیست کار ها|کارها|کار ها|تسک‌ها|تسک ها|تسک|task(?:s)?)\s*[:：-]?\s*(.+)$/i
@@ -8094,10 +8034,6 @@ async function nfProcess(ctx, text) {
         let savedCount = 0;
 
         for (const task of tasks) {
-          if (!isActive()) {
-            return;
-          }
-
           try {
             if (await nfAddTask(ctx, task)) {
               savedCount++;
@@ -8110,12 +8046,10 @@ async function nfProcess(ctx, text) {
           }
         }
 
-        if (!isActive()) {
-          return;
-        }
-
         const answer =
-          `Added ${savedCount} task(s) to the owner's task list.`;
+          savedCount === 1
+            ? '✅ کار به لیست کارهای مالک اضافه شد.'
+            : `✅ ${savedCount} کار به لیست کارهای مالک اضافه شد.`;
 
         nfRemember(
           ctx,
@@ -8123,15 +8057,18 @@ async function nfProcess(ctx, text) {
           answer
         );
 
-        await sendResult(answer);
+        await nfSendResult(
+          ctx,
+          answer,
+          thinking?.message_id
+        );
+
         return;
       }
     }
 
-    if (!isActive()) {
-      return;
-    }
-
+    // #update
+    // جست‌وجوی آرشیو برای سؤال فعلی
     const normalizedQuestion =
       nfArchiveNormalize(directText);
 
@@ -8140,6 +8077,7 @@ async function nfProcess(ctx, text) {
         normalizedQuestion
       );
 
+    // آمار باید از هر دو منبع خوانده شود.
     if (isArchiveCountQuestion) {
       let mainRecords = [];
       let addedPosts = [];
@@ -8153,22 +8091,13 @@ async function nfProcess(ctx, text) {
         );
       }
 
-      if (!isActive()) {
-        return;
-      }
-
       try {
-        addedPosts =
-          await nfReadAddedArchivePosts();
+        addedPosts = await nfReadAddedArchivePosts();
       } catch (error) {
         console.error(
           'NF ADDED COUNT READ ERROR:',
           error?.message || error
         );
-      }
-
-      if (!isActive()) {
-        return;
       }
 
       const allRecords = [
@@ -8183,10 +8112,7 @@ async function nfProcess(ctx, text) {
       const uniqueRecords = new Map();
 
       for (const record of allRecords) {
-        if (
-          !record ||
-          typeof record !== 'object'
-        ) {
+        if (!record || typeof record !== 'object') {
           continue;
         }
 
@@ -8194,8 +8120,7 @@ async function nfProcess(ctx, text) {
           record.link ||
           record.postUrl ||
           (
-            record.channel &&
-            record.messageId
+            record.channel && record.messageId
               ? `${record.channel}:${record.messageId}`
               : ''
           ) ||
@@ -8208,24 +8133,21 @@ async function nfProcess(ctx, text) {
         ).trim();
 
         if (recordKey) {
-          uniqueRecords.set(
-            recordKey,
-            record
-          );
+          uniqueRecords.set(recordKey, record);
         }
       }
 
-      const answer = [
-        'Anime Faarsi Archive Statistics',
-        '',
-        `Unique records: ${uniqueRecords.size}`,
-        '',
-        'This number represents stored records, not necessarily unique titles.'
-      ].join('\n');
+      const records = [
+        ...uniqueRecords.values()
+      ];
 
-      if (!isActive()) {
-        return;
-      }
+      const answer = [
+        '📊 آمار آرشیو Anime Faarsi',
+        '',
+        `📚 مجموع رکوردهای یکتا: ${records.length}`,
+        '',
+        'ℹ️ این عدد تعداد رکوردهای ذخیره‌شده است و لزوماً تعداد عنوان‌های یکتا نیست.'
+      ].join('\n');
 
       nfRemember(
         ctx,
@@ -8233,7 +8155,12 @@ async function nfProcess(ctx, text) {
         answer
       );
 
-      await sendResult(answer);
+      await nfSendResult(
+        ctx,
+        answer,
+        thinking?.message_id
+      );
+
       return;
     }
 
@@ -8249,10 +8176,6 @@ async function nfProcess(ctx, text) {
             ctx,
             directText
           );
-
-        if (!isActive()) {
-          return;
-        }
 
         if (
           Array.isArray(archiveResults) &&
@@ -8311,19 +8234,13 @@ async function nfProcess(ctx, text) {
             output.join('\n\n').slice(0, 14000);
         }
       } catch (error) {
-        if (isActive()) {
-          console.error(
-            'NF ARCHIVE SEARCH ERROR:',
-            error?.response?.data ||
-            error?.message ||
-            error
-          );
-        }
+        console.error(
+          'NF ARCHIVE SEARCH ERROR:',
+          error?.response?.data ||
+          error?.message ||
+          error
+        );
       }
-    }
-
-    if (!isActive()) {
-      return;
     }
 
     let airingContext = '';
@@ -8351,67 +8268,38 @@ async function nfProcess(ctx, text) {
             .replace(/[؟?]+$/u, '')
             .trim();
 
-        if (airingSearch && isActive()) {
+        if (airingSearch) {
           airingContext =
             await nfGetAiringContext(
               airingSearch
             );
         }
       } catch (error) {
-        if (isActive()) {
-          console.error(
-            'NF AIRING SEARCH ERROR:',
-            error?.message || error
-          );
-        }
+        console.error(
+          'NF AIRING SEARCH ERROR:',
+          error?.message || error
+        );
       }
     }
 
-    if (!isActive()) {
-      return;
-    }
-
+    // #update
+    // آرشیو و اطلاعات پخش به مدل داده می‌شوند.
     const combinedContext = [
       archiveContext,
       airingContext
-    ]
-      .filter(Boolean)
-      .join('\n\n--------------------\n\n');
+    ].filter(Boolean).join(
+      '\n\n━━━━━━━━━━━━━━━━━━\n\n'
+    );
 
     let answer = '';
 
     try {
-      answer = await Promise.race([
-        nfAskAI(
-          ctx,
-          directText,
-          combinedContext
-        ),
-        new Promise((_, reject) => {
-          const timeout = setTimeout(() => {
-            reject(
-              new Error('NF_AI_TIMEOUT')
-            );
-          }, 60000);
-
-          controller.signal.addEventListener(
-            'abort',
-            () => {
-              clearTimeout(timeout);
-
-              reject(
-                new Error('NF_REQUEST_ABORTED')
-              );
-            },
-            { once: true }
-          );
-        })
-      ]);
+      answer = await nfAskAI(
+        ctx,
+        directText,
+        combinedContext
+      );
     } catch (error) {
-      if (!isActive()) {
-        return;
-      }
-
       const status =
         Number(error?.response?.status);
 
@@ -8423,34 +8311,25 @@ async function nfProcess(ctx, text) {
         errorCode === 'NF_AI_RATE_LIMITED'
       ) {
         answer =
-          'The AI service has reached its request limit. Please try again later.';
+          '⏳ سرویس AI فعلاً به محدودیت درخواست رسیده. کمی بعد دوباره امتحان کن.';
       } else if (
-        errorCode === 'NF_AI_TIMEOUT' ||
         error?.code === 'ECONNABORTED' ||
         error?.code === 'ETIMEDOUT'
       ) {
         answer =
-          'The AI response timed out. Please try again.';
+          '⏱ پاسخ AI بیش از حد طول کشید. دوباره امتحان کن.';
       } else if (
         errorCode === 'NF_API_KEY_MISSING'
       ) {
         answer =
-          'The AI service API key is not configured.';
-      } else if (
-        errorCode === 'NF_REQUEST_ABORTED'
-      ) {
-        return;
+          '⚠️ کلید سرویس AI تنظیم نشده است.';
       } else {
         throw error;
       }
     }
 
-    if (!isActive()) {
-      return;
-    }
-
     if (!answer) {
-      answer = 'No response was received.';
+      answer = '❌ پاسخی دریافت نشد.';
     }
 
     nfRemember(
@@ -8459,13 +8338,13 @@ async function nfProcess(ctx, text) {
       answer
     );
 
-    await sendResult(answer);
+    await nfSendResult(
+      ctx,
+      answer,
+      thinking?.message_id
+    );
 
   } catch (error) {
-    if (!isActive()) {
-      return;
-    }
-
     console.error(
       'NF PROCESS ERROR:',
       error?.response?.data ||
@@ -8474,35 +8353,45 @@ async function nfProcess(ctx, text) {
     );
 
     const fallback =
-      'An error occurred while processing the request. The error has been logged.';
+      '❌ هنگام پردازش درخواست خطایی رخ داد. خطا برای بررسی ثبت شد.';
 
     try {
-      await sendResult(fallback);
+      nfRemember(
+        ctx,
+        'assistant',
+        fallback
+      );
+    } catch {}
+
+    try {
+      await nfSendResult(
+        ctx,
+        fallback,
+        thinking?.message_id
+      );
     } catch (sendError) {
       console.error(
         'NF FINAL SEND ERROR:',
-        sendError?.message || sendError
+        sendError?.message ||
+        sendError
       );
     }
 
     try {
-      if (
-        nfIsOwner(ctx) &&
-        isActive()
-      ) {
+      if (nfIsOwner(ctx)) {
         const errorReport = [
-          'AI Agent Error Report',
+          '⚠️ گزارش خطای AI Agent',
           '',
-          `Error: ${String(
+          `خطا: ${String(
             error?.message || error
           ).slice(0, 1500)}`,
-          `Code: ${String(
-            error?.code || 'UNKNOWN'
+          `کد: ${String(
+            error?.code || 'نامشخص'
           )}`,
           `HTTP: ${String(
-            error?.response?.status || 'UNKNOWN'
+            error?.response?.status || 'نامشخص'
           )}`,
-          `Time: ${new Date().toISOString()}`
+          `زمان: ${new Date().toISOString()}`
         ].join('\n');
 
         await ctx.telegram.sendMessage(
@@ -8513,77 +8402,16 @@ async function nfProcess(ctx, text) {
     } catch (reportError) {
       console.error(
         'NF OWNER ERROR REPORT FAILED:',
-        reportError?.message || reportError
+        reportError?.message ||
+        reportError
       );
     }
 
   } finally {
-    if (
-      nfActiveRequests.get(key) === request
-    ) {
-      nfActiveRequests.delete(key);
-      nfLocks.delete(key);
-    }
+    nfLocks.delete(key);
   }
 }
     
-
-
-
-
-// #new
-bot.command('channelallsedel', async ctx => {
-  if (!isAdmin(ctx)) return;
-
-  const args = String(ctx.message?.text || '')
-    .trim()
-    .split(/\s+/);
-
-  if (!args[1]) {
-    await ctx.reply(
-      'Usage: /channelallsedel @channelusername'
-    );
-    return;
-  }
-
-  const username = args[1].replace(/^@/, '');
-
-  if (!/^[A-Za-z0-9_]{5,32}$/.test(username)) {
-    await ctx.reply('Invalid channel username.');
-    return;
-  }
-
-  const chatId = '@' + username;
-
-  try {
-    const chat = await ctx.telegram.getChat(chatId);
-
-    if (chat.type !== 'channel') {
-      await ctx.reply('The specified chat is not a channel.');
-      return;
-    }
-
-    await ctx.telegram.leaveChat(chat.id);
-
-    await ctx.reply(
-      'Successfully left the channel.\n\n' +
-      'Title: ' + (chat.title || 'Unknown') + '\n' +
-      'Username: ' + (chat.username ? '@' + chat.username : chatId) + '\n' +
-      'Chat ID: ' + chat.id
-    );
-  } catch (error) {
-    console.error(
-      'CHANNEL LEAVE ERROR:',
-      error?.message || error
-    );
-
-    await ctx.reply(
-      'Failed to leave the channel. Make sure the username is correct and the bot can access the channel.'
-    );
-  }
-});
-
-
 
 // #new
 function nfArchiveExpandSearchQueries(text) {
@@ -8658,15 +8486,12 @@ function nfCanUseAI(ctx) {
 
 
 
-// #update
 bot.command(
   'nfon',
   async ctx => {
     if (!nfIsOwner(ctx)) {
       return;
     }
-
-    nfInvalidateRequests();
 
     nfEnabled.set(
       'GLOBAL',
@@ -8676,13 +8501,11 @@ bot.command(
     nfResetState(ctx);
 
     await ctx.reply(
-      '🟢 AI Agent activated.\n\n' +
-      '📍 Only in @Anime_FaarsiChat'
+      '🟢 AI Agent فعال شد.\n\n📍 فقط در @Anime_FaarsiChat'
     );
   }
 );
 
-// #update
 bot.command(
   'nfoff',
   async ctx => {
@@ -8694,11 +8517,8 @@ bot.command(
       'GLOBAL'
     );
 
-    nfInvalidateRequests();
-
     await ctx.reply(
-      '🔴 AI Agent deactivated.\n\n' +
-      'Pending AI responses have been cancelled.'
+      '🔴 AI Agent خاموش شد.'
     );
   }
 );
