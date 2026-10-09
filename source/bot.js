@@ -7682,7 +7682,8 @@ async function nfAskAI(
     );
   }
 
-  // #update
+  // #new
+  await nfReactToUserMessage(ctx);
   // ساخت پیام‌ها برای Gemini
   const messages = [
     {
@@ -7906,6 +7907,59 @@ async function nfWithTimeout(
 }
 
 
+
+// #new
+async function nfReactToUserMessage(ctx) {
+  try {
+    const message =
+      ctx?.message ||
+      ctx?.update?.message;
+
+    if (!message?.message_id || !message?.chat?.id) {
+      return false;
+    }
+
+    const reactions = [
+      '❤️',
+      '🔥',
+      '👍',
+      '🥰',
+      '😍',
+      '😁',
+      '👏',
+      '🤔',
+      '🎉',
+      '💯'
+    ];
+
+    const reaction =
+      reactions[
+        Math.floor(
+          Math.random() * reactions.length
+        )
+      ];
+
+    await ctx.telegram.setMessageReaction(
+      message.chat.id,
+      message.message_id,
+      [
+        {
+          type: 'emoji',
+          emoji: reaction
+        }
+      ]
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      '[NF] Reaction failed:',
+      error?.message || error
+    );
+
+    return false;
+  }
+}
 
 // #update
 // #update
