@@ -1380,120 +1380,115 @@ bot.action(
 )
 
 bot.on(
-    'message',
-    async (ctx, next) => {
-        try {
-            if (
-                !ctx.from ||
-                !ctx.message
-            ) {
-                return next()
-            }
+  'message',
+  async (ctx, next) => {
+    try {
+      if (
+        ctx.message?.new_chat_members
+      ) {
+        await handleNewMembers(ctx);
+      }
 
-            const userId =
-                Number(
-                    ctx.from.id
-                )
+      if (
+        await handleLinkFilterMessageV1(ctx)
+      ) {
+        return;
+      }
 
-            const state =
-                uploadGetState(
-                    userId
-                )
+      if (
+        isAdmin(ctx, 'postTools') &&
+        await handleScheduleMedia(ctx)
+      ) {
+        return;
+      }
 
-            if (
-                !state ||
-                state.mode !==
-                    'group'
-            ) {
-                return next()
-            }
+      if (
+        isAdmin(ctx, 'fileTools') &&
+        await collectUploaderMessage(ctx)
+      ) {
+        return;
+      }
 
-            if (
-                !uploadIsFile(
-                    ctx.message
-                )
-            ) {
-                return next()
-            }
+      if (!isAdmin(ctx)) {
+        return next();
+      }
 
-            const bridgeMessageId =
-                await uploadCopyToBridge(
-                    ctx
-                )
+      const channelAddState =
+        channelAddStates.get(
+          ctx.chat.id
+        );
 
-            const fileRecord = {
-                messageId:
-                    Number(
-                        bridgeMessageId
-                    ),
-                chatId:
-                    Number(
-                        UPLOAD_BRIDGE_CHAT_ID
-                    ),
-                fileName:
-                    uploadFileName(
-                        ctx.message
-                    ),
-                addedAt:
-                    Date.now()
-            }
+      if (
+        channelAddState &&
+        ctx.message?.text
+      ) {
+        const items =
+          extractAnimeLinksFromMessage(
+            ctx.message
+          );
 
-            state.files.push(
-                fileRecord
-            )
+        if (!items.length) {
+          await ctx.reply(
+            '❌ No anime links were found.\n\n' +
+            'Please send a message containing linked anime titles.'
+          );
 
-            uploadSetState(
-                userId,
-                state
-            )
-
-            const count =
-                state.files.length
-
-            await uploadUpdateStatusMessage(
-                ctx,
-                state.statusMessageId,
-                `⚡️ Fast Upload Mode\n\n` +
-                `✅ File received: ${count}\n` +
-                `📥 Waiting for the next file...\n\n` +
-                `📦 Total files: ${count}`,
-                {
-                    inline_keyboard: [
-                        [
-                            {
-                                text:
-                                    '✅ Finish Upload',
-                                callback_data:
-                                    `upload_finish:${state.requestId}`
-                            }
-                        ],
-                        [
-                            {
-                                text:
-                                    '❌ Cancel',
-                                callback_data:
-                                    `upload_cancel:${state.requestId}`
-                            }
-                        ]
-                    ]
-                }
-            )
-
-            return
-        } catch (error) {
-            console.error(
-                'UPLOAD FILE ERROR:',
-                error
-            )
-
-            try {
-                
-            } catch {}
-
-            return
+          return;
         }
+
+        channelAddState.items.push(
+          ...items
+        );
+
+        channelAddStates.set(
+          ctx.chat.id,
+          channelAddState
+        );
+
+        await ctx.reply(
+          `✅ Received ${items.length} item(s).\n` +
+          `📦 Total items: ${channelAddState.items.length}\n\n` +
+          'Send another message or press Done.'
+        );
+
+        return;
+      }
+
+      // #update
+      if (
+        sequenceStates.has(
+          ctx.chat.id
+        )
+      ) {
+        const handled =
+          await handleSequenceFile(ctx);
+
+        if (handled) {
+          return;
+        }
+      }
+
+      return next();
+
+    } catch (error) {
+      console.error(
+        'MESSAGE HANDLER ERROR:',
+        error
+      );
+
+      try {
+        await ctx.reply(
+          '❌ An error occurred while processing this message. Check the bot logs.'
+        );
+      } catch (replyError) {
+        console.error(
+          'MESSAGE ERROR REPLY FAILED:',
+          replyError
+        );
+      }
     }
-)
+  }
+);
 
 async function uploadCheckResults() {
     if (
