@@ -5168,16 +5168,19 @@ function nfArchiveExtractMetadata(
 
 
 // #update
+// #update
 function nfArchiveSearchScore(
   query,
   record
 ) {
-  const q =
-    nfArchiveNormalize(
-      query
-    );
+  if (!record) {
+    return 0;
+  }
 
-  if (!q || !record) {
+  const q =
+    nfArchiveNormalize(query);
+
+  if (!q) {
     return 0;
   }
 
@@ -5186,115 +5189,124 @@ function nfArchiveSearchScore(
       record.name
     );
 
+  const aliases =
+    Array.isArray(record.aliases)
+      ? record.aliases
+          .map(nfArchiveNormalize)
+          .filter(Boolean)
+      : [];
+
+  const metadata = [
+    record.animeName,
+    record.englishName,
+    record.persianName,
+    record.title
+  ]
+    .map(nfArchiveNormalize)
+    .filter(Boolean);
+
+  const names = [
+    ...new Set(
+      [
+        title,
+        ...aliases,
+        ...metadata
+      ].filter(Boolean)
+    )
+  ];
+
   const text =
     nfArchiveNormalize(
       record.text
     );
 
-  const channel =
-    nfArchiveNormalize(
-      record.channel
-    );
-
-  const aliases =
-    Array.isArray(record.aliases)
-      ? record.aliases
-          .map(item =>
-            nfArchiveNormalize(item)
-          )
-          .filter(Boolean)
-      : [];
-
-  const metadata =
-    [
-      record.animeName,
-      record.englishName,
-      record.persianName
-    ]
-      .map(item =>
-        nfArchiveNormalize(item)
-      )
-      .filter(Boolean);
-
-  const names =
-    Array.from(
-      new Set(
-        [
-          title,
-          ...aliases,
-          ...metadata
-        ].filter(Boolean)
-      )
-    );
+  const qWords =
+    nfArchiveWords(q);
 
   if (!names.length) {
     return 0;
   }
 
-  let score = 0;
+  let bestNameScore = 0;
 
-  const qWords =
-    nfArchiveWords(q);
-
-  const textWords =
-    nfArchiveWords(text);
-
-  for (
-    const name of names
-  ) {
+  for (const name of names) {
     if (q === name) {
-      score = Math.max(
-        score,
+      bestNameScore = Math.max(
+        bestNameScore,
         10000
       );
+
+      continue;
     }
 
     if (name.includes(q)) {
-      score = Math.max(
-        score,
-        4000
+      bestNameScore = Math.max(
+        bestNameScore,
+        8000
       );
+
+      continue;
     }
 
     if (q.includes(name)) {
-      score = Math.max(
-        score,
-        3000
+      bestNameScore = Math.max(
+        bestNameScore,
+        6500
       );
+
+      continue;
     }
 
     const nameWords =
       nfArchiveWords(name);
 
-    for (
-      const word of qWords
-    ) {
-      if (
-        nameWords.includes(word)
-      ) {
-        score += 700;
-      }
+    const matched =
+      qWords.filter(
+        word =>
+          nameWords.includes(word)
+      ).length;
+
+    if (matched > 0) {
+      const coverage =
+        matched /
+        Math.max(
+          qWords.length,
+          nameWords.length
+        );
+
+      bestNameScore = Math.max(
+        bestNameScore,
+        Math.round(
+          coverage * 5000 +
+          matched * 300
+        )
+      );
     }
   }
 
-  for (
-    const word of qWords
-  ) {
-    if (
-      textWords.includes(word)
-    ) {
-      score += 70;
+  let textScore = 0;
+
+  const textWords =
+    new Set(
+      nfArchiveWords(text)
+    );
+
+  for (const word of qWords) {
+    if (textWords.has(word)) {
+      textScore += 40;
     }
   }
 
-  if (
-    channel &&
-    q.includes(channel)
-  ) {
-    score += 100;
+  // #new
+  // نام‌های اصلی باید از تطبیق کلمات پراکنده در متن مهم‌تر باشند.
+  if (bestNameScore > 0) {
+    return bestNameScore + textScore;
   }
 
-  return score;
+  // #new
+  // اگر اسم تطبیق ندارد، فقط تطبیق متن به‌تنهایی کافی نیست
+  // تا رکوردهای نامرتبط به‌عنوان نتیجه برگردند.
+  return 0;
 }
 
 // #update
