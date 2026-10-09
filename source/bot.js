@@ -9144,7 +9144,7 @@ function setKeyboard() {
 
 async function mainMenu(ctx) {
   await ctx.reply(
-    '<b>Owner Panell</b>',
+    '<b>Owwner Panell</b>',
     {
       parse_mode: 'HTML',
       reply_markup: mainKeyboard()
@@ -15734,7 +15734,7 @@ bot.start(
 
     if (isAdmin(ctx)) {
       await ctx.reply(
-        '<b>Owner Panel</b>',
+        '<b>Owwner Panel</b>',
         {
           parse_mode: 'HTML',
           reply_markup:
