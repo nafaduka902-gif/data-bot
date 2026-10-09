@@ -3214,30 +3214,40 @@ function nfRemember(ctx, role, content) {
   }
 }
 
+// #update
 function nfConversationHistory(
   ctx,
   currentText,
-  limit = 10
+  limit = 5
 ) {
-  const history =
-    nfState(ctx)
-      .history
-      .slice(-limit);
-  const last =
-    history[history.length - 1];
-  const current =
-    String(currentText || '')
-      .slice(0, 5000);
+  const state = nfState(ctx);
 
+  const history = Array.isArray(state.history)
+    ? state.history.slice()
+    : [];
+
+  const current = String(
+    currentText || ''
+  ).trim().slice(0, 5000);
+
+  const last = history[history.length - 1];
+
+  // اگر پیام فعلی قبلاً ذخیره شده باشد،
+  // آن را از تاریخچه قبلی حذف کن.
   if (
     last?.role === 'user' &&
-    String(last.content || '') ===
-      current
+    String(last.content || '').trim() === current
   ) {
     history.pop();
   }
 
-  return history;
+  return history
+    .filter(item =>
+      item &&
+      ['user', 'assistant'].includes(item.role) &&
+      String(item.content || '').trim()
+    )
+    .slice(-Math.max(1, Number(limit) || 5));
 }
 
 function nfEscapeHtml(value) {
@@ -7682,8 +7692,9 @@ async function nfAskAI(
     );
   }
 
-  // #new
+// #new
   await nfReactToUserMessage(ctx);
+
   // ساخت پیام‌ها برای Gemini
   const messages = [
     {
@@ -7692,48 +7703,24 @@ async function nfAskAI(
     }
   ];
 
-  let history = [];
+  // #new
+  // دریافت پنج پیام قبلی مکالمه
+  const history = nfConversationHistory(
+    ctx,
+    userText,
+    5
+  );
 
-  try {
-    if (typeof nfGetHistory === 'function') {
-      const result =
-        await nfGetHistory(ctx);
-
-      if (Array.isArray(result)) {
-        history = result;
-      }
-    }
-  } catch (error) {
-    console.error(
-      '[NF] AI HISTORY ERROR:',
-      error?.message || error
-    );
-  }
-
-  for (const item of history.slice(-8)) {
-    if (
-      !item ||
-      !['user', 'assistant'].includes(
-        item.role
-      )
-    ) {
-      continue;
-    }
-
-    const content = String(
-      item.content || item.text || ''
-    ).trim();
-
-    if (!content) {
-      continue;
-    }
-
+  for (const item of history) {
     messages.push({
       role: item.role,
-      content: content.slice(0, 2000)
+      content: String(
+        item.content || ''
+      ).slice(0, 2000)
     });
   }
 
+  // افزودن پیام فعلی کاربر
   messages.push({
     role: 'user',
     content: userText
@@ -7968,6 +7955,23 @@ async function nfProcess(
   ctx,
   text
 ) {
+  // #new
+  // اگر کاربر به پیام کاربر دیگری ریپلای کرده،
+  // هوش مصنوعی نباید وارد مکالمه شود.
+  const incomingMessage =
+    ctx?.message ||
+    ctx?.update?.message;
+
+  const repliedMessage =
+    incomingMessage?.reply_to_message;
+
+  if (
+    repliedMessage &&
+    !repliedMessage.from?.is_bot
+  ) {
+    return;
+  }
+
   const key = nfKey(ctx);
 
   if (nfLocks.has(key)) {
