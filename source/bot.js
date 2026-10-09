@@ -4602,6 +4602,34 @@ function nfArchiveNormalize(value) {
     .trim();
 }
 
+async function nfArchiveNotifyOwner(text) {
+  try {
+    if (!UPDATE_ADMIN_ID) {
+      console.error(
+        'NF ARCHIVE: UPDATE_ADMIN_ID is missing'
+      );
+      return false;
+    }
+
+    await bot.telegram.sendMessage(
+      UPDATE_ADMIN_ID,
+      '📦 گزارش آرشیو Anime Faarsi\n\n' +
+      String(text || 'بدون جزئیات')
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      'NF ARCHIVE OWNER NOTIFY ERROR:',
+      error?.response?.description ||
+      error?.message ||
+      error
+    );
+
+    return false;
+  }
+}
+
 function nfArchiveWords(value) {
   return [
     ...new Set(
@@ -8434,28 +8462,67 @@ bot.command(
 bot.on(
   'channel_post',
   async ctx => {
-    try {
-      const username =
-        String(
-          ctx.chat?.username || ''
-        ).trim();
+    const username =
+      String(ctx.chat?.username || '').trim();
 
-      if (
-        !nfArchiveChannelAllowed(
+    const messageId =
+      ctx.channelPost?.message_id;
+
+    console.log(
+      'NF ARCHIVE EVENT RECEIVED:',
+      username,
+      messageId
+    );
+
+    await nfArchiveNotifyOwner(
+      '🟡 پست جدید دریافت شد.\n' +
+      '📢 کانال: @' + (username || 'نامشخص') + '\n' +
+      '🆔 شناسه پست: ' + (messageId || 'نامشخص')
+    );
+
+    try {
+      const allowed =
+        nfArchiveChannelAllowed(username);
+
+      await nfArchiveNotifyOwner(
+        '🔎 بررسی کانال\n' +
+        '📢 کانال: @' + (username || 'نامشخص') + '\n' +
+        'نتیجه: ' + (allowed ? '✅ مجاز' : '❌ غیرمجاز')
+      );
+
+      if (!allowed) {
+        console.log(
+          'NF ARCHIVE CHANNEL REJECTED:',
           username
-        )
-      ) {
+        );
         return;
       }
 
-      await nfArchiveQueueUpsert(
-        ctx
+      const saved =
+        await nfArchiveQueueUpsert(ctx);
+
+      console.log(
+        'NF ARCHIVE UPSERT RESULT:',
+        saved
       );
 
+      await nfArchiveNotifyOwner(
+        '💾 نتیجه ذخیره‌سازی پست جدید\n' +
+        '📢 کانال: @' + username + '\n' +
+        '🆔 شناسه پست: ' + messageId + '\n' +
+        'نتیجه: ' + (saved ? '✅ موفق' : '❌ ناموفق')
+      );
     } catch (error) {
       console.error(
-        'CHANNEL POST ARCHIVE ERROR:',
+        'NF ARCHIVE CHANNEL POST ERROR:',
         error
+      );
+
+      await nfArchiveNotifyOwner(
+        '🔴 خطا هنگام ذخیره پست جدید\n' +
+        '📢 کانال: @' + (username || 'نامشخص') + '\n' +
+        'جزئیات: ' +
+        (error?.message || String(error))
       );
     }
   }
@@ -8464,28 +8531,67 @@ bot.on(
 bot.on(
   'edited_channel_post',
   async ctx => {
-    try {
-      const username =
-        String(
-          ctx.chat?.username || ''
-        ).trim();
+    const username =
+      String(ctx.chat?.username || '').trim();
 
-      if (
-        !nfArchiveChannelAllowed(
+    const messageId =
+      ctx.editedChannelPost?.message_id;
+
+    console.log(
+      'NF ARCHIVE EDIT EVENT RECEIVED:',
+      username,
+      messageId
+    );
+
+    await nfArchiveNotifyOwner(
+      '✏️ ویرایش پست دریافت شد.\n' +
+      '📢 کانال: @' + (username || 'نامشخص') + '\n' +
+      '🆔 شناسه پست: ' + (messageId || 'نامشخص')
+    );
+
+    try {
+      const allowed =
+        nfArchiveChannelAllowed(username);
+
+      await nfArchiveNotifyOwner(
+        '🔎 بررسی کانال برای پست ویرایش‌شده\n' +
+        '📢 کانال: @' + (username || 'نامشخص') + '\n' +
+        'نتیجه: ' + (allowed ? '✅ مجاز' : '❌ غیرمجاز')
+      );
+
+      if (!allowed) {
+        console.log(
+          'NF ARCHIVE EDIT CHANNEL REJECTED:',
           username
-        )
-      ) {
+        );
         return;
       }
 
-      await nfArchiveQueueUpsert(
-        ctx
+      const saved =
+        await nfArchiveQueueUpsert(ctx);
+
+      console.log(
+        'NF ARCHIVE EDIT UPSERT RESULT:',
+        saved
       );
 
+      await nfArchiveNotifyOwner(
+        '💾 نتیجه ذخیره‌سازی پست ویرایش‌شده\n' +
+        '📢 کانال: @' + username + '\n' +
+        '🆔 شناسه پست: ' + messageId + '\n' +
+        'نتیجه: ' + (saved ? '✅ موفق' : '❌ ناموفق')
+      );
     } catch (error) {
       console.error(
-        'EDITED CHANNEL POST ARCHIVE ERROR:',
+        'NF ARCHIVE EDIT ERROR:',
         error
+      );
+
+      await nfArchiveNotifyOwner(
+        '🔴 خطا هنگام ذخیره پست ویرایش‌شده\n' +
+        '📢 کانال: @' + (username || 'نامشخص') + '\n' +
+        'جزئیات: ' +
+        (error?.message || String(error))
       );
     }
   }
