@@ -11,5 +11,18 @@
     "warningAction": "ban",
     "locked": false,
     "updatedAt": "2026-09-29T06:40:32.099Z"
+  },
+  {
+    "kind": "group",
+    "chatId": -1002239235244,
+    "welcomeEnabled": true,
+    "welcomeDeleteAfterSeconds": 120,
+    "joinNoticeDeleteAfterSeconds": 0,
+    "captchaEnabled": true,
+    "linkFilterEnabled": false,
+    "warningLimit": 3,
+    "warningAction": "ban",
+    "locked": false,
+    "updatedAt": "2026-10-09T15:26:52.768Z"
   }
 ]
