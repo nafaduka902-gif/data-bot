@@ -4514,12 +4514,99 @@ const NF_AI_CHAT_USERNAME =
 
 let nfArchiveWriteQueue = Promise.resolve();
 
+// #update
 function nfArchiveQueueUpsert(ctx) {
-  const job = nfArchiveWriteQueue.then(() =>
-    nfUpsertArchivePost(ctx)
-  );
+  const post =
+    ctx.editedChannelPost ||
+    ctx.channelPost;
 
-  nfArchiveWriteQueue = job.catch(() => {});
+  const username =
+    String(
+      ctx.chat?.username || ''
+    ).trim();
+
+  const messageId =
+    post?.message_id;
+
+  const postId =
+    `${username.toLowerCase()}:${messageId}`;
+
+  const report = async (
+    stage,
+    details = ''
+  ) => {
+    const message =
+      '📦 گزارش آرشیو Anime Faarsi\n\n' +
+      '📍 مرحله: ' + stage + '\n' +
+      '📢 کانال: @' + (username || 'نامشخص') + '\n' +
+      '🆔 شناسه پست: ' + (messageId || 'نامشخص') +
+      (details ? '\n📝 جزئیات: ' + details : '');
+
+    console.log(
+      'NF ARCHIVE QUEUE:',
+      message
+    );
+
+    await nfArchiveNotifyOwner(message);
+  };
+
+  const job =
+    nfArchiveWriteQueue.then(
+      async () => {
+        await report(
+          'شروع پردازش صف',
+          'شناسه: ' + postId
+        );
+
+        try {
+          await report(
+            'شروع ذخیره‌سازی',
+            'در حال اجرای nfUpsertArchivePost'
+          );
+
+          const result =
+            await nfUpsertArchivePost(ctx);
+
+          await report(
+            result
+              ? 'ذخیره موفق'
+              : 'ذخیره ناموفق',
+            'نتیجه: ' + String(result)
+          );
+
+          console.log(
+            'NF ARCHIVE QUEUE FINISHED:',
+            postId,
+            result
+          );
+
+          return result;
+        } catch (error) {
+          console.error(
+            'NF ARCHIVE QUEUE ERROR:',
+            postId,
+            error?.stack || error
+          );
+
+          await report(
+            'خطا هنگام پردازش',
+            error?.message || String(error)
+          );
+
+          return false;
+        }
+      }
+    );
+
+  nfArchiveWriteQueue =
+    job.catch(error => {
+      console.error(
+        'NF ARCHIVE QUEUE RECOVERY:',
+        error?.stack || error
+      );
+
+      return false;
+    });
 
   return job;
 }
@@ -5841,11 +5928,7 @@ async function nfUpsertArchivePost(ctx) {
       records.push(record);
     }
 
-    records.sort(
-      (a, b) =>
-        Number(b.date || 0) -
-        Number(a.date || 0)
-    );
+    
 
     // #update
     // حذف entities از تمام رکوردها
