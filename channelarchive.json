@@ -1696,5 +1696,29 @@
     "date": 1791559550,
     "createdAt": "2026-10-09T15:25:52.644Z",
     "updatedAt": "2026-10-09T15:25:52.644Z"
+  },
+  {
+    "id": "anime_faarsi:1025",
+    "name": ".",
+    "nameNormalized": "",
+    "aliases": [
+      "."
+    ],
+    "aliasesNormalized": [
+      ""
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": ".",
+    "link": "https://t.me/Anime_Faarsi/1025",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1025,
+    "text": ".",
+    "caption": "",
+    "date": 1791559560,
+    "createdAt": "2026-10-09T15:26:02.526Z",
+    "updatedAt": "2026-10-09T15:26:02.526Z"
   }
 ]
