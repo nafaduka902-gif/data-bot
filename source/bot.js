@@ -7950,6 +7950,7 @@ async function nfAskAI(
   }
 }
 // #new
+// #update
 async function nfIsReplyToThisBot(ctx) {
   try {
     const message =
@@ -7959,49 +7960,62 @@ async function nfIsReplyToThisBot(ctx) {
     const repliedMessage =
       message?.reply_to_message;
 
-    // پیام باید ریپلای به یک پیام ربات باشد
-    if (!repliedMessage?.from?.is_bot) {
-      return false;
-    }
-
     let botId = Number(
       ctx?.botInfo?.id ||
       ctx?.me?.id ||
       0
     );
 
-    // دریافت شناسه واقعی همین ربات
     if (!botId) {
       const botInfo =
         await ctx.telegram.getMe();
 
-      botId = Number(
-        botInfo?.id || 0
-      );
+      botId = Number(botInfo?.id || 0);
     }
 
-    const repliedBotId = Number(
+    const replyBotId = Number(
       repliedMessage?.from?.id || 0
     );
 
-    // ریپلای باید به پیام همین ربات باشد،
-    // نه ربات دیگری در گروه
-    if (
-      !botId ||
-      !repliedBotId ||
-      botId !== repliedBotId
-    ) {
-      return false;
+    const result = {
+      hasMessage: !!message,
+      isReply: !!repliedMessage,
+      replyMessageId:
+        repliedMessage?.message_id || null,
+      replyFromId:
+        repliedMessage?.from?.id || null,
+      replyFromIsBot:
+        repliedMessage?.from?.is_bot ?? null,
+      botId,
+      replyBotId,
+      matched:
+        !!repliedMessage &&
+        repliedMessage?.from?.is_bot === true &&
+        botId > 0 &&
+        botId === replyBotId
+    };
+
+    // #new
+    if (nfIsOwner(ctx)) {
+      await ctx.telegram.sendMessage(
+        ctx.from.id,
+        '🔎 بررسی ریپلای هوش مصنوعی:\n\n' +
+        JSON.stringify(result, null, 2)
+      );
     }
 
-    return true;
+    return result.matched;
   } catch (error) {
-    console.error(
-      'nfIsReplyToThisBot error:',
-      error?.message || error
-    );
+    try {
+      if (nfIsOwner(ctx)) {
+        await ctx.telegram.sendMessage(
+          ctx.from.id,
+          '❌ خطای بررسی ریپلای:\n' +
+          String(error?.message || error)
+        );
+      }
+    } catch (_) {}
 
-    // اگر بررسی ناموفق بود، پاسخ نده
     return false;
   }
 }
