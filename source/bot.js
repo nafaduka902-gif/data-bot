@@ -1446,7 +1446,7 @@ bot.on(
         );
 
         await ctx.reply(
-          `✅ Received ${items.length} item(s).\n` +
+          `✅ Receivved ${items.length} item(s).\n` +
           `📦 Total items: ${channelAddState.items.length}\n\n` +
           'Send another message or press Done.'
         );
