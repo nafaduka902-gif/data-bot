@@ -7949,16 +7949,72 @@ async function nfAskAI(
     );
   }
 }
+// #new
+async function nfIsReplyToThisBot(ctx) {
+  try {
+    const message =
+      ctx?.message ||
+      ctx?.update?.message;
+
+    const repliedMessage =
+      message?.reply_to_message;
+
+    // پیام باید ریپلای به یک پیام ربات باشد
+    if (!repliedMessage?.from?.is_bot) {
+      return false;
+    }
+
+    let botId = Number(
+      ctx?.botInfo?.id ||
+      ctx?.me?.id ||
+      0
+    );
+
+    // دریافت شناسه واقعی همین ربات
+    if (!botId) {
+      const botInfo =
+        await ctx.telegram.getMe();
+
+      botId = Number(
+        botInfo?.id || 0
+      );
+    }
+
+    const repliedBotId = Number(
+      repliedMessage?.from?.id || 0
+    );
+
+    // ریپلای باید به پیام همین ربات باشد،
+    // نه ربات دیگری در گروه
+    if (
+      !botId ||
+      !repliedBotId ||
+      botId !== repliedBotId
+    ) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error(
+      'nfIsReplyToThisBot error:',
+      error?.message || error
+    );
+
+    // اگر بررسی ناموفق بود، پاسخ نده
+    return false;
+  }
+}
 
 
 
-// #update
-// #update
-// #update
 async function nfProcess(
   ctx,
   text
 ) {
+  if (!(await nfIsReplyToThisBot(ctx))) {
+    return;
+  }
   const key = nfKey(ctx);
 
   if (nfLocks.has(key)) {
