@@ -7440,15 +7440,12 @@ const nfGroqCooldownUntil =
 
 // #update
 // #update
+// #update
 async function nfAskAI(
   ctx,
   text,
   archiveContext = ''
 ) {
-  if (!NF_API_KEY) {
-    throw new Error('NF_API_KEY_MISSING');
-  }
-
   const owner = nfIsOwner(ctx);
   const key = nfKey(ctx);
   const now = Date.now();
@@ -7457,18 +7454,8 @@ async function nfAskAI(
     nfGroqCooldownUntil.get(key) || 0
   );
 
-  if (cooldown && now < cooldown) {
-    const error = new Error(
-      'NF_AI_RATE_LIMITED'
-    );
-
-    error.response = {
-      status: 429,
-      headers: {}
-    };
-
-    throw error;
-  }
+  const groqCooldownActive =
+    Boolean(cooldown && now < cooldown);
 
   const userText = String(text || '').trim();
 
@@ -7662,8 +7649,6 @@ async function nfAskAI(
     );
   }
 
-  // #update
-  // تاریخچه فقط برای فهم ادامه مکالمه استفاده می‌شود.
   const messages = [
     {
       role: 'system',
@@ -7688,7 +7673,6 @@ async function nfAskAI(
     );
   }
 
-  // فقط پیام‌های معتبر مکالمه را نگه می‌داریم.
   for (const item of history.slice(-8)) {
     if (
       !item ||
@@ -7710,11 +7694,102 @@ async function nfAskAI(
     });
   }
 
-  // پیام فعلی همیشه آخرین پیام کاربر است.
   messages.push({
     role: 'user',
     content: userText
   });
+
+  // #new
+  // پشتیبان Prexzy Gemini
+  const askPrexzyGemini = async () => {
+    const prompt = messages
+      .map(item => {
+        const role = String(
+          item.role || 'user'
+        ).toUpperCase();
+
+        return `${role}:\n${String(item.content || '')}`;
+      })
+      .join('\n\n');
+
+    const response = await axios.post(
+      'https://prexzyapis.com/ai/gemini',
+      {
+        prompt
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 20000
+      }
+    );
+
+    const answer = String(
+      response?.data?.response || ''
+    ).trim();
+
+    if (
+      response?.data?.status !== true ||
+      !answer
+    ) {
+      throw new Error(
+        'PREXZY_GEMINI_INVALID_RESPONSE'
+      );
+    }
+
+    console.log(
+      '[NF] PREXZY_GEMINI_SUCCESS'
+    );
+
+    return answer;
+  };
+
+  // #new
+  // در صورت فعال‌بودن cooldown، مستقیماً پشتیبان را امتحان کن.
+  if (groqCooldownActive) {
+    console.log(
+      '[NF] GROQ_COOLDOWN_PREXZY_FALLBACK'
+    );
+
+    try {
+      return await askPrexzyGemini();
+    } catch (error) {
+      console.error(
+        '[NF] PREXZY_GEMINI_ERROR:',
+        error?.response?.status || '',
+        error?.message || error
+      );
+
+      const rateError = new Error(
+        'NF_AI_RATE_LIMITED'
+      );
+
+      rateError.response = {
+        status: 429,
+        headers: {}
+      };
+
+      throw rateError;
+    }
+  }
+
+  // اگر کلید Groq موجود نباشد، پشتیبان را امتحان کن.
+  if (!NF_API_KEY) {
+    try {
+      return await askPrexzyGemini();
+    } catch (error) {
+      console.error(
+        '[NF] PREXZY_GEMINI_ERROR:',
+        error?.response?.status || '',
+        error?.message || error
+      );
+
+      throw new Error(
+        'NF_AI_ALL_PROVIDERS_FAILED'
+      );
+    }
+  }
 
   try {
     const response = await axios.post(
@@ -7772,57 +7847,77 @@ async function nfAskAI(
     return String(answer).trim();
 
   } catch (error) {
-    const status =
-      Number(error?.response?.status);
+    const status = Number(
+      error?.response?.status
+    );
 
-    if (status === 429) {
-      const headers =
-        error?.response?.headers || {};
+    if (status !== 429) {
+      throw error;
+    }
 
-      const retryAfter =
-        Number(headers['retry-after']);
+    const headers =
+      error?.response?.headers || {};
 
-      const cooldownSeconds = Math.min(
-        Math.max(
-          Number.isFinite(retryAfter) && retryAfter > 0
-            ? Math.ceil(retryAfter)
-            : 60,
-          30
-        ),
-        900
+    const retryAfter = Number(
+      headers['retry-after']
+    );
+
+    const cooldownSeconds = Math.min(
+      Math.max(
+        Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.ceil(retryAfter)
+          : 60,
+        30
+      ),
+      900
+    );
+
+    nfGroqCooldownUntil.set(
+      key,
+      Date.now() + cooldownSeconds * 1000
+    );
+
+    if (owner) {
+      try {
+        await ctx.telegram.sendMessage(
+          ctx.from.id,
+          [
+            '⛔ Groq Rate Limit',
+            '',
+            `Requests باقی‌مانده: ${headers['x-ratelimit-remaining-requests'] ?? '-'}`,
+            `Requests Limit: ${headers['x-ratelimit-limit-requests'] ?? '-'}`,
+            `Tokens باقی‌مانده: ${headers['x-ratelimit-remaining-tokens'] ?? '-'}`,
+            `Tokens Limit: ${headers['x-ratelimit-limit-tokens'] ?? '-'}`,
+            `Retry After: ${headers['retry-after'] ?? '-'}`
+          ].join('\n')
+        );
+      } catch {}
+    }
+
+    // #new
+    // خطای 429 از Groq؛ تلاش با Gemini
+    try {
+      console.log(
+        '[NF] GROQ_429_PREXZY_FALLBACK'
       );
 
-      nfGroqCooldownUntil.set(
-        key,
-        Date.now() + cooldownSeconds * 1000
+      return await askPrexzyGemini();
+
+    } catch (fallbackError) {
+      console.error(
+        '[NF] PREXZY_GEMINI_FALLBACK_ERROR:',
+        fallbackError?.response?.status || '',
+        fallbackError?.message || fallbackError
       );
 
-      if (owner) {
-        try {
-          await ctx.telegram.sendMessage(
-            ctx.from.id,
-            [
-              '⛔ Groq Rate Limit',
-              '',
-              `Requests باقی‌مانده: ${headers['x-ratelimit-remaining-requests'] ?? '-'}`,
-              `Requests Limit: ${headers['x-ratelimit-limit-requests'] ?? '-'}`,
-              `Tokens باقی‌مانده: ${headers['x-ratelimit-remaining-tokens'] ?? '-'}`,
-              `Tokens Limit: ${headers['x-ratelimit-limit-tokens'] ?? '-'}`,
-              `Retry After: ${headers['retry-after'] ?? '-'}`
-            ].join('\n')
-          );
-        } catch {}
-      }
-
-      const rateError =
-        new Error('NF_AI_RATE_LIMITED');
+      const rateError = new Error(
+        'NF_AI_RATE_LIMITED'
+      );
 
       rateError.response = error.response;
 
       throw rateError;
     }
-
-    throw error;
   }
 }
 
