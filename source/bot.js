@@ -7438,6 +7438,7 @@ async function nfAddTask(
 const nfGroqCooldownUntil =
   new Map();
 
+// #update
 async function nfAskAI(
   ctx,
   text,
@@ -7454,6 +7455,57 @@ async function nfAskAI(
     throw new Error(
       'NF_AI_EMPTY_USER_TEXT'
     );
+  }
+
+  // #new
+  // فقط در صورت ریپلای به پیام خود ربات پاسخ بده
+  const incomingMessage =
+    ctx?.message ||
+    ctx?.update?.message;
+
+  const repliedMessage =
+    incomingMessage?.reply_to_message;
+
+  if (!repliedMessage?.from?.is_bot) {
+    return null;
+  }
+
+  // #new
+  // اطمینان از اینکه پیام متعلق به همین ربات است
+  let currentBotId = Number(
+    ctx?.botInfo?.id ||
+    ctx?.me?.id ||
+    0
+  );
+
+  if (!currentBotId) {
+    try {
+      const botInfo =
+        await ctx.telegram.getMe();
+
+      currentBotId = Number(
+        botInfo?.id || 0
+      );
+    } catch (error) {
+      console.error(
+        '[NF] BOT ID ERROR:',
+        error?.message || error
+      );
+
+      return null;
+    }
+  }
+
+  const repliedBotId = Number(
+    repliedMessage?.from?.id || 0
+  );
+
+  if (
+    !currentBotId ||
+    !repliedBotId ||
+    currentBotId !== repliedBotId
+  ) {
+    return null;
   }
 
   const lowerText =
@@ -7527,6 +7579,15 @@ async function nfAskAI(
     `لینک کانال اصلی: ${NF_CHANNEL_URL}.`,
 
     '',
+    'قوانین تعامل:',
+    'فقط به پیام فعلی کاربر که در پاسخ به پیام خودت فرستاده شده پاسخ بده.',
+    'تاریخچه پنج پیام قبلی را برای درک بهتر منظور کاربر بررسی کن.',
+    'اگر کاربر به موضوع قبلی اشاره می‌کند، از تاریخچه برای تشخیص منظور استفاده کن.',
+    'پیام‌های قبلی را با پیام فعلی اشتباه نگیر.',
+    'اطلاعات آرشیو را از تاریخچه مکالمه حدس نزن.',
+    'اگر سؤال فعلی به پیام قبلی وابسته است، ارتباط آن‌ها را در نظر بگیر.',
+
+    '',
     'رفتار عمومی:',
     'مستقیماً به سؤال فعلی کاربر پاسخ بده.',
     'فارسی، دری، انگلیسی، فینگلیش، غلط تایپی و نام‌های غیررسمی را درک کن.',
@@ -7577,17 +7638,15 @@ async function nfAskAI(
     'قوانین لینک آرشیو:',
     'لینک‌ها را فقط از رکوردهای واقعی ارائه‌شده در CURRENT ARCHIVE RECORDS استخراج کن.',
     'هیچ URL، لینک دانلود، لینک پست یا دکمه دانلود فرضی نساز.',
-    'URL واقعی را تغییر نده و به انتهای آن متن یا پارامتر اضافه نکن.',
+    'URL واقعی را تغییر نده.',
     'هر URL یکتا را فقط یک بار در پاسخ نمایش بده.',
     'یک URL را هم به صورت لینک مستقل و هم داخل لینک Markdown تکرار نکن.',
-    'اگر یک URL در چند بخش متن دیده می‌شود، فقط یک بار آن را در پاسخ بیاور.',
     'اگر یک عنوان فقط یک رکورد معتبر دارد، فقط همان رکورد را معرفی کن.',
     'اگر چند رکورد متفاوت برای عنوان وجود دارد، هر رکورد را با عنوان و اطلاعات مخصوص خودش جدا کن.',
     'لینک فیلم و سریال را با هم اشتباه نگیر.',
     'اگر لینک رکورد موجود نیست، لینک نساز و صریح بگو لینک در اطلاعات فعلی موجود نیست.',
     'برای لینک‌ها از قالب ساده استفاده کن؛ برای مثال: 🔗 لینک پست: https://t.me/CHANNEL/123',
     'URL را داخل قالب Markdown مانند [URL](URL) قرار نده.',
-    'در پاسخ نهایی، بخش لینک‌ها را بازبینی کن و لینک‌های یکسان را تکرار نکن.',
 
     '',
     'قوانین حافظه مکالمه:',
@@ -7683,7 +7742,7 @@ async function nfAskAI(
   }
 
   // #update
-  // ساخت پیام‌ها برای Gemini
+  // ساخت پیام‌های Gemini
   const messages = [
     {
       role: 'system',
@@ -7691,6 +7750,8 @@ async function nfAskAI(
     }
   ];
 
+  // #update
+  // دریافت فقط پنج پیام قبلی مکالمه
   let history = [];
 
   try {
@@ -7709,23 +7770,49 @@ async function nfAskAI(
     );
   }
 
-  for (const item of history.slice(-8)) {
-    if (
-      !item ||
-      !['user', 'assistant'].includes(
-        item.role
-      )
-    ) {
-      continue;
-    }
+  // #update
+  // جلوگیری از تکرار پیام فعلی در تاریخچه
+  const currentMessageId = Number(
+    incomingMessage?.message_id || 0
+  );
 
+  const recentHistory = history
+    .filter(item => {
+      if (
+        !item ||
+        !['user', 'assistant'].includes(
+          item.role
+        )
+      ) {
+        return false;
+      }
+
+      const content = String(
+        item.content || item.text || ''
+      ).trim();
+
+      if (!content) {
+        return false;
+      }
+
+      // اگر شناسه پیام ذخیره شده و همان پیام فعلی است،
+      // آن را از تاریخچه قبلی حذف کن.
+      if (
+        currentMessageId &&
+        Number(item.message_id || 0) ===
+          currentMessageId
+      ) {
+        return false;
+      }
+
+      return true;
+    })
+    .slice(-5);
+
+  for (const item of recentHistory) {
     const content = String(
       item.content || item.text || ''
     ).trim();
-
-    if (!content) {
-      continue;
-    }
 
     messages.push({
       role: item.role,
@@ -7733,6 +7820,8 @@ async function nfAskAI(
     });
   }
 
+  // #update
+  // افزودن پیام فعلی کاربر در انتهای مکالمه
   messages.push({
     role: 'user',
     content: userText
@@ -7793,7 +7882,7 @@ async function nfAskAI(
     }
 
     // #update
-    // حذف URLهای کاملاً تکراری از پاسخ
+    // حذف لینک‌های تکراری
     const seenUrls = new Set();
 
     answer = answer.replace(
@@ -7822,21 +7911,15 @@ async function nfAskAI(
     );
 
     // #update
-    // حذف لینک‌های Markdown تکراری مانند [URL](URL)
+    // تبدیل [URL](URL) به URL ساده
     answer = answer.replace(
-      /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/gi,
+      /\[(https?:\/\/[^\]]+)\]\(\s*(https?:\/\/[^)\s]+)\s*\)/gi,
       (full, label, url) => {
-        const normalizedLabel =
-          String(label).trim();
-
-        const normalizedUrl =
-          String(url).replace(/\/+$/, '');
-
         if (
-          normalizedLabel ===
-          normalizedUrl
+          String(label).replace(/\/+$/, '') ===
+          String(url).replace(/\/+$/, '')
         ) {
-          return normalizedUrl;
+          return url;
         }
 
         return full;
@@ -7847,7 +7930,8 @@ async function nfAskAI(
       '[NF] GEMINI_SUCCESS',
       {
         key,
-        owner
+        owner,
+        historyCount: recentHistory.length
       }
     );
 
@@ -7860,48 +7944,9 @@ async function nfAskAI(
       error?.message || error
     );
 
-    // #update
-    // جلوگیری از نمایش جزئیات فنی API به کاربر
     throw new Error(
       'NF_AI_GEMINI_FAILED'
     );
-  }
-}
-
-
-// #new
-async function nfWithTimeout(
-  operation,
-  timeoutMs,
-  stage
-) {
-  let timer;
-
-  const operationPromise = Promise.resolve().then(
-    operation
-  );
-
-  const timeoutPromise = new Promise(
-    (_, reject) => {
-      timer = setTimeout(() => {
-        const error = new Error(
-          `NF_TIMEOUT:${stage}`
-        );
-
-        error.code = 'NF_PROCESS_TIMEOUT';
-
-        reject(error);
-      }, timeoutMs);
-    }
-  );
-
-  try {
-    return await Promise.race([
-      operationPromise,
-      timeoutPromise
-    ]);
-  } finally {
-    clearTimeout(timer);
   }
 }
 
