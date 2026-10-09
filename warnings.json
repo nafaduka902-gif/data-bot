@@ -3,8 +3,9 @@
     "kind": "warning:-1002239235244:777000",
     "chatId": -1002239235244,
     "userId": 777000,
-    "count": 3,
+    "count": 0,
     "lastReason": "ارسال لینک غیرمجاز",
-    "updatedAt": "2026-10-09T15:25:54.777Z"
+    "updatedAt": "2026-10-09T15:25:54.777Z",
+    "actionTaken": "ban"
   }
 ]
