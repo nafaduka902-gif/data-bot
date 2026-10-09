@@ -5682,13 +5682,14 @@ function nfArchiveRecordFromChannelPost(
 
 
 // #update
-// #update
 async function nfSearchRealArchive(
   ctx,
   userText
 ) {
   const query =
-    String(userText || '').trim();
+    String(
+      userText || ''
+    ).trim();
 
   if (!query) {
     return [];
@@ -5704,10 +5705,15 @@ async function nfSearchRealArchive(
     return [];
   }
 
-  const queries = new Set([query]);
+  const queries =
+    new Set();
+
+  queries.add(query);
 
   const cleaned =
-    nfArchiveIntentText(query);
+    nfArchiveIntentText(
+      query
+    );
 
   if (cleaned) {
     queries.add(cleaned);
@@ -5717,103 +5723,55 @@ async function nfSearchRealArchive(
     const item of
     nfArchiveQueryVariants(query)
   ) {
-    if (item) {
-      queries.add(String(item).trim());
-    }
+    queries.add(item);
   }
 
   for (
     const item of
     nfArchiveQueryVariants(cleaned)
   ) {
-    if (item) {
-      queries.add(String(item).trim());
-    }
+    queries.add(item);
   }
 
-  const found = new Map();
-
-  function addResults(results) {
-    if (!Array.isArray(results)) {
-      return;
-    }
-
-    for (const record of results) {
-      if (!record) {
-        continue;
-      }
-
-      const id =
-        String(
-          record.id ||
-          record.link ||
-          (
-            String(record.channel || '')
-              .toLowerCase() +
-            ':' +
-            String(record.messageId || '')
-          )
-        ).trim();
-
-      if (id && !found.has(id)) {
-        found.set(id, record);
-      }
-    }
-  }
-
-  // #new
-  // جمع نتایج عبارت‌های مختلف؛ بدون توقف روی اولین نتیجه
-  for (const candidate of queries) {
-    if (!candidate) {
-      continue;
-    }
-
-    addResults(
+  for (
+    const candidate of queries
+  ) {
+    const results =
       nfArchiveSearch(
         records,
         candidate,
-        8
-      )
-    );
+        12
+      );
 
-    // محدودیت حافظهٔ نتایج؛ نه محدودیت تعداد فصل‌ها
-    if (found.size >= 8) {
-      break;
+    if (results.length) {
+      return results;
     }
   }
 
-  // #new
-  // فقط در صورت نبود نتیجه، آرشیو اضافه بررسی شود
-  if (!found.size) {
-    const addedPosts =
-      await nfReadAddedArchivePosts();
+  const addedPosts =
+    await nfReadAddedArchivePosts();
 
-    if (
-      Array.isArray(addedPosts) &&
-      addedPosts.length
+  if (
+    Array.isArray(addedPosts) &&
+    addedPosts.length
+  ) {
+    for (
+      const candidate of queries
     ) {
-      for (const candidate of queries) {
-        if (!candidate) {
-          continue;
-        }
-
-        addResults(
-          nfArchiveSearch(
-            addedPosts,
-            candidate,
-            8
-          )
+      const results =
+        nfArchiveSearch(
+          addedPosts,
+          candidate,
+          12
         );
 
-        if (found.size >= 8) {
-          break;
-        }
+      if (results.length) {
+        return results;
       }
     }
   }
 
-  return Array.from(found.values())
-    .slice(0, 8);
+  return [];
 }
 
 
