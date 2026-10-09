@@ -5776,19 +5776,16 @@ function nfArchiveMessageText(
 }
 
 // #update
-async function nfUpsertArchivePost(
-  ctx
-) {
-  const record =
-    nfArchiveRecordFromChannelPost(
-      ctx
-    );
-
-  if (!record) {
-    return false;
-  }
-
+// #update
+async function nfUpsertArchivePost(ctx) {
   try {
+    const record =
+      nfArchiveRecordFromChannelPost(ctx);
+
+    if (!record) {
+      return false;
+    }
+
     const records =
       await nfReadArchive();
 
@@ -5800,70 +5797,75 @@ async function nfUpsertArchivePost(
       );
 
     if (index >= 0) {
-      const old =
-        records[index] || {};
+      const oldRecord = records[index];
+
+      const aliases = [
+        ...(Array.isArray(oldRecord.aliases)
+          ? oldRecord.aliases
+          : []),
+        ...(Array.isArray(record.aliases)
+          ? record.aliases
+          : [])
+      ];
+
+      const aliasesNormalized = [
+        ...(Array.isArray(
+          oldRecord.aliasesNormalized
+        )
+          ? oldRecord.aliasesNormalized
+          : []),
+        ...(Array.isArray(
+          record.aliasesNormalized
+        )
+          ? record.aliasesNormalized
+          : [])
+      ];
 
       records[index] = {
-        ...old,
+        ...oldRecord,
         ...record,
 
-        aliases:
-          Array.from(
-            new Set([
-              ...(Array.isArray(
-                old.aliases
-              )
-                ? old.aliases
-                : []),
-              ...(Array.isArray(
-                record.aliases
-              )
-                ? record.aliases
-                : [])
-            ])
-          ),
+        aliases: [
+          ...new Set(aliases)
+        ],
 
-        aliasesNormalized:
-          Array.from(
-            new Set([
-              ...(Array.isArray(
-                old.aliasesNormalized
-              )
-                ? old.aliasesNormalized
-                : []),
-              ...(Array.isArray(
-                record.aliasesNormalized
-              )
-                ? record.aliasesNormalized
-                : [])
-            ])
-          ),
+        aliasesNormalized: [
+          ...new Set(aliasesNormalized)
+        ],
 
         createdAt:
-          old.createdAt ||
+          oldRecord.createdAt ||
           record.createdAt
       };
     } else {
-      records.push(
-        record
-      );
+      records.push(record);
     }
 
     records.sort(
       (a, b) =>
-        Number(b?.date || 0) -
-        Number(a?.date || 0)
+        Number(b.date || 0) -
+        Number(a.date || 0)
     );
 
+    // #update
+    // حذف entities از تمام رکوردها
+    const cleanRecords =
+      records.map(item => {
+        const {
+          entities,
+          ...cleanItem
+        } = item;
+
+        return cleanItem;
+      });
+
     const saved =
-      await nfWriteArchive(
-        records
-      );
+      await nfWriteArchive(cleanRecords);
 
     if (!saved) {
       console.error(
-        'NF ARCHIVE SAVE FAILED:',
-        record.link
+        'NF ARCHIVE: SAVE FAILED:',
+        record.id
       );
 
       return false;
@@ -5871,10 +5873,7 @@ async function nfUpsertArchivePost(
 
     console.log(
       'NF ARCHIVE SAVED:',
-      record.channel,
-      record.messageId,
-      record.name,
-      record.aliases
+      record.id
     );
 
     return true;
@@ -5882,7 +5881,7 @@ async function nfUpsertArchivePost(
   } catch (error) {
     console.error(
       'NF ARCHIVE UPSERT ERROR:',
-      error
+      error?.message || error
     );
 
     return false;
