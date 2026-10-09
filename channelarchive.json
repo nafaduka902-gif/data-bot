@@ -2036,29 +2036,5 @@
     "date": 1782589873,
     "createdAt": "2026-10-09T16:56:18.506Z",
     "updatedAt": "2026-10-09T16:56:18.506Z"
-  },
-  {
-    "id": "anime_faarsi:1029",
-    "name": "فصل دوم دوبله فارسی قسمت 1 اضافه شد.",
-    "nameNormalized": "فصل دوم دوبله فارسی قسمت 1 اضافه شد",
-    "aliases": [
-      "فصل دوم دوبله فارسی قسمت 1 اضافه شد."
-    ],
-    "aliasesNormalized": [
-      "فصل دوم دوبله فارسی قسمت 1 اضافه شد"
-    ],
-    "animeName": "",
-    "englishName": "",
-    "persianName": "فصل دوم دوبله فارسی قسمت 1 اضافه شد.",
-    "link": "https://t.me/Anime_Faarsi/1029",
-    "channel": "Anime_Faarsi",
-    "channelNormalized": "anime_faarsi",
-    "channelType": "anime",
-    "messageId": 1029,
-    "text": "فصل دوم دوبله فارسی قسمت 1 اضافه شد.",
-    "caption": "",
-    "date": 1791565276,
-    "createdAt": "2026-10-09T17:01:18.100Z",
-    "updatedAt": "2026-10-09T17:01:18.100Z"
   }
 ]
