@@ -2140,29 +2140,5 @@
     "date": 1744618166,
     "createdAt": "2026-10-09T17:34:53.018Z",
     "updatedAt": "2026-10-09T17:34:53.018Z"
-  },
-  {
-    "id": "faarsimovie:478",
-    "name": "هردو فصل با دوبله فارسی اضافه شد.",
-    "nameNormalized": "هردو فصل با دوبله فارسی اضافه شد",
-    "aliases": [
-      "هردو فصل با دوبله فارسی اضافه شد."
-    ],
-    "aliasesNormalized": [
-      "هردو فصل با دوبله فارسی اضافه شد"
-    ],
-    "animeName": "",
-    "englishName": "",
-    "persianName": "هردو فصل با دوبله فارسی اضافه شد.",
-    "link": "https://t.me/FaarsiMovie/478",
-    "channel": "FaarsiMovie",
-    "channelNormalized": "faarsimovie",
-    "channelType": "movie",
-    "messageId": 478,
-    "text": "هردو فصل با دوبله فارسی اضافه شد.",
-    "caption": "",
-    "date": 1791567307,
-    "createdAt": "2026-10-09T17:35:09.660Z",
-    "updatedAt": "2026-10-09T17:35:09.660Z"
   }
 ]
