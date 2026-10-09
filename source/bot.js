@@ -3377,296 +3377,137 @@ function nfSplit(text, limit = 3500) {
   return chunks;
 }
 
-// #update
 async function nfSendResult(
   ctx,
   text,
   thinkingId
 ) {
-  const answer =
-    String(text || '').trim();
-
-  if (!answer) {
-    return false;
-  }
-
-  const chatId =
-    ctx.chat?.id;
-
-  if (!chatId) {
-    return false;
-  }
-
-  const parts =
-    nfSplit(answer);
-
-  if (!Array.isArray(parts) || !parts.length) {
-    return false;
-  }
-
-  const isPrivate =
-    ctx.chat?.type === 'private';
-
-  const sleep = ms =>
-    new Promise(resolve =>
-      setTimeout(resolve, ms)
+  const chunks =
+    nfSplit(
+      String(text || '')
     );
 
-  const editOptions = {
-    parse_mode: 'HTML',
-    link_preview_options: {
-      is_disabled: true
-    }
-  };
-
-  /*
-   * #new
-   * ویرایش تدریجی همان پیام Thinking
-   */
-  if (isPrivate && thinkingId) {
-    let lastText = '';
-    let editWorked = false;
-
-    try {
-      // نمایش پاسخ در همان پیام
-      for (
-        let partIndex = 0;
-        partIndex < parts.length;
-        partIndex++
-      ) {
-        const rawPart =
-          String(parts[partIndex] || '');
-
-        const formattedPart =
-          nfFormat(rawPart);
-
-        /*
-         * برای هر بخش طولانی، متن را
-         * مرحله‌به‌مرحله افزایش می‌دهیم.
-         */
-        const stepSize = 18;
-        const totalLength =
-          formattedPart.length;
-
-        for (
-          let i = stepSize;
-          i < totalLength;
-          i += stepSize
-        ) {
-          const currentText =
-            formattedPart.slice(0, i);
-
-          if (
-            !currentText ||
-            currentText === lastText
-          ) {
-            continue;
-          }
-
-          try {
-            await ctx.telegram.editMessageText(
-              chatId,
-              thinkingId,
-              undefined,
-              currentText,
-              editOptions
-            );
-
-            lastText = currentText;
-            editWorked = true;
-
-          } catch (error) {
-            const description =
-              String(
-                error?.description ||
-                error?.message ||
-                ''
-              );
-
-            // تلگرام گاهی ویرایش متن یکسان
-            // را با خطای not modified رد می‌کند.
-            if (
-              /message is not modified/i.test(
-                description
-              )
-            ) {
-              lastText = currentText;
-              editWorked = true;
-            } else {
-              throw error;
-            }
-          }
-
-          await sleep(180);
-        }
-
-        /*
-         * پایان هر بخش:
-         * متن کامل و قالب‌بندی‌شده ثبت می‌شود.
-         */
-        if (formattedPart !== lastText) {
-          try {
-            await ctx.telegram.editMessageText(
-              chatId,
-              thinkingId,
-              undefined,
-              formattedPart,
-              editOptions
-            );
-
-            lastText = formattedPart;
-            editWorked = true;
-
-          } catch (error) {
-            const description =
-              String(
-                error?.description ||
-                error?.message ||
-                ''
-              );
-
-            if (
-              /message is not modified/i.test(
-                description
-              )
-            ) {
-              lastText = formattedPart;
-              editWorked = true;
-            } else {
-              throw error;
-            }
-          }
-        }
-
-        /*
-         * اگر پاسخ چند بخش داشته باشد،
-         * بخش‌های بعدی به پیام اضافه می‌شوند.
-         */
-        if (partIndex < parts.length - 1) {
-          const nextPart =
-            String(parts[partIndex + 1] || '');
-
-          const combined =
-            lastText +
-            '\n\n' +
-            nfFormat(nextPart);
-
-          try {
-            await ctx.telegram.editMessageText(
-              chatId,
-              thinkingId,
-              undefined,
-              combined,
-              editOptions
-            );
-
-            lastText = combined;
-            editWorked = true;
-
-          } catch (error) {
-            console.error(
-              'NF_LIVE_APPEND_ERROR:',
-              error?.description ||
-              error?.message ||
-              error
-            );
-
-            break;
-          }
-        }
-      }
-
-      if (editWorked) {
-        return true;
-      }
-
-    } catch (error) {
-      console.error(
-        'NF_LIVE_EDIT_ERROR:',
-        error?.description ||
-        error?.message ||
-        error
-      );
-    }
+  if (!chunks.length) {
+    return;
   }
 
-  /*
-   * #update
-   * روش جایگزین در صورت ناموفق بودن ویرایش
-   */
-  let firstSent = false;
+  const replyParameters =
+    ctx.message?.message_id
+      ? {
+          message_id:
+            ctx.message.message_id
+        }
+      : undefined;
+
+  const first =
+    nfFormat(
+      chunks[0]
+    );
+
+  let edited = false;
 
   if (thinkingId) {
     try {
       await ctx.telegram.editMessageText(
-        chatId,
+        ctx.chat.id,
         thinkingId,
         undefined,
-        nfFormat(parts[0]),
-        editOptions
+        first,
+        {
+          parse_mode: 'HTML',
+          link_preview_options: {
+            is_disabled: true
+          }
+        }
       );
 
-      firstSent = true;
+      edited = true;
 
     } catch (error) {
       console.error(
-        'NF_FIRST_EDIT_ERROR:',
-        error?.description ||
-        error?.message ||
-        error
+        'NF EDIT RESULT ERROR:',
+        error?.response?.data ||
+          error?.message ||
+          error
       );
     }
   }
 
-  if (!firstSent) {
+  if (!edited) {
     try {
-      await ctx.reply(
-        nfFormat(parts[0]),
-        editOptions
-      );
+      const sent =
+        await ctx.reply(
+          first,
+          {
+            parse_mode: 'HTML',
+            link_preview_options: {
+              is_disabled: true
+            },
+            ...(replyParameters
+              ? {
+                  reply_parameters:
+                    replyParameters
+                }
+              : {})
+          }
+        );
 
-      firstSent = true;
+      nfTrackBotMessage(
+        ctx,
+        sent.message_id
+      );
 
     } catch (error) {
       console.error(
-        'NF_FIRST_SEND_ERROR:',
-        error?.description ||
-        error?.message ||
-        error
+        'NF SEND RESULT ERROR:',
+        error?.response?.data ||
+          error?.message ||
+          error
       );
 
-      return false;
+      throw error;
     }
   }
 
-  /*
-   * #update
-   * ارسال بخش‌های باقی‌مانده
-   */
   for (
     let i = 1;
-    i < parts.length;
+    i < chunks.length;
     i++
   ) {
     try {
-      await ctx.reply(
-        nfFormat(parts[i]),
-        editOptions
+      const sent =
+        await ctx.reply(
+          nfFormat(
+            chunks[i]
+          ),
+          {
+            parse_mode: 'HTML',
+            link_preview_options: {
+              is_disabled: true
+            },
+            ...(replyParameters
+              ? {
+                  reply_parameters:
+                    replyParameters
+                }
+              : {})
+          }
+        );
+
+      nfTrackBotMessage(
+        ctx,
+        sent.message_id
       );
 
     } catch (error) {
       console.error(
-        'NF_PART_SEND_ERROR:',
-        error?.description ||
-        error?.message ||
-        error
+        'NF CHUNK SEND ERROR:',
+        error?.response?.data ||
+          error?.message ||
+          error
       );
-
-      return false;
     }
   }
-
-  return true;
 }
 
 async function nfReadSource() {
