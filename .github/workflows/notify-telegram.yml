@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - bot.js
+      - 'source/bot.js'
 
   workflow_dispatch:
 
@@ -18,6 +18,24 @@ jobs:
     timeout-minutes: 2
 
     steps:
+      - name: Validate Telegram Configuration
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        shell: bash
+        run: |
+          set -eu
+
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "::error::TELEGRAM_BOT_TOKEN secret is missing."
+            exit 1
+          fi
+
+          if [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "::error::TELEGRAM_CHAT_ID secret is missing."
+            exit 1
+          fi
+
       - name: Send Telegram Notification
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -29,41 +47,46 @@ jobs:
           ACTOR: ${{ github.actor }}
           EVENT_NAME: ${{ github.event_name }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
         run: |
           set -eu
-
-          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
-            echo "TELEGRAM_BOT_TOKEN is missing."
-            exit 1
-          fi
-
-          if [ -z "$TELEGRAM_CHAT_ID" ]; then
-            echo "TELEGRAM_CHAT_ID is missing."
-            exit 1
-          fi
 
           MESSAGE=$(cat <<EOF
           📦 GitHub Update Detected
 
-          📄 File: bot.js
+          📄 File: source/bot.js
           📁 Repository: ${REPOSITORY}
           🌿 Branch: ${BRANCH}
           👤 Updated by: ${ACTOR}
           🔖 Commit: ${COMMIT_SHA}
           📝 Message: ${COMMIT_MESSAGE}
+          ⚙️ Event: ${EVENT_NAME}
 
-          🔗 https://github.com/${REPOSITORY}/commit/${COMMIT_SHA}
+          🔗 Commit:
+          https://github.com/${REPOSITORY}/commit/${COMMIT_SHA}
 
-          ⚠️ This notification confirms the GitHub update only. It does not confirm that NxCreator has loaded the new code.
+          🔍 Workflow:
+          ${RUN_URL}
+
+          ⚠️ This confirms the GitHub change only. Check the deployment workflow to confirm that NxCreator started the new version.
           EOF
           )
 
-          RESPONSE=$(curl --silent --show-error --fail-with-body \
+          RESPONSE=$(curl \
+            --silent \
+            --show-error \
+            --fail-with-body \
+            --connect-timeout 10 \
+            --max-time 30 \
             --request POST \
             "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
             --data-urlencode "text=${MESSAGE}")
 
-          printf '%s' "$RESPONSE" | grep -q '"ok":true'
+          if ! printf '%s' "$RESPONSE" | grep -q '"ok":true'; then
+            echo "::error::Telegram API did not confirm message delivery."
+            printf '%s\n' "$RESPONSE"
+            exit 1
+          fi
 
           echo "Telegram notification sent successfully."
