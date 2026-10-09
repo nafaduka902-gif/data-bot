@@ -11957,12 +11957,23 @@ async function handleModerationActionV1(
             Math.max(1, hours) * 3600
         }
       );
+    // #update
     } else if (action === 'unmute') {
-      await unmuteUser(
+      const success = await unmuteUser(
         ctx,
         ctx.chat.id,
         target
       );
+    
+      if (success) {
+        await ctx.reply(
+          '✅ محدودیت ارسال پیام از کاربر برداشته شد.'
+        );
+      } else {
+        await ctx.reply(
+          '❌ برداشتن محدودیت انجام نشد. شناسه کاربر، حضور او در گروه و مجوزهای ربات را بررسی کن.'
+        );
+      }
     } else if (action === 'ban') {
       await ctx.telegram.banChatMember(
         ctx.chat.id,
@@ -15546,12 +15557,129 @@ async function muteUser(
   return true;
 }
 
+// #update
+// برداشتن محدودیت ارسال پیام از کاربر
 async function unmuteUser(
   ctx,
   chatId,
   userId
 ) {
-  return true;
+  try {
+    const targetChatId =
+      chatId ?? ctx?.chat?.id;
+
+    const targetUserId =
+      Number(userId);
+
+    if (
+      !targetChatId ||
+      !Number.isSafeInteger(targetUserId) ||
+      targetUserId <= 0
+    ) {
+      console.error(
+        '[UNMUTE] INVALID TARGET',
+        {
+          chatId: targetChatId,
+          userId
+        }
+      );
+
+      return false;
+    }
+
+    // بررسی وضعیت فعلی عضو
+    const member =
+      await ctx.telegram.getChatMember(
+        targetChatId,
+        targetUserId
+      );
+
+    if (
+      member.status === 'left' ||
+      member.status === 'kicked'
+    ) {
+      console.error(
+        '[UNMUTE] USER IS NOT A MEMBER',
+        {
+          chatId: targetChatId,
+          userId: targetUserId,
+          status: member.status
+        }
+      );
+
+      return false;
+    }
+
+    // مدیران را با این دستور تغییر نده
+    if (
+      member.status === 'creator' ||
+      member.status === 'administrator'
+    ) {
+      console.error(
+        '[UNMUTE] TARGET IS ADMIN',
+        {
+          chatId: targetChatId,
+          userId: targetUserId
+        }
+      );
+
+      return false;
+    }
+
+    // #update
+    // برداشتن محدودیت‌های ارسال پیام
+    const result =
+      await ctx.telegram.restrictChatMember(
+        targetChatId,
+        targetUserId,
+        {
+          can_send_messages: true,
+          can_send_audios: true,
+          can_send_documents: true,
+          can_send_photos: true,
+          can_send_videos: true,
+          can_send_video_notes: true,
+          can_send_voice_notes: true,
+          can_send_polls: true,
+          can_send_other_messages: true,
+          can_add_web_page_previews: true
+        }
+      );
+
+    if (result !== true) {
+      console.error(
+        '[UNMUTE] TELEGRAM DID NOT CONFIRM SUCCESS',
+        {
+          chatId: targetChatId,
+          userId: targetUserId,
+          result
+        }
+      );
+
+      return false;
+    }
+
+    console.log(
+      '[UNMUTE] SUCCESS',
+      {
+        chatId: targetChatId,
+        userId: targetUserId
+      }
+    );
+
+    return true;
+
+  } catch (error) {
+    console.error(
+      '[UNMUTE] ERROR:',
+      error?.response?.description ||
+      error?.description ||
+      error?.message ||
+      error
+    );
+
+    return false;
+  }
 }
 
 async function handleNewMembers(
