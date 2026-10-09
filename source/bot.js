@@ -9797,7 +9797,7 @@ function setKeyboard() {
 
 async function mainMenu(ctx) {
   await ctx.reply(
-    '<b>Owner Panell</b>',
+    '<b>Ownerr Panell</b>',
     {
       parse_mode: 'HTML',
       reply_markup: mainKeyboard()
@@ -16387,7 +16387,7 @@ bot.start(
 
     if (isAdmin(ctx)) {
       await ctx.reply(
-        '<b>Owner Panel</b>',
+        '<b>Ownerr Panel</b>',
         {
           parse_mode: 'HTML',
           reply_markup:
@@ -25449,6 +25449,8 @@ bot.on(
 );
 
 
+
+
 bot.on(
   'message',
   async (ctx, next) => {
@@ -25527,7 +25529,7 @@ bot.on(
 
         await bot.telegram.sendMessage(
           UPDATE_ADMIN_ID,
-          '⚠️ The new version failed to start.\n\n' +
+          '⚠️ The new hversion failed to start.\n\n' +
           '🔄 The previous version was automatically restored.\n\n' +
           '🔖 Restored version: ' +
           nowData.version.substring(0, 7) +
