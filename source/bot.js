@@ -25529,7 +25529,7 @@ bot.on(
 
         await bot.telegram.sendMessage(
           UPDATE_ADMIN_ID,
-          '⚠️ The new hversion failed to start.\n\n' +
+          '⚠️ The new hversion failhxed to start.\n\n' +
           '🔄 The previous version was automatically restored.\n\n' +
           '🔖 Restored version: ' +
           nowData.version.substring(0, 7) +
