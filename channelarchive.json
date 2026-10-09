@@ -1696,29 +1696,5 @@
     "date": 1791559633,
     "createdAt": "2026-10-09T15:27:15.327Z",
     "updatedAt": "2026-10-09T15:27:15.327Z"
-  },
-  {
-    "id": "anime_faarsi:1028",
-    "name": "آماده هستید؟",
-    "nameNormalized": "آماده هستید",
-    "aliases": [
-      "آماده هستید؟"
-    ],
-    "aliasesNormalized": [
-      "آماده هستید"
-    ],
-    "animeName": "",
-    "englishName": "",
-    "persianName": "آماده هستید؟",
-    "link": "https://t.me/Anime_Faarsi/1028",
-    "channel": "Anime_Faarsi",
-    "channelNormalized": "anime_faarsi",
-    "channelType": "anime",
-    "messageId": 1028,
-    "text": "آماده هستید؟\nگوشی به دست آنلاین باشید امشب وقتشه!\n\nبیایید گروپ چت انیمه فارسی: کلیک کنید",
-    "caption": "آماده هستید؟\nگوشی به دست آنلاین باشید امشب وقتشه!\n\nبیایید گروپ چت انیمه فارسی: کلیک کنید",
-    "date": 1791560082,
-    "createdAt": "2026-10-09T15:35:54.754Z",
-    "updatedAt": "2026-10-09T15:35:54.754Z"
   }
 ]
