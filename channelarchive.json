@@ -2166,29 +2166,5 @@
     "date": 1751100089,
     "createdAt": "2026-10-09T17:40:25.335Z",
     "updatedAt": "2026-10-09T17:40:37.845Z"
-  },
-  {
-    "id": "faarsimovie:479",
-    "name": "هر 3 فصل دوبله فارسی اضافه شد.",
-    "nameNormalized": "هر 3 فصل دوبله فارسی اضافه شد",
-    "aliases": [
-      "هر 3 فصل دوبله فارسی اضافه شد."
-    ],
-    "aliasesNormalized": [
-      "هر 3 فصل دوبله فارسی اضافه شد"
-    ],
-    "animeName": "",
-    "englishName": "",
-    "persianName": "هر 3 فصل دوبله فارسی اضافه شد.",
-    "link": "https://t.me/FaarsiMovie/479",
-    "channel": "FaarsiMovie",
-    "channelNormalized": "faarsimovie",
-    "channelType": "movie",
-    "messageId": 479,
-    "text": "هر 3 فصل دوبله فارسی اضافه شد.",
-    "caption": "",
-    "date": 1791567712,
-    "createdAt": "2026-10-09T17:41:54.610Z",
-    "updatedAt": "2026-10-09T17:41:54.610Z"
   }
 ]
