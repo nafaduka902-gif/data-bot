@@ -7762,9 +7762,14 @@ async function nfAskAI(
 
     const data = response?.data;
 
+    // #update
     const answer = String(
       data?.response || ''
-    ).trim();
+    )
+      .replace(/\\u200c/gi, '\u200c')
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t')
+      .trim();
 
     if (
       data?.status !== true ||
