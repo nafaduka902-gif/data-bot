@@ -6577,7 +6577,7 @@ bot.command('newapi', async (ctx) => {
   }
 
   try {
-    await ctx.reply('⏳ در حال  فکر کردن...');
+    await ctx.reply('⏳ در حال  ففکر کردن...');
 
     const history = nfNewApiHistory.get(userId) || [];
 
