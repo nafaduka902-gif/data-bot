@@ -7695,7 +7695,7 @@ async function nfAskAI(
   }
 
 // #new
-  await nfReactToUserMessage(ctx);
+  
 
   // ساخت پیام‌ها برای Gemini
   const messages = [
@@ -7841,7 +7841,14 @@ async function nfAskAI(
       }
     );
 
+    await nfReactToUserMessage(
+      ctx,
+      'done'
+    );
+    
     return answer;
+
+    await nfReactToUserMessage(ctx, 'done');
 
   } catch (error) {
     console.error(
@@ -7849,7 +7856,9 @@ async function nfAskAI(
       error?.response?.status || '',
       error?.message || error
     );
-
+    
+    await nfReactToUserMessage(ctx, 'failed');
+    
     // #update
     // جلوگیری از نمایش جزئیات فنی API به کاربر
     throw new Error(
@@ -7898,33 +7907,81 @@ async function nfWithTimeout(
 
 
 // #new
-async function nfReactToUserMessage(ctx) {
+
+async function nfReactToUserMessage(
+  ctx,
+  result = 'done'
+) {
   try {
     const message =
       ctx?.message ||
       ctx?.update?.message;
 
-    if (!message?.message_id || !message?.chat?.id) {
+    if (
+      !message?.message_id ||
+      !message?.chat?.id
+    ) {
       return false;
     }
 
-    const reactions = [
-      '❤️',
-      '🔥',
-      '👍',
-      '🥰',
-      '😍',
-      '😁',
-      '👏',
-      '🤔',
-      '🎉',
-      '💯'
+    const normalizedResult =
+      String(result || '')
+        .trim()
+        .toLowerCase();
+
+    const successResults = [
+      'done',
+      'success',
+      'answered',
+      'found',
+      'true',
+      'ok'
     ];
+
+    const failureResults = [
+      'failed',
+      'error',
+      'not_found',
+      'notfound',
+      'no_answer',
+      'false',
+      'failed_answer'
+    ];
+
+    let reactions;
+
+    if (
+      successResults.includes(
+        normalizedResult
+      )
+    ) {
+      reactions = [
+        '❤️',
+        '🔥',
+        '👍',
+        '🥰',
+        '🎉',
+        '💯'
+      ];
+    } else if (
+      failureResults.includes(
+        normalizedResult
+      )
+    ) {
+      reactions = [
+        '🤔',
+        '👎'
+      ];
+    } else {
+      // نتیجه نامشخص؛ ریکشن مثبت یا منفی تصادفی نگذار.
+      reactions = ['🤔'];
+    }
 
     const reaction =
       reactions[
         Math.floor(
-          Math.random() * reactions.length
+          Math.random() *
+          reactions.length
         )
       ];
 
@@ -7949,6 +8006,7 @@ async function nfReactToUserMessage(ctx) {
     return false;
   }
 }
+
 
 // #update
 // #update
