@@ -3446,25 +3446,5 @@
     "date": 1791646883,
     "createdAt": "2026-10-10T15:41:25.136Z",
     "updatedAt": "2026-10-10T15:41:25.136Z"
-  },
-  {
-    "id": "animefaarsi:8",
-    "name": "Post 8",
-    "nameNormalized": "post 8",
-    "aliases": [],
-    "aliasesNormalized": [],
-    "animeName": "",
-    "englishName": "",
-    "persianName": "",
-    "link": "https://t.me/animefaarsi/8",
-    "channel": "animefaarsi",
-    "channelNormalized": "animefaarsi",
-    "channelType": "anime",
-    "messageId": 8,
-    "text": "",
-    "caption": "",
-    "date": 1791647715,
-    "createdAt": "2026-10-10T15:55:16.839Z",
-    "updatedAt": "2026-10-10T15:55:16.839Z"
   }
 ]
