@@ -5170,32 +5170,22 @@ function nfArchiveSearchScore(
     return 0;
   }
 
-  // #new
-  // یکسان‌سازی فاصله و نیم‌فاصله فقط برای مقایسه
-  const normalizeSearch = value =>
-    nfArchiveNormalize(
-      String(value || '')
-        .replace(/[يى]/g, 'ی')
-        .replace(/ك/g, 'ک')
-        .replace(/[\u200c\u200d]/g, ' ')
-        .replace(/[ـًٌٍَُِّْ]/g, '')
-    )
-      .replace(/\s+/g, ' ')
-      .trim();
-
-  const q = normalizeSearch(query);
+  const q =
+    nfArchiveNormalize(query);
 
   if (!q) {
     return 0;
   }
 
   const title =
-    normalizeSearch(record.name);
+    nfArchiveNormalize(
+      record.name
+    );
 
   const aliases =
     Array.isArray(record.aliases)
       ? record.aliases
-          .map(normalizeSearch)
+          .map(nfArchiveNormalize)
           .filter(Boolean)
       : [];
 
@@ -5205,46 +5195,23 @@ function nfArchiveSearchScore(
     record.persianName,
     record.title
   ]
-    .map(normalizeSearch)
+    .map(nfArchiveNormalize)
     .filter(Boolean);
 
-  // #new
-  // نام‌های داخل متن پست نیز برای جست‌وجو بررسی شوند.
-  const fullText = normalizeSearch([
-    record.text,
-    record.caption
-  ].filter(Boolean).join('\n'));
-
-  const extractedNames = [];
-
-  const titlePatterns = [
-    /انیمه\s*(?:سریالی|سریال|سینمایی)?\s*[«"「]([^»"」\n]+)[»"」]/g,
-    /مانهوا\s*(?:سریالی|سریال)?\s*[«"「]([^»"」\n]+)[»"」]/g,
-    /مانگا\s*(?:سریالی|سریال)?\s*[«"「]([^»"」\n]+)[»"」]/g,
-    /انیمیشن\s*(?:سریالی|سریال|سینمایی)?\s*[«"「]([^»"」\n]+)[»"」]/g
-  ];
-
-  for (const pattern of titlePatterns) {
-    let match;
-
-    while ((match = pattern.exec(fullText)) !== null) {
-      const extracted =
-        normalizeSearch(match[1]);
-
-      if (extracted) {
-        extractedNames.push(extracted);
-      }
-    }
-  }
-
   const names = [
-    ...new Set([
-      title,
-      ...aliases,
-      ...metadata,
-      ...extractedNames
-    ].filter(Boolean))
+    ...new Set(
+      [
+        title,
+        ...aliases,
+        ...metadata
+      ].filter(Boolean)
+    )
   ];
+
+  const text =
+    nfArchiveNormalize(
+      record.text
+    );
 
   const qWords =
     nfArchiveWords(q);
@@ -5261,6 +5228,7 @@ function nfArchiveSearchScore(
         bestNameScore,
         10000
       );
+
       continue;
     }
 
@@ -5269,6 +5237,7 @@ function nfArchiveSearchScore(
         bestNameScore,
         8000
       );
+
       continue;
     }
 
@@ -5277,6 +5246,7 @@ function nfArchiveSearchScore(
         bestNameScore,
         6500
       );
+
       continue;
     }
 
@@ -5285,7 +5255,8 @@ function nfArchiveSearchScore(
 
     const matched =
       qWords.filter(
-        word => nameWords.includes(word)
+        word =>
+          nameWords.includes(word)
       ).length;
 
     if (matched > 0) {
@@ -5306,13 +5277,12 @@ function nfArchiveSearchScore(
     }
   }
 
-  // #new
-  // تطبیق عنوان با نام‌های داخل متن پست
-  // باید بر اساس همان امتیاز نام محاسبه شود.
   let textScore = 0;
 
   const textWords =
-    new Set(nfArchiveWords(fullText));
+    new Set(
+      nfArchiveWords(text)
+    );
 
   for (const word of qWords) {
     if (textWords.has(word)) {
@@ -5320,12 +5290,15 @@ function nfArchiveSearchScore(
     }
   }
 
+  // #new
+  // نام‌های اصلی باید از تطبیق کلمات پراکنده در متن مهم‌تر باشند.
   if (bestNameScore > 0) {
     return bestNameScore + textScore;
   }
 
   // #new
-  // متن پراکنده به‌تنهایی نتیجهٔ معتبر محسوب نمی‌شود.
+  // اگر اسم تطبیق ندارد، فقط تطبیق متن به‌تنهایی کافی نیست
+  // تا رکوردهای نامرتبط به‌عنوان نتیجه برگردند.
   return 0;
 }
 
