@@ -7832,6 +7832,12 @@ async function nfAskAI(
         return full;
       }
     );
+    // #update
+    // اصلاح تمام لینک‌های تلگرام با قالب Markdown خراب
+    answer = answer.replace(
+      /\[(https?:\/\/t\.me\/[^\]\s]+)\]\(\)/gi,
+      '[روی این متن کلیک کنید]($1)'
+    );
 
     console.log(
       '[NF] GEMINI_SUCCESS',
@@ -7848,8 +7854,7 @@ async function nfAskAI(
     
     return answer;
 
-    await nfReactToUserMessage(ctx, 'done');
-
+    
   } catch (error) {
     console.error(
       '[NF] GEMINI ERROR:',
@@ -7857,7 +7862,6 @@ async function nfAskAI(
       error?.message || error
     );
     
-    await nfReactToUserMessage(ctx, 'failed');
     
     // #update
     // جلوگیری از نمایش جزئیات فنی API به کاربر
