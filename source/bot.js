@@ -7461,138 +7461,6 @@ async function nfAddTask(
 
 
 
- // #new
-const NF_USER_MEMORY_FILE = 'user_memory.json';
-
-async function nfReadUserMemoryStore() {
-  return await readJsonStoreV1(
-    NF_USER_MEMORY_FILE
-  );
-}
-
-// #new
-async function nfWriteUserMemoryStore(records) {
-  return await writeJsonStoreV1(
-    NF_USER_MEMORY_FILE,
-    records
-  );
-}
-
-// #new
-
- // #update
-async function nfGetUserProfile(ctx) {
-  if (nfIsOwner(ctx)) return null;
-
-  const key = nfKey(ctx);
-  const records = await nfReadUserMemoryStore();
-
-  let profile = records.find(
-    item => item.key === key
-  );
-
-  if (!profile) {
-    profile = {
-      key,
-      enabled: true,
-      memories: []
-    };
-
-    records.push(profile);
-
-    const saved =
-      await nfWriteUserMemoryStore(records);
-
-    if (!saved) {
-      return null;
-    }
-  }
-
-  return profile;
-}
-
-
-// #new
-async function nfUserMemoryContext(ctx) {
-  if (nfIsOwner(ctx)) return '';
-
-  const profile = await nfGetUserProfile(ctx);
-
-  if (!profile?.enabled) return '';
-
-  return (profile.memories || [])
-    .slice(-20)
-    .map(item => String(item.content || '').trim())
-    .filter(Boolean)
-    .join('\n');
-}
-
-// #new
-async function nfSetUserMemory(ctx, enabled) {
-  if (nfIsOwner(ctx)) return false;
-
-  const key = nfKey(ctx);
-  const records = await nfReadUserMemoryStore();
-
-  let profile = records.find(item => item.key === key);
-
-  if (!profile) {
-    profile = {
-      key,
-      enabled: false,
-      memories: []
-    };
-    records.push(profile);
-  }
-
-  profile.enabled = Boolean(enabled);
-
-  // خاموش‌کردن حافظه، اطلاعات ذخیره‌شده را نیز پاک می‌کند.
-  if (!enabled) {
-    profile.memories = [];
-  }
-
-  return await nfWriteUserMemoryStore(records);
-}
-
-// #new
-async function nfAddUserMemory(ctx, content) {
-  if (nfIsOwner(ctx)) return false;
-
-  const value = String(content || '').trim();
-  if (!value) return false;
-
-  const key = nfKey(ctx);
-  const records = await nfReadUserMemoryStore();
-  const profile = records.find(item => item.key === key);
-
-  if (!profile?.enabled) return false;
-
-  if (!Array.isArray(profile.memories)) {
-    profile.memories = [];
-  }
-
-  const normalized = value.toLowerCase().replace(/\s+/g, ' ');
-
-  if (profile.memories.some(item =>
-    String(item.content || '')
-      .toLowerCase()
-      .replace(/\s+/g, ' ') === normalized
-  )) {
-    return true;
-  }
-
-  profile.memories.push({
-    content: value,
-    createdAt: new Date().toISOString()
-  });
-
-  profile.memories = profile.memories.slice(-50);
-
-  return await nfWriteUserMemoryStore(records);
-}
-
-
 const nfGroqCooldownUntil =
   new Map();
 
@@ -7620,19 +7488,6 @@ async function nfAskAI(
   let channels = '';
   let ownerMemory = '';
   let ownerTasks = '';
-  // #new
-  let userMemory = '';
-  
-  if (!owner) {
-    try {
-      userMemory = await nfUserMemoryContext(ctx);
-    } catch (error) {
-      console.error(
-        '[NF] USER MEMORY CONTEXT ERROR:',
-        error?.message || error
-      );
-    }
-  }
 
   const needChannels =
     /(?:کانال|چنل|تیم|گروه|ربات|یوزرنیم|لینک کانال)/i.test(
@@ -7828,19 +7683,6 @@ async function nfAskAI(
         ownerTasks
       );
     }
-  }
-چ
-  
-  // #new
-  if (userMemory) {
-    systemParts.push(
-      '',
-      'حافظه شخصی کاربر فعلی:',
-      userMemory,
-      'از این اطلاعات فقط برای شخصی‌سازی پاسخ به همین کاربر استفاده کن.',
-      'این اطلاعات حافظه مالک نیست.',
-      'اطلاعات شخصی این کاربر را برای کاربران دیگر بازگو نکن.'
-    );
   }
 
   if (archiveContext) {
