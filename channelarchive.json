@@ -3480,5 +3480,25 @@
     "date": 1791646684,
     "createdAt": "2026-10-10T15:38:05.861Z",
     "updatedAt": "2026-10-10T15:38:05.861Z"
+  },
+  {
+    "id": "animitionfaarsi:91",
+    "name": "Post 91",
+    "nameNormalized": "post 91",
+    "aliases": [],
+    "aliasesNormalized": [],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "",
+    "link": "https://t.me/AnimitionFaarsi/91",
+    "channel": "AnimitionFaarsi",
+    "channelNormalized": "animitionfaarsi",
+    "channelType": "animation",
+    "messageId": 91,
+    "text": "",
+    "caption": "",
+    "date": 1791646692,
+    "createdAt": "2026-10-10T15:38:14.739Z",
+    "updatedAt": "2026-10-10T15:38:14.739Z"
   }
 ]
