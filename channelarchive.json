@@ -3394,5 +3394,29 @@
     "date": 1743180923,
     "createdAt": "2026-10-10T12:02:18.570Z",
     "updatedAt": "2026-10-10T12:03:07.102Z"
+  },
+  {
+    "id": "anime_faarsi:1033",
+    "name": "آز اینم مگه راحت داریم؟",
+    "nameNormalized": "آز اینم مگه راحت داریم",
+    "aliases": [
+      "آز اینم مگه راحت داریم؟"
+    ],
+    "aliasesNormalized": [
+      "آز اینم مگه راحت داریم"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "آز اینم مگه راحت داریم؟",
+    "link": "https://t.me/Anime_Faarsi/1033",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1033,
+    "text": "آز اینم مگه راحت داریم؟",
+    "caption": "آز اینم مگه راحت داریم؟",
+    "date": 1791633975,
+    "createdAt": "2026-10-10T12:06:16.670Z",
+    "updatedAt": "2026-10-10T12:06:16.670Z"
   }
 ]
