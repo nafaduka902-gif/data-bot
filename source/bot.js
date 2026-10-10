@@ -6555,6 +6555,113 @@ function nfIsAiringQuestion(
 }
 
 
+
+const nfNewApiHistory = new Map();
+
+bot.command('newapi', async (ctx) => {
+  const userId = String(ctx.from?.id || '');
+  const prompt = String(ctx.message?.text || '')
+    .replace(/^\/newapi(?:@\w+)?\s*/i, '')
+    .trim();
+
+  if (!userId) return;
+
+  if (!prompt) {
+    await ctx.reply(
+      '🧪 تست مستقل AI Writer\n\n' +
+      'پیام خود را بنویس:\n' +
+      '/newapi سلام، خودت را معرفی کن\n\n' +
+      'پاک‌کردن تاریخچه:\n/newapireset'
+    );
+    return;
+  }
+
+  try {
+    await ctx.reply('⏳ در حال فکر کردن...');
+
+    const history = nfNewApiHistory.get(userId) || [];
+
+    const systemPrompt =
+      'تو یک دستیار هوش مصنوعی فارسی‌زبان هستی. ' +
+      'به زبان کاربر پاسخ بده، مکالمهٔ قبلی را در نظر بگیر ' +
+      'و اگر اطلاعاتی را نمی‌دانی، صادقانه بگو.';
+
+    const conversation = history
+      .map(item =>
+        (item.role === 'user' ? 'کاربر: ' : 'دستیار: ') +
+        item.text
+      )
+      .join('\n');
+
+    const fullPrompt =
+      systemPrompt +
+      (conversation ? '\n\nتاریخچهٔ گفتگو:\n' + conversation : '') +
+      '\n\nپیام جدید کاربر:\n' + prompt;
+
+    const response = await axios.get(
+      'https://prexzyapis.com/ai/aiwriter-chat',
+      {
+        params: {
+          prompt: fullPrompt,
+          model: 'gpt-4o-mini'
+        },
+        timeout: 60000
+      }
+    );
+
+    const data = response?.data;
+
+    if (
+      data?.status !== true ||
+      data?.result?.status !== true
+    ) {
+      throw new Error(
+        JSON.stringify(data).slice(0, 1000)
+      );
+    }
+
+    const rawAnswer = data.result.text;
+    const answer = Array.isArray(rawAnswer)
+      ? rawAnswer.join('\n')
+      : String(rawAnswer || '');
+
+    if (!answer.trim()) {
+      await ctx.reply('⚠️ پاسخ متنی دریافت نشد.');
+      return;
+    }
+
+    history.push(
+      { role: 'user', text: prompt },
+      { role: 'assistant', text: answer }
+    );
+
+    nfNewApiHistory.set(userId, history.slice(-8));
+
+    await ctx.reply(
+      ('🧪 پاسخ AI Writer:\n\n' + answer).slice(0, 3900)
+    );
+  } catch (error) {
+    console.error(
+      '[NEWAPI TEST ERROR]',
+      error?.response?.data || error?.message || error
+    );
+
+    await ctx.reply(
+      '❌ خطای API:\n' +
+      String(error?.message || 'خطای نامشخص').slice(0, 1000)
+    );
+  }
+});
+
+bot.command('newapireset', async (ctx) => {
+  nfNewApiHistory.delete(String(ctx.from?.id || ''));
+
+  await ctx.reply(
+    '🧹 تاریخچهٔ آزمایشی AI Writer پاک شد.'
+  );
+});
+
+
 // #new
 async function nfGetAiringContext(
   search
