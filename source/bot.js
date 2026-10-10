@@ -2,6 +2,8 @@ const ADMIN_ID = 2048310529;
 const OMDB_API_KEY = process.env.OMDB_API_KEY;
 let DEFAULT_DOWNLOAD_URL = 'https://t.me/dubb_anime';
 
+ 
+ 
 
 const GITHUB_OWNER = 'nafaduka902-gif';
 const GITHUB_REPO = 'data-bot';
@@ -5160,6 +5162,7 @@ function nfArchiveExtractMetadata(
 
 // #update
 // #update
+
 function nfArchiveSearchScore(
   query,
   record
@@ -5176,9 +5179,7 @@ function nfArchiveSearchScore(
   }
 
   const title =
-    nfArchiveNormalize(
-      record.name
-    );
+    nfArchiveNormalize(record.name);
 
   const aliases =
     Array.isArray(record.aliases)
@@ -5196,20 +5197,40 @@ function nfArchiveSearchScore(
     .map(nfArchiveNormalize)
     .filter(Boolean);
 
+  // #new
+  // عنوان فارسی را از متن و کپشن پست هم استخراج می‌کنیم.
+  const postText = [
+    record.text,
+    record.caption
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const postTitleLines = postText
+    .split(/\r?\n/)
+    .slice(0, 8)
+    .map(line =>
+      nfArchiveNormalize(
+        line
+          .replace(/^[📼📹🎬📷]+\s*/u, '')
+          .replace(/[«»「」]/gu, ' ')
+      )
+    )
+    .filter(Boolean);
+
   const names = [
     ...new Set(
       [
         title,
         ...aliases,
-        ...metadata
+        ...metadata,
+        ...postTitleLines
       ].filter(Boolean)
     )
   ];
 
   const text =
-    nfArchiveNormalize(
-      record.text
-    );
+    nfArchiveNormalize(postText);
 
   const qWords =
     nfArchiveWords(q);
@@ -5289,16 +5310,28 @@ function nfArchiveSearchScore(
   }
 
   // #new
-  // نام‌های اصلی باید از تطبیق کلمات پراکنده در متن مهم‌تر باشند.
+  // امتیاز تکمیلی مخصوص مانهوا و مانگا
+  // فقط به رکوردهایی اضافه می‌شود که نوعشان با درخواست سازگار است.
+  const typeBoost =
+    nfArchiveManhwaMangaBoost(
+      query,
+      record
+    );
+
   if (bestNameScore > 0) {
-    return bestNameScore + textScore;
+    return (
+      bestNameScore +
+      textScore +
+      typeBoost
+    );
   }
 
   // #new
-  // اگر اسم تطبیق ندارد، فقط تطبیق متن به‌تنهایی کافی نیست
-  // تا رکوردهای نامرتبط به‌عنوان نتیجه برگردند.
+  // اگر عنوان با نام یا عنوان استخراج‌شده از پست
+  // تطبیق نداشته باشد، تطبیق متن به‌تنهایی کافی نیست.
   return 0;
 }
+
 
 // #update
 function nfArchiveSearch(
@@ -5686,8 +5719,13 @@ function nfArchiveRecordFromChannelPost(
 
 // #update
 // #update
-async function nfSearchRealArchive(ctx, userText) {
-  const query = String(userText || '').trim();
+
+async function nfSearchRealArchive(
+  ctx,
+  userText
+) {
+  const query =
+    String(userText || '').trim();
 
   if (!query) {
     return [];
@@ -5700,7 +5738,8 @@ async function nfSearchRealArchive(ctx, userText) {
   let addedPosts = [];
 
   try {
-    mainRecords = await nfReadArchive();
+    mainRecords =
+      await nfReadArchive();
   } catch (error) {
     console.error(
       'NF MAIN ARCHIVE READ ERROR:',
@@ -5709,7 +5748,8 @@ async function nfSearchRealArchive(ctx, userText) {
   }
 
   try {
-    addedPosts = await nfReadAddedArchivePosts();
+    addedPosts =
+      await nfReadAddedArchivePosts();
   } catch (error) {
     console.error(
       'NF ADDED ARCHIVE READ ERROR:',
@@ -5718,8 +5758,16 @@ async function nfSearchRealArchive(ctx, userText) {
   }
 
   const allRecords = [
-    ...(Array.isArray(mainRecords) ? mainRecords : []),
-    ...(Array.isArray(addedPosts) ? addedPosts : [])
+    ...(
+      Array.isArray(mainRecords)
+        ? mainRecords
+        : []
+    ),
+    ...(
+      Array.isArray(addedPosts)
+        ? addedPosts
+        : []
+    )
   ];
 
   if (!allRecords.length) {
@@ -5729,22 +5777,37 @@ async function nfSearchRealArchive(ctx, userText) {
   const bestByRecord = new Map();
 
   for (const record of allRecords) {
-    if (!record || typeof record !== 'object') {
+    if (
+      !record ||
+      typeof record !== 'object'
+    ) {
       continue;
     }
 
     let bestScore = 0;
 
     for (const candidate of queries) {
-      const score = nfArchiveSearchScore(
-        candidate,
-        record
-      );
+      const score =
+        nfArchiveSearchScore(
+          candidate,
+          record
+        );
 
       if (score > bestScore) {
         bestScore = score;
       }
     }
+
+    // #new
+    // امتیاز تکمیلی نوع اثر برای پرسش اصلی کاربر.
+    // امتیاز قبلی دست‌نخورده باقی می‌ماند.
+    const typeBoost =
+      nfArchiveManhwaMangaBoost(
+        query,
+        record
+      );
+
+    bestScore += typeBoost;
 
     if (bestScore <= 0) {
       continue;
@@ -5754,7 +5817,8 @@ async function nfSearchRealArchive(ctx, userText) {
       record.link ||
       record.postUrl ||
       (
-        record.channel && record.messageId
+        record.channel &&
+        record.messageId
           ? `${record.channel}:${record.messageId}`
           : ''
       ) ||
@@ -5769,9 +5833,13 @@ async function nfSearchRealArchive(ctx, userText) {
       continue;
     }
 
-    const previous = bestByRecord.get(key);
+    const previous =
+      bestByRecord.get(key);
 
-    if (!previous || bestScore > previous.score) {
+    if (
+      !previous ||
+      bestScore > previous.score
+    ) {
       bestByRecord.set(key, {
         record,
         score: bestScore
@@ -5780,10 +5848,14 @@ async function nfSearchRealArchive(ctx, userText) {
   }
 
   return [...bestByRecord.values()]
-    .sort((a, b) => b.score - a.score)
+    .sort(
+      (a, b) =>
+        b.score - a.score
+    )
     .slice(0, 12)
     .map(item => item.record);
 }
+
 
 // #new
 function nfArchiveExtractTitle(
