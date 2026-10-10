@@ -9,19 +9,21 @@
   },
   {
     "kind": "pending",
-    "userId": 5060934276,
+    "userId": 5982533698,
     "chatId": -1004489761102,
     "chatTitle": "Anime Farsi Team",
-    "welcomeMessageId": 8,
-    "createdAt": "2026-09-24T22:08:51.796Z"
+    "welcomeMessageId": 16,
+    "createdAt": "2026-09-25T11:39:10.741Z"
   },
   {
     "kind": "pending",
-    "userId": 6267726541,
+    "userId": 6070841219,
     "chatId": -1002239235244,
-    "chatTitle": "Anime Faarsi Chats | چت انیمه فارسی",
-    "welcomeMessageId": 3520,
-    "createdAt": "2026-09-24T23:57:05.322Z"
+    "chatTitle": "Anime Faarsi Chats | گروه چت انیمه فارسی",
+    "welcomeMessageId": 5663,
+    "createdAt": "2026-10-10T03:09:56.854Z",
+    "captchaToken": "mv1tg9mc_ww7pi524",
+    "rulesMessageId": null
   },
   {
     "kind": "pending",
