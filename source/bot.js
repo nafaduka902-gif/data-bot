@@ -8988,7 +8988,7 @@ bot.command(
     );
 
     await ctx.reply(
-      '🔴 AI Agent خاموش شد.'
+      '🔴 AI Agent off.'
     );
   }
 );
