@@ -3305,6 +3305,8 @@ function nfFormat(text) {
     return 'پاسخی دریافت نشد.';
   }
 
+  // #update
+  // تبدیل بلوک‌های کد و حفظ امن HTML
   value = value.replace(
     /```(?:[a-zA-Z0-9_-]+)?\s*([\s\S]*?)```/g,
     (_, code) =>
@@ -3313,6 +3315,16 @@ function nfFormat(text) {
       )}</code></pre>`
   );
 
+  // #new
+  // تبدیل لینک Markdown به لینک HTML قابل‌کلیک
+  value = value.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/gi,
+    (_, label, url) =>
+      `<a href="${nfEscapeHtml(url)}">${nfEscapeHtml(label)}</a>`
+  );
+
+  // #update
+  // تبدیل متن بولد به HTML
   value = value.replace(
     /\*\*([^*\n]+)\*\*/g,
     '<b>$1</b>'
@@ -7832,6 +7844,7 @@ async function nfAskAI(
         return full;
       }
     );
+
     // #update
     // اصلاح تمام لینک‌های تلگرام با قالب Markdown خراب
     answer = answer.replace(
