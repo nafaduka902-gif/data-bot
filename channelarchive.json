@@ -3440,5 +3440,25 @@
     "date": 1791646634,
     "createdAt": "2026-10-10T15:37:16.243Z",
     "updatedAt": "2026-10-10T15:37:16.243Z"
+  },
+  {
+    "id": "dubb_anime:13",
+    "name": "Post 13",
+    "nameNormalized": "post 13",
+    "aliases": [],
+    "aliasesNormalized": [],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "",
+    "link": "https://t.me/Dubb_Anime/13",
+    "channel": "Dubb_Anime",
+    "channelNormalized": "dubb_anime",
+    "channelType": "anime",
+    "messageId": 13,
+    "text": "",
+    "caption": "",
+    "date": 1791646653,
+    "createdAt": "2026-10-10T15:37:34.761Z",
+    "updatedAt": "2026-10-10T15:37:34.761Z"
   }
 ]
