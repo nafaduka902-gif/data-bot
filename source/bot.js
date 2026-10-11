@@ -20589,7 +20589,7 @@ bot.action(
 
     try {
       await ctx.answerCbQuery(
-        '✅ عضویت تأیید شد.'
+        '✅ عضویت  تأیید شد.'
       );
     } catch {}
 
