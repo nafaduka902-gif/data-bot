@@ -3916,5 +3916,29 @@
     "date": 1743651556,
     "createdAt": "2026-10-11T04:42:48.986Z",
     "updatedAt": "2026-10-11T04:42:48.986Z"
+  },
+  {
+    "id": "anime_faarsi:1037",
+    "name": "Black Clover | شبدر سیاه",
+    "nameNormalized": "black clover شبدر سیاه",
+    "aliases": [
+      "Black Clover | شبدر سیاه"
+    ],
+    "aliasesNormalized": [
+      "black clover شبدر سیاه"
+    ],
+    "animeName": "Black Clover | شبدر سیاه",
+    "englishName": "",
+    "persianName": "Black Clover | شبدر سیاه",
+    "link": "https://t.me/Anime_Faarsi/1037",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1037,
+    "text": "فصل دوم قسمت دوم انیمه « Black Clover | شبدر سیاه » با زیرنویس اختصاصی انیمه فارسی، سافت‌ساب و هاردساب اضافه شد.",
+    "caption": "",
+    "date": 1791657411,
+    "createdAt": "2026-10-11T07:43:56.470Z",
+    "updatedAt": "2026-10-11T07:43:56.470Z"
   }
 ]
