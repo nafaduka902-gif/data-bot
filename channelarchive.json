@@ -4016,29 +4016,5 @@
     "date": 1788474584,
     "createdAt": "2026-10-12T19:35:07.033Z",
     "updatedAt": "2026-10-12T19:35:07.033Z"
-  },
-  {
-    "id": "anime_faarsi:1040",
-    "name": "Tougen Anki",
-    "nameNormalized": "tougen anki",
-    "aliases": [
-      "Tougen Anki"
-    ],
-    "aliasesNormalized": [
-      "tougen anki"
-    ],
-    "animeName": "Tougen Anki",
-    "englishName": "",
-    "persianName": "Tougen Anki",
-    "link": "https://t.me/Anime_Faarsi/1040",
-    "channel": "Anime_Faarsi",
-    "channelNormalized": "anime_faarsi",
-    "channelType": "anime",
-    "messageId": 1040,
-    "text": "قسمت دوم فصل دوم انیمه « Tougen Anki » با دوبله فارسی اضافه شد.",
-    "caption": "",
-    "date": 1791835142,
-    "createdAt": "2026-10-12T19:59:04.910Z",
-    "updatedAt": "2026-10-12T19:59:04.910Z"
   }
 ]
