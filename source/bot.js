@@ -8138,6 +8138,371 @@ async function nfReactToUserMessage(
 }
 
 
+
+// #new
+// جست‌وجوی مستقیم آثار آرشیو براساس تمام ژانرهای درخواستی
+function nfGenreNormalize(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/ۀ/g, 'ه')
+    .replace(/[\u200c\u200f\u202a-\u202e]/g, ' ')
+    .replace(/[ـ#،؛|,:：؛()[\]{}«»"'!?؟.!]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// #new
+// نام‌های جایگزین ژانرها
+const NF_GENRE_ALIASES = {
+  'اکشن': ['اکشن', 'action'],
+  'فانتزی': ['فانتزی', 'fantasy'],
+  'کمدی': ['کمدی', 'comedy'],
+  'ماجراجویی': ['ماجراجویی', 'ماجراجویانه', 'adventure'],
+  'عاشقانه': ['عاشقانه', 'رمانتیک', 'romance', 'romantic'],
+  'علمی تخیلی': [
+    'علمی تخیلی',
+    'علمی‌تخیلی',
+    'سای فای',
+    'science fiction',
+    'sci fi',
+    'sci-fi'
+  ],
+  'ترسناک': ['ترسناک', 'وحشت', 'horror'],
+  'درام': ['درام', 'drama'],
+  'ماورایی': ['ماورایی', 'فراطبیعی', 'supernatural'],
+  'معمایی': ['معمایی', 'رازآلود', 'mystery'],
+  'هیجانی': ['هیجانی', 'دلهره آور', 'thriller'],
+  'تاریخی': ['تاریخی', 'historical'],
+  'ورزشی': ['ورزشی', 'sports'],
+  'مبارزه ای': [
+    'مبارزه ای',
+    'رزمی',
+    'martial arts'
+  ],
+  'روانشناختی': ['روانشناختی', 'روان شناختی', 'psychological'],
+  'جنایی': ['جنایی', 'crime'],
+  'موسیقی': ['موسیقی', 'music'],
+  'زندگی روزمره': [
+    'زندگی روزمره',
+    'slice of life'
+  ],
+  'مکانیسمی': ['مکانیسمی', 'mecha']
+};
+
+// #new
+// تشخیص ژانرهای خواسته‌شده
+function nfGenreGetRequested(text) {
+  const query = nfGenreNormalize(text);
+  const found = [];
+
+  for (const [genre, aliases] of Object.entries(
+    NF_GENRE_ALIASES
+  )) {
+    const matched = aliases.some(alias => {
+      const normalizedAlias =
+        nfGenreNormalize(alias);
+
+      return normalizedAlias &&
+        query.includes(normalizedAlias);
+    });
+
+    if (matched) {
+      found.push(genre);
+    }
+  }
+
+  return found;
+}
+
+// #new
+// استخراج ژانرها فقط از خط ژانر آرشیو
+function nfGenreGetRecordGenres(record) {
+  const content = String(
+    record?.text ||
+    record?.caption ||
+    record?.description ||
+    ''
+  );
+
+  const match = content.match(
+    /(?:🎭\s*)?ژانر(?:ها)?\s*[:：\-]\s*([^\r\n]+)/iu
+  );
+
+  if (!match) return [];
+
+  const line = nfGenreNormalize(match[1]);
+  const found = [];
+
+  for (const [genre, aliases] of Object.entries(
+    NF_GENRE_ALIASES
+  )) {
+    if (
+      aliases.some(alias =>
+        line.includes(nfGenreNormalize(alias))
+      )
+    ) {
+      found.push(genre);
+    }
+  }
+
+  return found;
+}
+
+// #new
+// استخراج امتیاز IMDB
+function nfGenreGetRating(record) {
+  const content = String(
+    record?.text ||
+    record?.caption ||
+    record?.description ||
+    ''
+  );
+
+  const match = content.match(
+    /IMDB\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?)/iu
+  );
+
+  if (!match) return 0;
+
+  const rating = Number(
+    match[1].replace(',', '.')
+  );
+
+  return Number.isFinite(rating)
+    ? rating
+    : 0;
+}
+
+// #new
+// تشخیص تعداد درخواستی؛ پیش‌فرض ۱۰ اثر
+function nfGenreGetRequestedCount(text) {
+  const source = String(text || '')
+    .replace(/[۰-۹]/g, digit =>
+      String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit))
+    )
+    .replace(/[٠-٩]/g, digit =>
+      String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit))
+    );
+
+      const match = source.match(
+      /(?:تعداد|حدود|حداکثر)\s*(\d{1,2})|(\d{1,2})\s*(?:تا|عدد|مورد|انیمه|اثر|تا انیمه)/iu
+    );
+
+  if (!match) return 10;
+
+  const count = Number(match[1] || match[2]);
+
+  return Number.isFinite(count) && count > 0
+    ? Math.min(count, 50)
+    : 10;
+}
+
+// #new
+// ساخت پاسخ مستقیم ژانری از آرشیو
+async function nfBuildGenreArchiveAnswer(userText) {
+  const query = String(userText || '').trim();
+  if (!query) return null;
+
+  const requestedGenres =
+    nfGenreGetRequested(query);
+
+  if (!requestedGenres.length) {
+    return null;
+  }
+
+  // #new
+  // فقط درخواست معرفی آثار کانال را پردازش کن
+  if (
+    !/(انیمه|انیمیشن|آثار|اثر|معرفی|پیشنهاد|لیست|فهرست|کانال|بده|بفرست|معرفی کن)/iu
+      .test(query)
+  ) {
+    return null;
+  }
+
+  const [mainRecords, addedRecords] =
+    await Promise.all([
+      nfReadArchive(),
+      nfReadAddedArchivePosts()
+    ]);
+
+  const allRecords = [
+    ...(Array.isArray(mainRecords)
+      ? mainRecords
+      : []),
+    ...(Array.isArray(addedRecords)
+      ? addedRecords
+      : [])
+  ];
+
+  // #new
+  // حذف پست‌های تکراری
+  const uniqueRecords = new Map();
+
+  for (const record of allRecords) {
+    if (!record || typeof record !== 'object') {
+      continue;
+    }
+
+    const channel = String(
+      record.channel ||
+      record.channelUsername ||
+      ''
+    ).trim().replace(/^@/, '');
+
+    const messageId = String(
+      record.messageId || ''
+    ).trim();
+
+    let link = String(
+      record.link ||
+      record.postUrl ||
+      ''
+    ).trim();
+
+    if (
+      !/^https?:\/\/t\.me\//iu.test(link) &&
+      channel &&
+      /^\d+$/.test(messageId)
+    ) {
+      link =
+        `https://t.me/${channel}/${messageId}`;
+    }
+
+    const key = link
+      ? link.replace(/\/+$/, '').toLowerCase()
+      : (
+          channel && /^\d+$/.test(messageId)
+            ? `${channel.toLowerCase()}:${messageId}`
+            : String(record.id || '').trim()
+        );
+
+    if (!key) continue;
+
+    const previous = uniqueRecords.get(key);
+
+    if (!previous) {
+      uniqueRecords.set(key, {
+        ...record,
+        link
+      });
+    }
+  }
+
+  // #new
+  // فقط آثاری که همه ژانرهای خواسته‌شده را دارند
+  const matches = [];
+
+  for (const record of uniqueRecords.values()) {
+    const recordGenres =
+      nfGenreGetRecordGenres(record);
+
+    if (
+      !requestedGenres.every(genre =>
+        recordGenres.includes(genre)
+      )
+    ) {
+      continue;
+    }
+
+    const content = String(
+      record.text ||
+      record.caption ||
+      record.description ||
+      ''
+    );
+
+    const rating = nfGenreGetRating(record);
+
+    const title = String(
+      record.persianName ||
+      record.name ||
+      record.title ||
+      record.animeName ||
+      ''
+    ).trim();
+
+    const englishTitle = String(
+      record.englishName || ''
+    ).trim();
+
+    if (!title) continue;
+
+    let status = [];
+
+    if (/دوبله\s*فارسی/iu.test(content)) {
+      status.push('دوبله فارسی');
+    }
+
+    if (/زیرنویس\s*فارسی/iu.test(content)) {
+      status.push('زیرنویس فارسی');
+    }
+
+    matches.push({
+      title,
+      englishTitle,
+      genres: recordGenres,
+      rating,
+      status: status.length
+        ? status.join(' + ')
+        : 'اطلاعات ثبت نشده',
+      link: /^https?:\/\/t\.me\//iu.test(record.link)
+        ? record.link
+        : ''
+    });
+  }
+
+  // #new
+  // امتیاز بالاتر اول؛ آثار بدون امتیاز در انتها
+  matches.sort((a, b) => b.rating - a.rating);
+
+  const requestedCount =
+    nfGenreGetRequestedCount(query);
+
+  const results =
+    matches.slice(0, requestedCount);
+
+  if (!results.length) {
+    return (
+      `در آرشیو، اثری با تمام ژانرهای ` +
+      `${requestedGenres.join('، ')} پیدا نشد.`
+    );
+  }
+
+  const lines = [
+    `🎭 انیمه‌های ژانر ${requestedGenres.join(' و ')} در آرشیو کانال`,
+    '',
+    `📊 تعداد آثار پیدا‌شده: ${matches.length}`,
+    `⭐ مرتب‌سازی براساس امتیاز IMDB`,
+    ''
+  ];
+
+  results.forEach((item, index) => {
+    lines.push(
+      `${index + 1}. ${item.title}`
+    );
+
+    if (item.englishTitle) {
+      lines.push(item.englishTitle);
+    }
+
+    lines.push(
+      `🎭 ژانر: ${item.genres.join(' | ')}`,
+      `⭐️ IMDB: ${item.rating ? item.rating.toFixed(1) : 'ثبت نشده'}`,
+      `🌐 وضعیت: ${item.status}`,
+      item.link
+        ? `🔗 لینک پست: ${item.link}`
+        : '🔗 لینک پست: در آرشیو ثبت نشده',
+      ''
+    );
+  });
+
+  return lines.join('\n').trim();
+}
+
+
+
 // #update
 // #update
 // #update
@@ -8609,6 +8974,53 @@ async function nfProcess(
 
       return;
     }
+    // #new
+    // پاسخ مستقیم به درخواست معرفی انیمه براساس ژانر
+    try {
+      logStage('GENRE_ARCHIVE_SEARCH');
+
+      const genreAnswer =
+        await nfWithTimeout(
+          () => nfBuildGenreArchiveAnswer(
+            directText
+          ),
+          15000,
+          'GENRE_ARCHIVE_SEARCH'
+        );
+
+      if (
+        nfLocks.get(key) !== requestId
+      ) {
+        return;
+      }
+
+      if (genreAnswer) {
+        nfRemember(
+          ctx,
+          'assistant',
+          genreAnswer
+        );
+
+        logStage('GENRE_ARCHIVE_RESULT');
+
+        await nfWithTimeout(
+          () => nfSendResult(
+            ctx,
+            genreAnswer,
+            thinking?.message_id
+          ),
+          15000,
+          'GENRE_ARCHIVE_RESULT_SEND'
+        );
+
+        return;
+      }
+    } catch (error) {
+      console.error(
+        '[NF] GENRE ARCHIVE ERROR:',
+        error?.message || error
+      );
+    }
 
     // Determine whether the question is about airing.
     logStage('QUESTION_CLASSIFICATION');
@@ -8798,27 +9210,7 @@ async function nfProcess(
       }
     }
         
-    // #new
-    // جست‌وجوی مستقیم ژانر در آرشیو
-    try {
-      const genreContext =
-        await nfBuildGenreArchiveContext(directText);
 
-      if (genreContext) {
-        archiveContext = [
-          archiveContext,
-          genreContext
-        ]
-          .filter(Boolean)
-          .join('\n\n━━━━━━━━━━━━━━━━━━\n\n')
-          .slice(0, 26000);
-      }
-    } catch (error) {
-      console.error(
-        '[NF] GENRE SEARCH ERROR:',
-        error?.message || error
-      );
-    }
 
     // #new
     // پیدا کردن انیمه‌های مشابه از آرشیو
@@ -9104,6 +9496,35 @@ function nfArchiveExpandSearchQueries(text) {
 
   return [...queries].filter(Boolean);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
