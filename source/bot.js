@@ -9261,39 +9261,47 @@ async function nfGetGenreArchiveMatches(userText) {
     ...(Array.isArray(added) ? added : [])
   ];
   
-    // #new
-    // ارسال گزارش عیب‌یابی ژانر به مالک
-    try {
-      const debugReport = [
-        '🔎 گزارش عیب‌یابی جست‌وجوی ژانر',
-        '',
-        `📚 آرشیو اصلی: ${Array.isArray(main) ? main.length : 0}`,
-        `📥 پست‌های اضافه: ${Array.isArray(added) ? added.length : 0}`,
-        `📊 مجموع رکوردها: ${records.length}`,
-        `🎭 ژانرهای درخواستی: ${requestedGenres.map(item => item.name).join('، ') || 'تشخیص داده نشد'}`,
-        '',
-        '🧪 نمونه رکوردها:',
-        ...records.slice(0, 5).map((record, index) =>
-          [
-            `${index + 1}. ${record?.name || record?.title || 'بدون نام'}`,
-            `نوع: ${record?.channelType || 'نامشخص'}`,
-            `متن: ${Boolean(record?.text)}`,
-            `کپشن: ${Boolean(record?.caption)}`,
-            `لینک: ${record?.link || record?.postUrl || 'ندارد'}`
-          ].join('\n')
-        )
-      ].join('\n');
-
-      await bot.telegram.sendMessage(
-        ADMIN_ID,
-        debugReport.slice(0, 4000)
-      );
-    } catch (error) {
-      console.error(
-        '[NF] GENRE DEBUG SEND ERROR:',
-        error?.message || error
-      );
-    }
+  // #update
+  // گزارش اولیه عیب‌یابی جست‌وجوی ژانر
+  try {
+    const debugReport = [
+      '🔎 گزارش عیب‌یابی جست‌وجوی ژانر',
+      '',
+      `📚 آرشیو اصلی: ${Array.isArray(main) ? main.length : 0}`,
+      `📥 پست‌های اضافه: ${Array.isArray(added) ? added.length : 0}`,
+      `📊 مجموع رکوردها: ${records.length}`,
+      `🎭 ژانرهای درخواستی: ${requestedGenres.map(item => item.name).join('، ') || 'تشخیص داده نشد'}`,
+      '',
+      '🧪 نمونه اطلاعات واقعی رکوردها:',
+      ...records.slice(0, 8).map((record, index) => {
+        const content = [
+          record?.text,
+          record?.caption,
+          record?.description
+        ].filter(Boolean).join('\n');
+  
+        return [
+          `${index + 1}. ${record?.persianName || record?.animeName || record?.name || record?.title || 'بدون نام'}`,
+          `نوع: ${record?.channelType || 'نامشخص'}`,
+          `ژانر ذخیره‌شده: ${JSON.stringify(record?.genres ?? null)}`,
+          `خط ژانر در متن: ${content.match(/(?:🎭\s*)?(?:ژانرها?|genres?)\s*[:：]\s*([^\n]+)/iu)?.[1] || 'پیدا نشد'}`,
+          `متن: ${Boolean(record?.text)}`,
+          `کپشن: ${Boolean(record?.caption)}`,
+          `لینک: ${record?.link || record?.postUrl || 'ندارد'}`
+        ].join('\n');
+      })
+    ].join('\n');
+  
+    await bot.telegram.sendMessage(
+      ADMIN_ID,
+      debugReport.slice(0, 4000)
+    );
+  } catch (error) {
+    console.error(
+      '[NF] GENRE DEBUG SEND ERROR:',
+      error?.message || error
+    );
+  }
 
   // #update
   const seen = new Set();
