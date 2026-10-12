@@ -8787,6 +8787,8 @@ async function nfProcess(
               'AIRING_SEARCH'
             );
         }
+      
+
 
       } catch (error) {
         console.error(
@@ -8795,6 +8797,35 @@ async function nfProcess(
         );
       }
     }
+        // #new
+        const similarAnimeContext =
+          await nfBuildSimilarAnimeArchiveContext(
+            directText
+          );
+
+        if (similarAnimeContext) {
+          archiveContext = [
+            archiveContext,
+            similarAnimeContext
+          ]
+            .filter(Boolean)
+            .join('\n\n━━━━━━━━━━━━━━━━━━\n\n')
+            .slice(0, 22000);
+        }        // #new
+        const similarAnimeContext =
+          await nfBuildSimilarAnimeArchiveContext(
+            directText
+          );
+
+        if (similarAnimeContext) {
+          archiveContext = [
+            archiveContext,
+            similarAnimeContext
+          ]
+            .filter(Boolean)
+            .join('\n\n━━━━━━━━━━━━━━━━━━\n\n')
+            .slice(0, 22000);
+        }
 
     if (
       nfLocks.get(key) !== requestId
@@ -9056,6 +9087,337 @@ function nfArchiveExpandSearchQueries(text) {
 
   return [...queries].filter(Boolean);
 }
+
+
+
+ // #new
+async function nfBuildSimilarAnimeArchiveContext(userText) {
+  const question = String(userText || '').trim();
+
+  if (
+    !/(?:معرفی|پیشنهاد|مشابه|شبیه|مانند|مثل|نظیر|recommend|similar|anime like)/iu.test(
+      question
+    )
+  ) {
+    return '';
+  }
+
+  const normalize = value =>
+    nfArchiveNormalize(String(value || ''));
+
+  const getText = record =>
+    String(
+      record?.text ||
+      record?.caption ||
+      ''
+    );
+
+  const getTitle = record =>
+    String(
+      record?.animeName ||
+      record?.persianName ||
+      record?.name ||
+      record?.title ||
+      record?.englishName ||
+      ''
+    ).trim();
+
+  const getGenres = record => {
+    const content = getText(record);
+
+    const match = content.match(
+      /(?:🎭\s*)?(?:ژانرها?|genres?)\s*[:：]\s*([^\n]+)/iu
+    );
+
+    let values = [];
+
+    if (match?.[1]) {
+      values = match[1].split(/[|،,؛]/u);
+    } else if (Array.isArray(record?.genres)) {
+      values = record.genres;
+    }
+
+    return [
+      ...new Set(
+        values
+          .map(value => normalize(value))
+          .filter(value =>
+            value &&
+            !/^(?:انیمیشن|animation)$/iu.test(value)
+          )
+      )
+    ];
+  };
+
+  const getAliases = record => {
+    const values = [
+      getTitle(record),
+      record?.name,
+      record?.title,
+      record?.animeName,
+      record?.englishName,
+      record?.persianName,
+      ...(Array.isArray(record?.aliases)
+        ? record.aliases
+        : [])
+    ];
+
+    return [
+      ...new Set(
+        values
+          .map(value => normalize(value))
+          .filter(value => value.length >= 3)
+      )
+    ];
+  };
+
+  const isAnime = record => {
+    const type = normalize(record?.channelType);
+    const content = getText(record);
+
+    if (type === 'anime') return true;
+
+    // فقط انیمه؛ انیمیشن‌های غیرانیمه وارد پیشنهادها نشوند.
+    return /📼\s*انیمه\s*(?:سریالی|سریال|سینمایی)/iu.test(
+      content
+    );
+  };
+
+  const getAvailability = record => {
+    const content = getText(record);
+
+    const hasDub =
+      /دوبله\s*فارسی/iu.test(content);
+
+    const hasSub =
+      /زیرنویس\s*فارسی/iu.test(content);
+
+    if (hasDub && hasSub) {
+      return 'دوبله و زیرنویس فارسی';
+    }
+
+    if (hasDub) {
+      return 'دوبله فارسی';
+    }
+
+    if (hasSub) {
+      return 'زیرنویس فارسی';
+    }
+
+    return 'وضعیت دوبله و زیرنویس در پست مشخص نیست';
+  };
+
+  try {
+    let mainRecords = [];
+    let addedRecords = [];
+
+    try {
+      mainRecords = await nfReadArchive();
+    } catch (error) {
+      console.error(
+        '[NF] SIMILAR MAIN ARCHIVE ERROR:',
+        error?.message || error
+      );
+    }
+
+    try {
+      addedRecords = await nfReadAddedArchivePosts();
+    } catch (error) {
+      console.error(
+        '[NF] SIMILAR ADDED ARCHIVE ERROR:',
+        error?.message || error
+      );
+    }
+
+    const records = [
+      ...(Array.isArray(mainRecords) ? mainRecords : []),
+      ...(Array.isArray(addedRecords) ? addedRecords : [])
+    ];
+
+    const uniqueRecords = [];
+    const seen = new Set();
+
+    for (const record of records) {
+      if (!record || typeof record !== 'object') continue;
+
+      const title = getTitle(record);
+      const link = String(
+        record.link || record.postUrl || ''
+      ).trim();
+
+      const key = normalize(
+        record.id ||
+        link ||
+        `${title}|${record.channel || ''}`
+      );
+
+      if (!key || seen.has(key)) continue;
+
+      seen.add(key);
+      uniqueRecords.push(record);
+    }
+
+    const normalizedQuestion = normalize(question);
+
+    // پیدا کردن انیمه‌های نمونه‌ای که کاربر نام برده است.
+    const seeds = uniqueRecords.filter(record => {
+      if (!isAnime(record)) return false;
+
+      return getAliases(record).some(alias =>
+        alias.length >= 4 &&
+        normalizedQuestion.includes(alias)
+      );
+    });
+
+    if (!seeds.length) {
+      return [
+        '--- SIMILAR ANIME SEARCH ---',
+        'آثار نمونه‌ای که کاربر نام برده، با اطمینان در آرشیو شناسایی نشدند.',
+        'از ساختن لینک یا ادعای وجود اثر در آرشیو خودداری کن.'
+      ].join('\n');
+    }
+
+    const seedGenres = seeds.map(getGenres);
+
+    const allSeedGenres = [
+      ...new Set(seedGenres.flat())
+    ];
+
+    if (!allSeedGenres.length) {
+      return [
+        '--- SIMILAR ANIME SEARCH ---',
+        `آثار نمونه پیدا شدند: ${seeds.map(getTitle).join('، ')}`,
+        'برای این آثار ژانر قابل استخراج از اطلاعات آرشیو پیدا نشد؛ ژانر را حدس نزن.'
+      ].join('\n');
+    }
+
+    // ژانرهای مشترک میان نمونه‌ها اولویت بالاتری دارند.
+    let commonGenres = seedGenres.length > 1
+      ? seedGenres.reduce(
+          (common, genres) =>
+            common.filter(genre => genres.includes(genre)),
+          [...seedGenres[0]]
+        )
+      : [...allSeedGenres];
+
+    if (!commonGenres.length) {
+      commonGenres = [...allSeedGenres];
+    }
+
+    const seedIds = new Set(
+      seeds.map(record =>
+        normalize(
+          record.link ||
+          record.postUrl ||
+          record.id ||
+          getTitle(record)
+        )
+      )
+    );
+
+    const candidates = [];
+
+    for (const record of uniqueRecords) {
+      if (!isAnime(record)) continue;
+
+      const title = getTitle(record);
+      const link = String(
+        record.link || record.postUrl || ''
+      ).trim();
+
+      if (!title || !/^https:\/\/t\.me\//iu.test(link)) {
+        continue;
+      }
+
+      const identity = normalize(
+        link || record.id || title
+      );
+
+      if (seedIds.has(identity)) continue;
+
+      const genres = getGenres(record);
+
+      if (!genres.length) continue;
+
+      const matchedGenres = genres.filter(
+        genre => commonGenres.includes(genre)
+      );
+
+      if (!matchedGenres.length) continue;
+
+      const content = getText(record);
+
+      candidates.push({
+        title,
+        englishName: String(record.englishName || '').trim(),
+        genres,
+        matchedGenres,
+        availability: getAvailability(record),
+        link,
+        content,
+        score: matchedGenres.length
+      });
+    }
+
+    candidates.sort(
+      (a, b) =>
+        b.score - a.score ||
+        a.title.localeCompare(b.title, 'fa')
+    );
+
+    if (!candidates.length) {
+      return [
+        '--- SIMILAR ANIME SEARCH ---',
+        `آثار نمونه: ${seeds.map(getTitle).join('، ')}`,
+        `ژانرهای مبنا: ${commonGenres.join('، ')}`,
+        'در رکوردهای بررسی‌شده، انیمه دیگری با این ژانرها و لینک معتبر پیدا نشد.',
+        'آثار یا لینک‌هایی را از خودت نساز.'
+      ].join('\n');
+    }
+
+    const output = [
+      '--- SIMILAR ANIME ARCHIVE RESULTS ---',
+      `Seed titles: ${seeds.map(getTitle).join(' | ')}`,
+      `Seed genres: ${allSeedGenres.join(' | ')}`,
+      `Priority shared genres: ${commonGenres.join(' | ')}`,
+      `Matching records found: ${candidates.length}`,
+      'فقط از رکوردهای زیر پیشنهاد بده و لینک دقیق همان رکورد را حفظ کن.',
+      'برای هر اثر، ژانرهای مشترک و وضعیت دوبله یا زیرنویس را ذکر کن.',
+      ''
+    ];
+
+    // تعداد نتایج را به پنج مورد محدود نمی‌کنیم.
+    for (const item of candidates) {
+      output.push(
+        [
+          `Title: ${item.title}`,
+          item.englishName
+            ? `English Name: ${item.englishName}`
+            : '',
+          `Genres: ${item.genres.join(' | ')}`,
+          `Matching Genres: ${item.matchedGenres.join(' | ')}`,
+          `Persian Availability: ${item.availability}`,
+          `Telegram Link: ${item.link}`
+        ]
+          .filter(Boolean)
+          .join('\n'),
+        '---'
+      );
+    }
+
+    return output.join('\n').slice(0, 20000);
+
+  } catch (error) {
+    console.error(
+      '[NF] SIMILAR ANIME SEARCH ERROR:',
+      error?.message || error
+    );
+
+    return '';
+  }
+}
+
+
 
 function nfCanUseAI(ctx) {
   if (!ctx.from) return false;
