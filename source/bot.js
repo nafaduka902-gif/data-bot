@@ -8797,35 +8797,52 @@ async function nfProcess(
         );
       }
     }
-        // #new
-        const similarAnimeContext =
-          await nfBuildSimilarAnimeArchiveContext(
-            directText
-          );
+        
+    // #new
+    // جست‌وجوی مستقیم ژانر در آرشیو
+    try {
+      const genreContext =
+        await nfBuildGenreArchiveContext(directText);
 
-        if (similarAnimeContext) {
-          archiveContext = [
-            archiveContext,
-            similarAnimeContext
-          ]
-            .filter(Boolean)
-            .join('\n\n━━━━━━━━━━━━━━━━━━\n\n')
-            .slice(0, 22000);
-        }        // #new
-        const similarAnimeContext =
-          await nfBuildSimilarAnimeArchiveContext(
-            directText
-          );
+      if (genreContext) {
+        archiveContext = [
+          archiveContext,
+          genreContext
+        ]
+          .filter(Boolean)
+          .join('\n\n━━━━━━━━━━━━━━━━━━\n\n')
+          .slice(0, 26000);
+      }
+    } catch (error) {
+      console.error(
+        '[NF] GENRE SEARCH ERROR:',
+        error?.message || error
+      );
+    }
 
-        if (similarAnimeContext) {
-          archiveContext = [
-            archiveContext,
-            similarAnimeContext
-          ]
-            .filter(Boolean)
-            .join('\n\n━━━━━━━━━━━━━━━━━━\n\n')
-            .slice(0, 22000);
-        }
+    // #new
+    // پیدا کردن انیمه‌های مشابه از آرشیو
+    try {
+      const similarAnimeContext =
+        await nfBuildSimilarAnimeArchiveContext(
+          directText
+        );
+
+      if (similarAnimeContext) {
+        archiveContext = [
+          archiveContext,
+          similarAnimeContext
+        ]
+          .filter(Boolean)
+          .join('\n\n━━━━━━━━━━━━━━━━━━\n\n')
+          .slice(0, 26000);
+      }
+    } catch (error) {
+      console.error(
+        '[NF] SIMILAR ANIME SEARCH ERROR:',
+        error?.message || error
+      );
+    }
 
     if (
       nfLocks.get(key) !== requestId
