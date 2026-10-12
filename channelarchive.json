@@ -4016,5 +4016,29 @@
     "date": 1788474584,
     "createdAt": "2026-10-12T19:35:07.033Z",
     "updatedAt": "2026-10-12T19:35:07.033Z"
+  },
+  {
+    "id": "anime_faarsi:1039",
+    "name": "Mushoku Tensei",
+    "nameNormalized": "mushoku tensei",
+    "aliases": [
+      "Mushoku Tensei"
+    ],
+    "aliasesNormalized": [
+      "mushoku tensei"
+    ],
+    "animeName": "Mushoku Tensei",
+    "englishName": "",
+    "persianName": "Mushoku Tensei",
+    "link": "https://t.me/Anime_Faarsi/1039",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1039,
+    "text": "قسمت پایانی فصل سوم انیمه « Mushoku Tensei » با دوبله فارسی اضافه شد.",
+    "caption": "",
+    "date": 1791834753,
+    "createdAt": "2026-10-12T19:52:35.054Z",
+    "updatedAt": "2026-10-12T19:52:35.054Z"
   }
 ]
