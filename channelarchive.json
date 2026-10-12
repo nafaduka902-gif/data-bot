@@ -4146,5 +4146,29 @@
     "date": 1740802653,
     "createdAt": "2026-10-12T21:57:59.773Z",
     "updatedAt": "2026-10-12T21:57:59.773Z"
+  },
+  {
+    "id": "anime_faarsi:1041",
+    "name": "فصل چهارم کامل با زیرنویس فارسی اضافه شد.",
+    "nameNormalized": "فصل چهارم کامل با زیرنویس فارسی اضافه شد",
+    "aliases": [
+      "فصل چهارم کامل با زیرنویس فارسی اضافه شد."
+    ],
+    "aliasesNormalized": [
+      "فصل چهارم کامل با زیرنویس فارسی اضافه شد"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "فصل چهارم کامل با زیرنویس فارسی اضافه شد.",
+    "link": "https://t.me/Anime_Faarsi/1041",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1041,
+    "text": "فصل چهارم کامل با زیرنویس فارسی اضافه شد.",
+    "caption": "",
+    "date": 1791842315,
+    "createdAt": "2026-10-12T21:58:37.276Z",
+    "updatedAt": "2026-10-12T21:58:37.276Z"
   }
 ]
