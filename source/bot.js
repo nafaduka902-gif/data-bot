@@ -9175,41 +9175,63 @@ function nfArchiveExpandSearchQueries(text) {
 
 
  // #new
+
+ // #update
 async function nfGetGenreArchiveMatches(userText) {
   const normalize = value =>
-    nfArchiveNormalize(String(value || ''));
+    nfArchiveNormalize(String(value || ''))
+      .replace(/[ي]/g, 'ی')
+      .replace(/[ك]/g, 'ک')
+      .replace(/ۀ/g, 'ه')
+      .replace(/[\u064B-\u065F\u0670]/g, '')
+      .trim();
 
-  const question = normalize(userText);
+  const rawQuestion = String(userText || '');
+  const question = normalize(rawQuestion);
 
   const genres = [
     { name: 'کمدی', aliases: ['کمدی', 'comedy'] },
     { name: 'اکشن', aliases: ['اکشن', 'action'] },
     { name: 'فانتزی', aliases: ['فانتزی', 'fantasy'] },
     { name: 'ماجراجویی', aliases: ['ماجراجویی', 'adventure'] },
-    { name: 'عاشقانه', aliases: ['عاشقانه', 'romance', 'رمانتیک'] },
+    { name: 'عاشقانه', aliases: ['عاشقانه', 'رمانتیک', 'romance', 'romantic'] },
     { name: 'درام', aliases: ['درام', 'drama'] },
     { name: 'مدرسه‌ای', aliases: ['مدرسه‌ای', 'مدرسه', 'school'] },
     { name: 'ورزشی', aliases: ['ورزشی', 'sports', 'sport'] },
     { name: 'ایسکای', aliases: ['ایسکای', 'isekai'] },
-    { name: 'علمی‌تخیلی', aliases: ['علمی تخیلی', 'علمی‌تخیلی', 'science fiction', 'sci-fi'] },
+    { name: 'علمی‌تخیلی', aliases: ['علمی تخیلی', 'علمی‌تخیلی', 'science fiction', 'sci-fi', 'scifi'] },
     { name: 'ماورایی', aliases: ['ماورایی', 'supernatural'] },
     { name: 'ترسناک', aliases: ['ترسناک', 'horror'] },
     { name: 'معمایی', aliases: ['معمایی', 'mystery'] },
     { name: 'جنایی', aliases: ['جنایی', 'crime'] },
     { name: 'تاریخی', aliases: ['تاریخی', 'historical'] },
-    { name: 'موزیکال', aliases: ['موزیکال', 'music'] }
+    { name: 'موزیکال', aliases: ['موزیکال', 'music', 'musical'] },
+    { name: 'شونن', aliases: ['شونن', 'shounen', 'shonen'] },
+    { name: 'وحشت روان‌شناختی', aliases: ['وحشت روانشناختی', 'psychological horror'] }
   ];
 
+  const hasAlias = (text, alias) => {
+    const needle = normalize(alias);
+    if (!needle) return false;
+
+    // برای عبارت‌های انگلیسی، مرز واژه را رعایت کن.
+    if (/^[a-z0-9 -]+$/i.test(needle)) {
+      const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`, 'i')
+        .test(text);
+    }
+
+    return text.includes(needle);
+  };
+
   const requestedGenres = genres.filter(genre =>
-    genre.aliases.some(alias =>
-      question.includes(normalize(alias))
-    )
+    genre.aliases.some(alias => hasAlias(question, alias))
   );
 
   const asksForGenreList =
     requestedGenres.length > 0 &&
-    /(?:ژانر|genre|genres|انیمه|anime|معرفی|پیشنهاد|فهرست|تمام|همه|آرشیو|channel|list|show|find|recommend|all)/iu
-      .test(String(userText || ''));
+    /ژانر|genre|انیمه|anime|معرفی|پیشنهاد|فهرست|تمام|همه|آرشیو|channel|list|show|find|recommend|all|پیدا کن|فهرست کن|موجود/i
+      .test(rawQuestion);
 
   if (!asksForGenreList) {
     return {
@@ -9225,19 +9247,13 @@ async function nfGetGenreArchiveMatches(userText) {
   try {
     main = await nfReadArchive();
   } catch (error) {
-    console.error(
-      '[NF] GENRE MAIN ARCHIVE ERROR:',
-      error?.message || error
-    );
+    console.error('[NF] GENRE MAIN ARCHIVE ERROR:', error?.message || error);
   }
 
   try {
     added = await nfReadAddedArchivePosts();
   } catch (error) {
-    console.error(
-      '[NF] GENRE ADDED ARCHIVE ERROR:',
-      error?.message || error
-    );
+    console.error('[NF] GENRE ADDED ARCHIVE ERROR:', error?.message || error);
   }
 
   const records = [
@@ -9248,54 +9264,41 @@ async function nfGetGenreArchiveMatches(userText) {
   const seen = new Set();
   const matches = [];
 
+  // ژانرهای کوتاه فارسی را به صورت عبارت مستقل پیدا کن،
+  // حتی وقتی میان آن‌ها | یا فاصله وجود دارد.
   for (const record of records) {
-    if (!record || typeof record !== 'object') {
-      continue;
-    }
+    if (!record || typeof record !== 'object') continue;
 
     const content = [
       record.text,
-      record.caption
-    ]
-      .filter(Boolean)
-      .join('\n');
+      record.caption,
+      record.description
+    ].filter(Boolean).join('\n');
 
+    const normalizedContent = normalize(content);
     const channelType = normalize(record.channelType);
 
     const isAnime =
       channelType === 'anime' ||
       /📼\s*انیمه\s*(?:سریالی|سریال|سینمایی)/iu.test(content);
 
-    if (!isAnime) {
-      continue;
-    }
+    if (!isAnime) continue;
 
     const genreLine =
-      content.match(
-        /(?:🎭\s*)?(?:ژانرها?|genres?)\s*[:：]\s*([^\n]+)/iu
-      )?.[1] || '';
+      content.match(/(?:🎭\s*)?(?:ژانرها?|genres?)\s*[:：]\s*([^\n]+)/iu)?.[1] || '';
 
     const storedGenres = Array.isArray(record.genres)
       ? record.genres.join(' | ')
       : String(record.genres || '');
 
-    const searchableGenres = normalize(
-      `${genreLine} | ${storedGenres}`
-    );
+    const searchableGenres = normalize(`${genreLine} | ${storedGenres}`);
 
     const matchedGenres = requestedGenres.filter(genre =>
-      genre.aliases.some(alias =>
-        searchableGenres.includes(normalize(alias))
-      )
+      genre.aliases.some(alias => hasAlias(searchableGenres, alias))
     );
 
-    // در درخواست چندژانری، همه ژانرهای خواسته‌شده باید وجود داشته باشند.
-    if (
-      !matchedGenres.length ||
-      matchedGenres.length !== requestedGenres.length
-    ) {
-      continue;
-    }
+    // تمام ژانرهای درخواست‌شده باید در رکورد موجود باشند.
+    if (matchedGenres.length !== requestedGenres.length) continue;
 
     const title = String(
       record.persianName ||
@@ -9307,30 +9310,21 @@ async function nfGetGenreArchiveMatches(userText) {
     ).trim();
 
     const link = String(
-      record.link || record.postUrl || ''
+      record.link ||
+      record.postUrl ||
+      ''
     ).trim();
 
-    // لینک جعلی یا ناقص نساز.
-    if (
-      !title ||
-      !/^https:\/\/t\.me\/[a-zA-Z0-9_]+\/\d+(?:\?.*)?$/iu.test(link)
-    ) {
+    if (!title || !/^https:\/\/t\.me\/[a-zA-Z0-9_]+\/\d+(?:\?.*)?$/iu.test(link)) {
       continue;
     }
 
     const identity = normalize(link);
-
-    if (seen.has(identity)) {
-      continue;
-    }
-
+    if (seen.has(identity)) continue;
     seen.add(identity);
 
-    const hasDub =
-      /دوبله\s*فارسی/iu.test(content);
-
-    const hasSub =
-      /زیرنویس\s*فارسی/iu.test(content);
+    const hasDub = /دوبله\s*فارسی/iu.test(content);
+    const hasSub = /زیرنویس\s*فارسی/iu.test(content);
 
     const availability =
       hasDub && hasSub
@@ -9343,9 +9337,7 @@ async function nfGetGenreArchiveMatches(userText) {
 
     matches.push({
       title,
-      englishName: String(
-        record.englishName || ''
-      ).trim(),
+      englishName: String(record.englishName || '').trim(),
       genres: genreLine.trim() || storedGenres,
       availability,
       link
