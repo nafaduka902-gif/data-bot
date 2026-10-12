@@ -9295,8 +9295,19 @@ async function nfGetGenreArchiveMatches(userText) {
       );
     }
 
+  // #update
   const seen = new Set();
   const matches = [];
+  
+  const debugStats = {
+    total: records.length,
+    anime: 0,
+    genreLineFound: 0,
+    genreMatched: 0,
+    validLink: 0,
+    finalMatches: 0,
+    samples: []
+  };
 
   // ژانرهای کوتاه فارسی را به صورت عبارت مستقل پیدا کن،
   // حتی وقتی میان آن‌ها | یا فاصله وجود دارد.
@@ -9310,7 +9321,7 @@ async function nfGetGenreArchiveMatches(userText) {
     ].filter(Boolean).join('\n');
 
     const normalizedContent = normalize(content);
-    const channelType = normalize(record.channelType);
+    const channelType = normalize(record.channelType).toLowerCase();
 
     const isAnime =
       channelType === 'anime' ||
@@ -9326,11 +9337,34 @@ async function nfGetGenreArchiveMatches(userText) {
       : String(record.genres || '');
 
     const searchableGenres = normalize(`${genreLine} | ${storedGenres}`);
+    // #new
+    if (isAnime) {
+      debugStats.anime++;
+    
+      if (genreLine) {
+        debugStats.genreLineFound++;
+      }
 
+      if (debugStats.samples.length < 8) {
+        debugStats.samples.push({
+          name: record.name || record.title || '',
+          channelType: record.channelType || '',
+          genreLine,
+          storedGenres: Array.isArray(record.genres)
+            ? record.genres.join(' | ')
+            : String(record.genres || ''),
+          link: record.link || record.postUrl || ''
+        });
+      }
+    }
     const matchedGenres = requestedGenres.filter(genre =>
       genre.aliases.some(alias => hasAlias(searchableGenres, alias))
     );
-
+    
+    // #new
+    if (matchedGenres.length === requestedGenres.length) {
+      debugStats.genreMatched++;
+    }
     // تمام ژانرهای درخواست‌شده باید در رکورد موجود باشند.
     if (matchedGenres.length !== requestedGenres.length) continue;
 
@@ -9352,10 +9386,13 @@ async function nfGetGenreArchiveMatches(userText) {
     if (!title || !/^https:\/\/t\.me\/[a-zA-Z0-9_]+\/\d+(?:\?.*)?$/iu.test(link)) {
       continue;
     }
-
+    // #new
+    debugStats.validLink++;
+    // #update
     const identity = normalize(link);
     if (seen.has(identity)) continue;
     seen.add(identity);
+    debugStats.validLink++;
 
     const hasDub = /دوبله\s*فارسی/iu.test(content);
     const hasSub = /زیرنویس\s*فارسی/iu.test(content);
@@ -9368,6 +9405,8 @@ async function nfGetGenreArchiveMatches(userText) {
           : hasSub
             ? 'زیرنویس فارسی'
             : 'وضعیت مشخص نیست';
+    // #new
+    debugStats.finalMatches++;
 
     matches.push({
       title,
@@ -9376,6 +9415,26 @@ async function nfGetGenreArchiveMatches(userText) {
       availability,
       link
     });
+  }
+  // #new
+  try {
+    await bot.telegram.sendMessage(
+      OWNER_ID,
+      '🔎 گزارش دقیق جست‌وجوی ژانر\n\n' +
+      `📚 کل رکوردها: ${debugStats.total}\n` +
+      `🎬 رکوردهای انیمه: ${debugStats.anime}\n` +
+      `🏷 رکوردهای دارای خط ژانر: ${debugStats.genreLineFound}\n` +
+      `✅ مطابق ژانر: ${debugStats.genreMatched}\n` +
+      `🔗 لینک معتبر: ${debugStats.validLink}\n` +
+      `📊 نتایج نهایی: ${debugStats.finalMatches}\n\n` +
+      '🧪 نمونه رکوردها:\n' +
+      JSON.stringify(debugStats.samples, null, 2)
+    );
+  } catch (error) {
+    console.error(
+      '[NF] GENRE DEBUG SEND ERROR:',
+      error?.message || error
+    );
   }
 
   return {
@@ -9488,12 +9547,15 @@ async function nfBuildSimilarAnimeArchiveContext(userText) {
   const normalize = value =>
     nfArchiveNormalize(String(value || ''));
 
+  // #update
   const getText = record =>
-    String(
-      record?.text ||
-      record?.caption ||
-      ''
-    );
+    [
+      record?.text,
+      record?.caption,
+      record?.description
+    ]
+      .filter(Boolean)
+      .join('\n');
 
   const getTitle = record =>
     String(
