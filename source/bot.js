@@ -9260,6 +9260,40 @@ async function nfGetGenreArchiveMatches(userText) {
     ...(Array.isArray(main) ? main : []),
     ...(Array.isArray(added) ? added : [])
   ];
+  
+    // #new
+    // ارسال گزارش عیب‌یابی ژانر به مالک
+    try {
+      const debugReport = [
+        '🔎 گزارش عیب‌یابی جست‌وجوی ژانر',
+        '',
+        `📚 آرشیو اصلی: ${Array.isArray(main) ? main.length : 0}`,
+        `📥 پست‌های اضافه: ${Array.isArray(added) ? added.length : 0}`,
+        `📊 مجموع رکوردها: ${records.length}`,
+        `🎭 ژانرهای درخواستی: ${requestedGenres.map(item => item.name).join('، ') || 'تشخیص داده نشد'}`,
+        '',
+        '🧪 نمونه رکوردها:',
+        ...records.slice(0, 5).map((record, index) =>
+          [
+            `${index + 1}. ${record?.name || record?.title || 'بدون نام'}`,
+            `نوع: ${record?.channelType || 'نامشخص'}`,
+            `متن: ${Boolean(record?.text)}`,
+            `کپشن: ${Boolean(record?.caption)}`,
+            `لینک: ${record?.link || record?.postUrl || 'ندارد'}`
+          ].join('\n')
+        )
+      ].join('\n');
+
+      await bot.telegram.sendMessage(
+        ADMIN_ID,
+        debugReport.slice(0, 4000)
+      );
+    } catch (error) {
+      console.error(
+        '[NF] GENRE DEBUG SEND ERROR:',
+        error?.message || error
+      );
+    }
 
   const seen = new Set();
   const matches = [];
