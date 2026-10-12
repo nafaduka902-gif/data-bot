@@ -8798,20 +8798,49 @@ async function nfProcess(
       }
     }
         
-    // #new
-    // جست‌وجوی مستقیم ژانر در آرشیو
-    try {
-      const genreContext =
-        await nfBuildGenreArchiveContext(directText);
 
-      if (genreContext) {
-        archiveContext = [
-          archiveContext,
-          genreContext
-        ]
-          .filter(Boolean)
-          .join('\n\n━━━━━━━━━━━━━━━━━━\n\n')
-          .slice(0, 26000);
+    // #update
+    // پاسخ مستقیم و کامل درخواست‌های ژانری
+    try {
+      const genreResult =
+        await nfWithTimeout(
+          () => nfGetGenreArchiveMatches(directText),
+          15000,
+          'GENRE_ARCHIVE_SEARCH'
+        );
+
+      if (genreResult.isGenreRequest) {
+        if (
+          nfLocks.get(key) !== requestId
+        ) {
+          return;
+        }
+
+        const genreAnswer =
+          nfBuildGenreArchiveAnswer(
+            genreResult,
+            directText
+          );
+
+        nfRemember(
+          ctx,
+          'assistant',
+          genreAnswer
+        );
+
+        logStage('GENRE_RESULT_SEND');
+
+        await nfWithTimeout(
+          () => nfSendResult(
+            ctx,
+            genreAnswer,
+            thinking?.message_id
+          ),
+          20000,
+          'GENRE_RESULT_SEND'
+        );
+
+        return;
       }
     } catch (error) {
       console.error(
@@ -8819,6 +8848,7 @@ async function nfProcess(
         error?.message || error
       );
     }
+
 
     // #new
     // پیدا کردن انیمه‌های مشابه از آرشیو
@@ -9104,6 +9134,316 @@ function nfArchiveExpandSearchQueries(text) {
 
   return [...queries].filter(Boolean);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ // #new
+async function nfGetGenreArchiveMatches(userText) {
+  const normalize = value =>
+    nfArchiveNormalize(String(value || ''));
+
+  const question = normalize(userText);
+
+  const genres = [
+    { name: 'کمدی', aliases: ['کمدی', 'comedy'] },
+    { name: 'اکشن', aliases: ['اکشن', 'action'] },
+    { name: 'فانتزی', aliases: ['فانتزی', 'fantasy'] },
+    { name: 'ماجراجویی', aliases: ['ماجراجویی', 'adventure'] },
+    { name: 'عاشقانه', aliases: ['عاشقانه', 'romance', 'رمانتیک'] },
+    { name: 'درام', aliases: ['درام', 'drama'] },
+    { name: 'مدرسه‌ای', aliases: ['مدرسه‌ای', 'مدرسه', 'school'] },
+    { name: 'ورزشی', aliases: ['ورزشی', 'sports', 'sport'] },
+    { name: 'ایسکای', aliases: ['ایسکای', 'isekai'] },
+    { name: 'علمی‌تخیلی', aliases: ['علمی تخیلی', 'علمی‌تخیلی', 'science fiction', 'sci-fi'] },
+    { name: 'ماورایی', aliases: ['ماورایی', 'supernatural'] },
+    { name: 'ترسناک', aliases: ['ترسناک', 'horror'] },
+    { name: 'معمایی', aliases: ['معمایی', 'mystery'] },
+    { name: 'جنایی', aliases: ['جنایی', 'crime'] },
+    { name: 'تاریخی', aliases: ['تاریخی', 'historical'] },
+    { name: 'موزیکال', aliases: ['موزیکال', 'music'] }
+  ];
+
+  const requestedGenres = genres.filter(genre =>
+    genre.aliases.some(alias =>
+      question.includes(normalize(alias))
+    )
+  );
+
+  const asksForGenreList =
+    requestedGenres.length > 0 &&
+    /(?:ژانر|genre|genres|انیمه|anime|معرفی|پیشنهاد|فهرست|تمام|همه|آرشیو|channel|list|show|find|recommend|all)/iu
+      .test(String(userText || ''));
+
+  if (!asksForGenreList) {
+    return {
+      isGenreRequest: false,
+      requestedGenres: [],
+      matches: []
+    };
+  }
+
+  let main = [];
+  let added = [];
+
+  try {
+    main = await nfReadArchive();
+  } catch (error) {
+    console.error(
+      '[NF] GENRE MAIN ARCHIVE ERROR:',
+      error?.message || error
+    );
+  }
+
+  try {
+    added = await nfReadAddedArchivePosts();
+  } catch (error) {
+    console.error(
+      '[NF] GENRE ADDED ARCHIVE ERROR:',
+      error?.message || error
+    );
+  }
+
+  const records = [
+    ...(Array.isArray(main) ? main : []),
+    ...(Array.isArray(added) ? added : [])
+  ];
+
+  const seen = new Set();
+  const matches = [];
+
+  for (const record of records) {
+    if (!record || typeof record !== 'object') {
+      continue;
+    }
+
+    const content = [
+      record.text,
+      record.caption
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const channelType = normalize(record.channelType);
+
+    const isAnime =
+      channelType === 'anime' ||
+      /📼\s*انیمه\s*(?:سریالی|سریال|سینمایی)/iu.test(content);
+
+    if (!isAnime) {
+      continue;
+    }
+
+    const genreLine =
+      content.match(
+        /(?:🎭\s*)?(?:ژانرها?|genres?)\s*[:：]\s*([^\n]+)/iu
+      )?.[1] || '';
+
+    const storedGenres = Array.isArray(record.genres)
+      ? record.genres.join(' | ')
+      : String(record.genres || '');
+
+    const searchableGenres = normalize(
+      `${genreLine} | ${storedGenres}`
+    );
+
+    const matchedGenres = requestedGenres.filter(genre =>
+      genre.aliases.some(alias =>
+        searchableGenres.includes(normalize(alias))
+      )
+    );
+
+    // در درخواست چندژانری، همه ژانرهای خواسته‌شده باید وجود داشته باشند.
+    if (
+      !matchedGenres.length ||
+      matchedGenres.length !== requestedGenres.length
+    ) {
+      continue;
+    }
+
+    const title = String(
+      record.persianName ||
+      record.animeName ||
+      record.name ||
+      record.title ||
+      record.englishName ||
+      ''
+    ).trim();
+
+    const link = String(
+      record.link || record.postUrl || ''
+    ).trim();
+
+    // لینک جعلی یا ناقص نساز.
+    if (
+      !title ||
+      !/^https:\/\/t\.me\/[a-zA-Z0-9_]+\/\d+(?:\?.*)?$/iu.test(link)
+    ) {
+      continue;
+    }
+
+    const identity = normalize(link);
+
+    if (seen.has(identity)) {
+      continue;
+    }
+
+    seen.add(identity);
+
+    const hasDub =
+      /دوبله\s*فارسی/iu.test(content);
+
+    const hasSub =
+      /زیرنویس\s*فارسی/iu.test(content);
+
+    const availability =
+      hasDub && hasSub
+        ? 'دوبله و زیرنویس فارسی'
+        : hasDub
+          ? 'دوبله فارسی'
+          : hasSub
+            ? 'زیرنویس فارسی'
+            : 'وضعیت مشخص نیست';
+
+    matches.push({
+      title,
+      englishName: String(
+        record.englishName || ''
+      ).trim(),
+      genres: genreLine.trim() || storedGenres,
+      availability,
+      link
+    });
+  }
+
+  return {
+    isGenreRequest: true,
+    requestedGenres: requestedGenres.map(item => item.name),
+    matches
+  };
+}
+
+
+// #new
+function nfBuildGenreArchiveContext(result) {
+  if (!result?.isGenreRequest) {
+    return '';
+  }
+
+  const lines = [
+    'DIRECT GENRE ARCHIVE RESULTS',
+    `Requested genres: ${result.requestedGenres.join(' | ')}`,
+    `Total matching anime: ${result.matches.length}`
+  ];
+
+  for (const item of result.matches) {
+    lines.push([
+      `Title: ${item.title}`,
+      `Genres: ${item.genres || 'Unknown'}`,
+      `Availability: ${item.availability}`,
+      `Telegram Link: ${item.link}`
+    ].join('\n'));
+  }
+
+  return lines.join('\n\n');
+}
+
+
+// #new
+function nfBuildGenreArchiveAnswer(result, userText) {
+  const source = String(userText || '');
+
+  const isEnglish =
+    /^[\s\S]*[a-zA-Z]/u.test(source) &&
+    !/[\u0600-\u06FF]/u.test(source);
+
+  const labels = isEnglish
+    ? {
+        heading: 'Anime found in the archive',
+        genres: 'Genres',
+        availability: 'Persian availability',
+        link: 'Post link',
+        click: 'Click here to open the post',
+        empty: 'No matching anime with a valid post link was found in the available archive.'
+      }
+    : {
+        heading: 'انیمه‌های پیدا‌شده در آرشیو',
+        genres: 'ژانر',
+        availability: 'وضعیت پخش',
+        link: 'لینک پست',
+        click: 'روی این متن کلیک کنید',
+        empty: 'انیمه‌ای با ژانرهای درخواستی و لینک معتبر در آرشیو موجود پیدا نشد.'
+      };
+
+  if (!result?.matches?.length) {
+    return labels.empty;
+  }
+
+  const output = [
+    `${labels.heading} (${result.matches.length})`,
+    ''
+  ];
+
+  for (let i = 0; i < result.matches.length; i++) {
+    const item = result.matches[i];
+
+    output.push(
+      `${i + 1}. ${item.title}`,
+      `${labels.genres}: ${item.genres || 'نامشخص'}`,
+      `${labels.availability}: ${item.availability}`,
+      `🔗 ${labels.link}: [${labels.click}](${item.link})`,
+      ''
+    );
+  }
+
+  return output.join('\n').trim();
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
