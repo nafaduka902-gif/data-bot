@@ -4170,5 +4170,29 @@
     "date": 1791842315,
     "createdAt": "2026-10-12T21:58:37.276Z",
     "updatedAt": "2026-10-12T21:58:37.276Z"
+  },
+  {
+    "id": "anime_faarsi:1042",
+    "name": "Blue Box",
+    "nameNormalized": "blue box",
+    "aliases": [
+      "Blue Box"
+    ],
+    "aliasesNormalized": [
+      "blue box"
+    ],
+    "animeName": "Blue Box",
+    "englishName": "",
+    "persianName": "Blue Box",
+    "link": "https://t.me/Anime_Faarsi/1042",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1042,
+    "text": "قسمت دوم فصل دوم انیمه « Blue Box » با زیرنویس فارسی اختصاصی انیمه فارسی اضافه شد.\nمترجم: Mr Lord",
+    "caption": "",
+    "date": 1791850505,
+    "createdAt": "2026-10-13T00:15:07.545Z",
+    "updatedAt": "2026-10-13T00:15:07.545Z"
   }
 ]
