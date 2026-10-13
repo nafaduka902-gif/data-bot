@@ -960,7 +960,8 @@
     "chatTitle": "Anime Faarsi Chats | چت انیمه فارسی",
     "welcomeMessageId": 4424,
     "captchaToken": "muov87wh_iz6s2hyn",
-    "createdAt": "2026-10-01T01:38:40.316Z"
+    "createdAt": "2026-10-01T01:38:40.316Z",
+    "rulesMessageId": 16684
   },
   {
     "kind": "pending",
