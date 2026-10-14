@@ -9025,7 +9025,7 @@ async function nfProcess(
           );
         } catch (error) {
           console.error(
-            '[NF] GENRE   AI ERROR:',
+            '[NF] GENRE   AI ER ROR:',
             error?.message || error
           );
         }
