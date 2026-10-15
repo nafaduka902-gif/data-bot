@@ -7578,5 +7578,29 @@
     "date": 1745427099,
     "createdAt": "2026-10-15T10:33:56.592Z",
     "updatedAt": "2026-10-15T10:33:56.592Z"
+  },
+  {
+    "id": "faarsimovie:484",
+    "name": "Mobland",
+    "nameNormalized": "mobland",
+    "aliases": [
+      "Mobland"
+    ],
+    "aliasesNormalized": [
+      "mobland"
+    ],
+    "animeName": "Mobland",
+    "englishName": "",
+    "persianName": "Mobland",
+    "link": "https://t.me/FaarsiMovie/484",
+    "channel": "FaarsiMovie",
+    "channelNormalized": "faarsimovie",
+    "channelType": "movie",
+    "messageId": 484,
+    "text": "قسمت چهارم فصل دوم سریال « Mobland » با دوبله فارسی اضافه شد.",
+    "caption": "",
+    "date": 1792060931,
+    "createdAt": "2026-10-15T10:42:13.274Z",
+    "updatedAt": "2026-10-15T10:42:13.274Z"
   }
 ]
