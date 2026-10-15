@@ -7453,5 +7453,29 @@
     "date": 1792051427,
     "createdAt": "2026-10-15T08:03:48.993Z",
     "updatedAt": "2026-10-15T08:03:48.993Z"
+  },
+  {
+    "id": "anime_faarsi:1047",
+    "name": "عهد میبندم.",
+    "nameNormalized": "عهد میبندم",
+    "aliases": [
+      "عهد میبندم."
+    ],
+    "aliasesNormalized": [
+      "عهد میبندم"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "عهد میبندم.",
+    "link": "https://t.me/Anime_Faarsi/1047",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1047,
+    "text": "عهد میبندم.\n\n با خودم عهد بسته‌ام که هرگز پشت به رویاهایم نکنم؛ می‌ایستم، می‌جنگم و تا به مقصد نرسم دست از تلاش برنمی‌دارم.\n\n@Anime_Faarsi - Mr LORD",
+    "caption": "",
+    "date": 1792052225,
+    "createdAt": "2026-10-15T08:17:07.340Z",
+    "updatedAt": "2026-10-15T08:17:07.340Z"
   }
 ]
