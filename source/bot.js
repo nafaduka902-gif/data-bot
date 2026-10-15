@@ -9552,6 +9552,205 @@ function nfArchiveExpandSearchQueries(text) {
 
 
 
+ // #new
+// تنظیمات مستقل سیستم کامنت خودکار
+const AFAC_GROUP_USERNAME = 'anime_faarsichat';
+const AFAC_CHANNEL_USERNAME = 'anime_faarsi';
+const AFAC_AI_ENDPOINT = 'https://prexzyapis.com/ai/gemini';
+
+// #new
+// جلوگیری موقت از ثبت کامنت تکراری
+const afacCommentedPosts = new Set();
+const afacCommentLocks = new Set();
+
+// #new
+// استخراج متن پست منتقل‌شده به گروه
+function afacGetPostText(message) {
+  return String(
+    message?.text ||
+    message?.caption ||
+    ''
+  ).trim();
+}
+
+// #new
+// ساخت پرامپت مستقل برای کامنت
+function afacBuildCommentPrompt(postText) {
+  return [
+    'برای پست زیر یک کامنت فارسی طبیعی بنویس.',
+    'لحن صمیمی، پرانرژی، هیجان‌زده، تعریف‌آمیز و کمی چاپلوسانه باشد.',
+    'کامنت باید مخصوص همین پست باشد، نه یک متن ثابت برای همه پست‌ها.',
+    'اگر عنوان انیمه یا شماره قسمت مشخص است، متناسب با همان اشاره کن.',
+    'در صورت مناسب بودن، از تیم انتشار گرم و طبیعی تشکر کن.',
+    'ادعای شخصی ساختگی مثل مدت انتظار واقعی مطرح نکن.',
+    'فقط یک یا دو جمله کوتاه بنویس.',
+    'بدون مقدمه، توضیح، هشتگ یا لینک.',
+    '',
+    'متن پست:',
+    postText || 'پست رسانه‌ای بدون کپشن'
+  ].join('\n');
+}
+
+// #new
+// درخواست مستقل از هوش مصنوعی
+async function afacGenerateComment(postText) {
+  const prompt = afacBuildCommentPrompt(postText);
+
+  const response = await axios.post(
+    AFAC_AI_ENDPOINT,
+    { prompt },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    }
+  );
+
+  const data = response?.data;
+
+  if (
+    data?.status !== true ||
+    typeof data?.response !== 'string'
+  ) {
+    throw new Error('AFAC_AI_RESPONSE_INVALID');
+  }
+
+  const comment = data.response
+    .replace(/\\n/g, '\n')
+    .trim()
+    .replace(
+      /^(?:کامنت|نظر پیشنهادی|متن کامنت)\s*[:：-]\s*/iu,
+      ''
+    )
+    .replace(/https?:\/\/\S+/giu, '')
+    .replace(/^["«]|["»]$/gu, '')
+    .trim();
+
+  if (!comment) {
+    throw new Error('AFAC_COMMENT_EMPTY');
+  }
+
+  return comment.slice(0, 450);
+}
+
+// #new
+// تشخیص پست اصلی منتقل‌شده از کانال
+function afacGetForwardedPost(message) {
+  if (!message?.is_automatic_forward) {
+    return null;
+  }
+
+  const origin = message.forward_origin;
+  const sourceChat =
+    message.forward_from_chat ||
+    origin?.chat;
+
+  const sourceMessageId =
+    message.forward_from_message_id ||
+    origin?.message_id;
+
+  if (!sourceChat?.id || !sourceMessageId) {
+    return null;
+  }
+
+  return {
+    channelId: sourceChat.id,
+    channelUsername: String(
+      sourceChat.username || ''
+    ).replace(/^@/, '').toLowerCase(),
+    sourceMessageId,
+    discussionMessageId: message.message_id
+  };
+}
+
+// #new
+// إرسال الرد داخل مجموعة النقاش
+async function afacSendComment(ctx, messageId, comment) {
+  await ctx.telegram.sendMessage(
+    ctx.chat.id,
+    comment,
+    {
+      reply_parameters: {
+        message_id: messageId
+      }
+    }
+  );
+}
+
+// #new
+// معالج مستقل لتعليقات القناة
+bot.on('message', async ctx => {
+  const chatUsername = String(
+    ctx.chat?.username || ''
+  ).toLowerCase();
+
+  if (chatUsername !== AFAC_GROUP_USERNAME) {
+    return;
+  }
+
+  const message = ctx.message;
+  const forwarded = afacGetForwardedPost(message);
+
+  if (!forwarded) {
+    return;
+  }
+
+  // فقط کانال اصلی مشخص‌شده
+  if (
+    forwarded.channelUsername !==
+    AFAC_CHANNEL_USERNAME
+  ) {
+    return;
+  }
+
+  const postKey =
+    `${forwarded.channelId}:${forwarded.sourceMessageId}`;
+
+  if (
+    afacCommentedPosts.has(postKey) ||
+    afacCommentLocks.has(postKey)
+  ) {
+    return;
+  }
+
+  afacCommentLocks.add(postKey);
+
+  try {
+    const postText = afacGetPostText(message);
+    const comment = await afacGenerateComment(postText);
+
+    await afacSendComment(
+      ctx,
+      forwarded.discussionMessageId,
+      comment
+    );
+
+    afacCommentedPosts.add(postKey);
+
+    if (afacCommentedPosts.size > 2000) {
+      const oldest =
+        afacCommentedPosts.values().next().value;
+
+      afacCommentedPosts.delete(oldest);
+    }
+
+    console.log(
+      '[AFAC] Comment posted:',
+      postKey
+    );
+
+  } catch (error) {
+    console.error(
+      '[AFAC] Comment error:',
+      error?.message || error
+    );
+
+  } finally {
+    afacCommentLocks.delete(postKey);
+  }
+});
+
 
 
 
