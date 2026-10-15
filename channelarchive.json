@@ -7527,5 +7527,29 @@
     "date": 1792058187,
     "createdAt": "2026-10-15T09:56:29.175Z",
     "updatedAt": "2026-10-15T09:56:29.175Z"
+  },
+  {
+    "id": "anime_faarsi:1049",
+    "name": "سلام",
+    "nameNormalized": "سلام",
+    "aliases": [
+      "سلام"
+    ],
+    "aliasesNormalized": [
+      "سلام"
+    ],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "سلام",
+    "link": "https://t.me/Anime_Faarsi/1049",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1049,
+    "text": "سلام",
+    "caption": "",
+    "date": 1792058202,
+    "createdAt": "2026-10-15T09:56:43.965Z",
+    "updatedAt": "2026-10-15T09:56:43.965Z"
   }
 ]
