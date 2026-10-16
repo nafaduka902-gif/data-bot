@@ -10033,6 +10033,90 @@ function afac3GetForwardedPost(message) {
   };
 }
 
+
+ // #new
+const AFAC3_CHANNEL_REACTIONS = [
+  '🔥',
+  '❤️',
+  '❤️‍🔥',
+  '😍'
+];
+
+// #new
+const afac3ReactedChannelPosts = new Set();
+
+// #new
+bot.on('channel_post', async (ctx, next) => {
+  try {
+    const post = ctx.channelPost;
+
+    if (!post?.chat?.id || !post?.message_id) {
+      return await next();
+    }
+
+    const channelUsername = String(
+      post.chat.username || ''
+    ).replace(/^@/, '').toLowerCase();
+
+    if (
+      !AFAC3_CHANNEL_USERNAMES.includes(channelUsername)
+    ) {
+      return await next();
+    }
+
+    const postKey =
+      String(post.chat.id) + ':' +
+      String(post.message_id);
+
+    if (afac3ReactedChannelPosts.has(postKey)) {
+      return await next();
+    }
+
+    const reaction =
+      AFAC3_CHANNEL_REACTIONS[
+        Math.floor(
+          Math.random() * AFAC3_CHANNEL_REACTIONS.length
+        )
+      ];
+
+    await ctx.telegram.setMessageReaction(
+      post.chat.id,
+      post.message_id,
+      [
+        {
+          type: 'emoji',
+          emoji: reaction
+        }
+      ]
+    );
+
+    afac3ReactedChannelPosts.add(postKey);
+
+    if (afac3ReactedChannelPosts.size > 2000) {
+      const oldestKey =
+        afac3ReactedChannelPosts.values().next().value;
+
+      afac3ReactedChannelPosts.delete(oldestKey);
+    }
+
+    console.log(
+      '[AFAC3] Channel reaction sent:',
+      channelUsername,
+      reaction,
+      postKey
+    );
+
+  } catch (error) {
+    console.error(
+      '[AFAC3] Channel reaction error:',
+      error?.stack || error?.message || error
+    );
+  }
+
+  return await next();
+});
+
+
 // #new
 bot.on('message', async (ctx, next) => {
   let matchedTargetPost = false;
