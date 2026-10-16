@@ -9941,6 +9941,7 @@ function afac3BuildCommentPrompt(postText) {
 }
 
 // #new
+
 async function afac3GenerateComment(postText) {
   const response = await axios.post(
     AFAC3_AI_ENDPOINT,
@@ -9966,13 +9967,26 @@ async function afac3GenerateComment(postText) {
   }
 
   const comment = data.response
-    // حذف کدهای خام یونیکد
-    .replace(/\\u200c/giu, '')
-    .replace(/\\u200e|\\u200f/giu, '')
-    .replace(/\\uFEFF/giu, '')
-    // حذف نویسه‌های نامرئی واقعی
-    .replace(/[\u200B-\u200F\uFEFF]/gu, '')
+    // تبدیل کدهای خام Unicode به نویسه‌های واقعی
+    .replace(
+      /\\u\{([0-9a-f]{1,6})\}/giu,
+      (match, hex) => {
+        const code = parseInt(hex, 16);
+
+        return code <= 0x10FFFF
+          ? String.fromCodePoint(code)
+          : '';
+      }
+    )
+    .replace(
+      /\\u([0-9a-f]{4})/giu,
+      (match, hex) =>
+        String.fromCharCode(parseInt(hex, 16))
+    )
+    // حذف نویسه‌های کنترلی و نامرئی ناخواسته
+    .replace(/[\u200B\u200C\u200E\u200F\uFEFF]/gu, '')
     .replace(/\\n/g, '\n')
+    // حذف توضیحات اضافی و لینک‌ها
     .replace(
       /^(کامنت|نظر پیشنهادی|متن کامنت)\s*[:：-]\s*/iu,
       ''
@@ -9987,6 +10001,7 @@ async function afac3GenerateComment(postText) {
 
   return comment.slice(0, 350);
 }
+
 
 // #new
 function afac3GetForwardedPost(message) {
