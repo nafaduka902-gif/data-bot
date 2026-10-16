@@ -1,7 +1,8 @@
 const ADMIN_ID = 2048310529;
+const OWNER_ID = 2048310529;
 const OMDB_API_KEY = process.env.OMDB_API_KEY;
 let DEFAULT_DOWNLOAD_URL = 'https://t.me/dubb_anime';
-const OWNER_ID = 2048310529;
+
  
  
 
@@ -1381,6 +1382,73 @@ bot.action(
     }
 )
 
+// #new
+// گزارش مستقل پیام‌های ورود اعضا برای مالک
+
+bot.on('message', async (ctx, next) => {
+  try {
+    const msg = ctx.message;
+
+    if (!msg || !ctx.chat) {
+      return next();
+    }
+
+    const serviceKeys = Object.keys(msg).filter(
+      key =>
+        key.startsWith('new_chat_') ||
+        key === 'left_chat_member'
+    );
+
+    const hasJoinService =
+      Array.isArray(msg.new_chat_members) ||
+      Boolean(msg.new_chat_participant);
+
+    const hasLeaveService =
+      Boolean(msg.left_chat_member);
+
+    if (!hasJoinService && !hasLeaveService) {
+      return next();
+    }
+
+    const report = {
+      chatId: ctx.chat.id,
+      chatTitle: ctx.chat.title || '',
+      chatType: ctx.chat.type,
+      messageId: msg.message_id,
+      serviceKeys,
+      newChatMembers:
+        msg.new_chat_members?.map(user => ({
+          id: user.id,
+          name: user.first_name || '',
+          username: user.username || '',
+          isBot: user.is_bot
+        })) || [],
+      newChatParticipant: msg.new_chat_participant
+        ? {
+            id: msg.new_chat_participant.id,
+            name: msg.new_chat_participant.first_name || ''
+          }
+        : null,
+      text: msg.text || '',
+      caption: msg.caption || ''
+    };
+
+    await ctx.telegram.sendMessage(
+      OWNER_ID,
+      '<b>🔎 گزارش تشخیص ورود عضو</b>\n\n<pre>' +
+        escapeHtml(JSON.stringify(report, null, 2)) +
+        '</pre>',
+      { parse_mode: 'HTML' }
+    );
+  } catch (error) {
+    console.error(
+      'JOIN DEBUG ERROR:',
+      error?.message || error
+    );
+  }
+
+  return next();
+});
 bot.on(
   'message',
   async (ctx, next) => {
@@ -16690,69 +16758,6 @@ ${escapeHtml(cache.records[index].name)}`,
     }
   );
 }
-
-
-// #new
-// گزارش مستقل تشخیص ورود عضو برای مالک
-
-bot.on('message', async ctx => {
-  try {
-    const msg = ctx.message;
-
-    if (!msg?.chat || !msg.message_id) {
-      return;
-    }
-
-    if (
-      !msg.new_chat_members?.length &&
-      !msg.left_chat_member &&
-      !msg.forum_topic_created
-    ) {
-      return;
-    }
-
-    const debug = {
-      event: 'JOIN_DEBUG',
-      chatId: msg.chat.id,
-      chatTitle: msg.chat.title || '',
-      chatType: msg.chat.type,
-      messageId: msg.message_id,
-      newChatMembers: msg.new_chat_members?.map(user => ({
-        id: user.id,
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
-        username: user.username || '',
-        is_bot: user.is_bot
-      })) || [],
-      leftChatMember: msg.left_chat_member
-        ? {
-            id: msg.left_chat_member.id,
-            first_name: msg.left_chat_member.first_name || '',
-            username: msg.left_chat_member.username || ''
-          }
-        : null,
-      serviceKeys: Object.keys(msg).filter(
-        key =>
-          key.startsWith('new_chat_') ||
-          key === 'left_chat_member'
-      )
-    };
-
-    await ctx.telegram.sendMessage(
-      OWNER_ID,
-      '<b>🔎 گزارش تشخیص رویداد گروه</b>\n\n<pre>' +
-        escapeHtml(JSON.stringify(debug, null, 2)) +
-        '</pre>',
-      { parse_mode: 'HTML' }
-    );
-  } catch (error) {
-    console.error(
-      'JOIN DEBUG ERROR:',
-      error?.message || error
-    );
-  }
-});
-
 
 function getWelcomeDefaults() {
   return {
