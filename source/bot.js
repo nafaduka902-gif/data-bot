@@ -9785,6 +9785,7 @@ function nfCanUseAI(ctx) {
 }
 
 
+
 // #new
 bot.command('archive', async (ctx) => {
   try {
@@ -9795,6 +9796,7 @@ bot.command('archive', async (ctx) => {
 
     try {
       const result = await nfReadArchive();
+
       if (Array.isArray(result)) {
         mainRecords = result;
       }
@@ -9807,6 +9809,7 @@ bot.command('archive', async (ctx) => {
 
     try {
       const result = await nfReadAddedArchivePosts();
+
       if (Array.isArray(result)) {
         addedPosts = result;
       }
@@ -9822,7 +9825,7 @@ bot.command('archive', async (ctx) => {
       ...addedPosts
     ];
 
-    const uniqueRecords = new Map();
+    const uniqueRecords = [];
 
     for (const record of allRecords) {
       if (!record || typeof record !== 'object') {
@@ -9841,21 +9844,35 @@ bot.command('archive', async (ctx) => {
         [
           record.name || record.title || '',
           record.channel || '',
-          record.text || ''
+          record.text || record.caption || ''
         ].join('|')
       ).trim();
 
-      if (recordKey) {
-        uniqueRecords.set(recordKey, record);
+      if (!recordKey) {
+        continue;
+      }
+
+      const alreadyExists = uniqueRecords.some(
+        item => item.key === recordKey
+      );
+
+      if (!alreadyExists) {
+        uniqueRecords.push({
+          key: recordKey,
+          record
+        });
       }
     }
 
-    const total = uniqueRecords.size;
+    const total = uniqueRecords.length;
 
     await ctx.reply([
       '📊 آمار آرشیو انیمه فارسی',
       '',
       `📚 مجموع رکوردهای یکتا: ${total}`,
+      '',
+      `📁 آرشیو اصلی: ${mainRecords.length}`,
+      `➕ پست‌های اضافه‌شده: ${addedPosts.length}`,
       '',
       '✅ آمار از آرشیو اصلی و پست‌های اضافه‌شده محاسبه شد.'
     ].join('\n'));
@@ -9863,14 +9880,15 @@ bot.command('archive', async (ctx) => {
   } catch (error) {
     console.error(
       '[NF] ARCHIVE COMMAND ERROR:',
-      error?.message || error
+      error?.stack || error?.message || error
     );
 
     await ctx.reply(
-      '❌ دریافت آمار آرشیو ناموفق بود. لطفاً خطای ربات را بررسی کنید.'
+      '❌ دریافت آمار آرشیو ناموفق بود. لطفاً Live Logs را بررسی کنید.'
     );
   }
 });
+
 
 
 bot.command(
