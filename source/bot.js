@@ -3191,6 +3191,7 @@ function nfIsOwner(ctx) {
   return Number(ctx.from?.id) === 2048310529;
 }
 
+
 function nfState(ctx) {
   const key = nfKey(ctx);
 
@@ -3198,12 +3199,39 @@ function nfState(ctx) {
     nfConversationState.set(key, {
       history: [],
       botMessageIds: [],
-      lastUserMessageId: null
+      lastUserMessageId: null,
+
+      // #new
+      cleanupMessageIds: [],
+      cleanupLastActivityAt: 0,
+      cleanupChatId: Number(ctx.chat?.id || 0),
+      cleanupUserId: Number(ctx.from?.id || 0)
     });
   }
 
-  return nfConversationState.get(key);
+  const state = nfConversationState.get(key);
+
+  // #new
+  // سازگاری با وضعیت‌هایی که قبلاً ساخته شده‌اند.
+  if (!Array.isArray(state.cleanupMessageIds)) {
+    state.cleanupMessageIds = [];
+  }
+
+  if (typeof state.cleanupLastActivityAt !== 'number') {
+    state.cleanupLastActivityAt = 0;
+  }
+
+  if (!state.cleanupChatId) {
+    state.cleanupChatId = Number(ctx.chat?.id || 0);
+  }
+
+  if (!state.cleanupUserId) {
+    state.cleanupUserId = Number(ctx.from?.id || 0);
+  }
+
+  return state;
 }
+
 
 function nfRemember(ctx, role, content) {
   const state = nfState(ctx);
@@ -3263,6 +3291,7 @@ function nfEscapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
+
 function nfTrackBotMessage(ctx, messageId) {
   if (!messageId) {
     return;
@@ -3278,7 +3307,19 @@ function nfTrackBotMessage(ctx, messageId) {
     state.botMessageIds =
       state.botMessageIds.slice(-80);
   }
+
+  // #new
+  try {
+    nfMessageTimeTouch(ctx, messageId);
+  } catch (error) {
+    console.error(
+      '[NF MESSAGE TIME BOT ERROR]',
+      error?.message || error
+    );
+  }
 }
+
+
 
 function nfTrackUserMessage(ctx) {
   const state = nfState(ctx);
@@ -3286,8 +3327,22 @@ function nfTrackUserMessage(ctx) {
   if (ctx.message?.message_id) {
     state.lastUserMessageId =
       Number(ctx.message.message_id);
+
+    // #new
+    try {
+      nfMessageTimeTouch(
+        ctx,
+        ctx.message.message_id
+      );
+    } catch (error) {
+      console.error(
+        '[NF MESSAGE TIME USER ERROR]',
+        error?.message || error
+      );
+    }
   }
 }
+
 
 function nfResetState(ctx) {
   nfConversationState.set(
@@ -9356,6 +9411,412 @@ async function nfProcess(
   }
 }
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ // #new
+// تنظیمات پاک‌سازی خودکار پیام‌های AI
+const NF_MESSAGE_TIME_DIR = 'message-time';
+const NF_MESSAGE_TIME_LIMIT = 10 * 60 * 1000;
+const NF_MESSAGE_TIME_CHECK = 60 * 1000;
+
+const nfMessageTimeSaving = new Map();
+const nfMessageTimeRunning = new Set();
+const nfMessageTimeSha = new Map();
+
+function nfMessageTimeFile(key) {
+  const [chatId, userId] = key.split(':');
+  return `${NF_MESSAGE_TIME_DIR}/${chatId}_${userId}.json`;
+}
+
+function nfMessageTimeApiUrl(file) {
+  return `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${file}`;
+}
+
+function nfMessageTimeHeaders() {
+  if (!GITHUB_TOKEN) {
+    throw new Error('NF_MESSAGE_TIME_GITHUB_TOKEN_MISSING');
+  }
+
+  return {
+    Accept: 'application/vnd.github+json',
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+}
+
+function nfMessageTimeDecode(content) {
+  return JSON.parse(
+    Buffer.from(content, 'base64').toString('utf8')
+  );
+}
+
+async function nfMessageTimeRead(file) {
+  const response = await axios.get(
+    nfMessageTimeApiUrl(file),
+    {
+      headers: nfMessageTimeHeaders(),
+      params: { ref: GITHUB_BRANCH },
+      timeout: 15000
+    }
+  );
+
+  nfMessageTimeSha.set(file, response.data.sha);
+
+  return nfMessageTimeDecode(
+    response.data.content.replace(/\s/g, '')
+  );
+}
+
+async function nfMessageTimeWrite(file, data) {
+  const previous = nfMessageTimeSaving.get(file) || Promise.resolve();
+
+  const current = previous.catch(() => {}).then(async () => {
+    // SHA تازه را بگیر تا تغییر قبلی فایل از بین نرود.
+    let sha = nfMessageTimeSha.get(file);
+
+    try {
+      const latest = await axios.get(
+        nfMessageTimeApiUrl(file),
+        {
+          headers: nfMessageTimeHeaders(),
+          params: { ref: GITHUB_BRANCH },
+          timeout: 15000
+        }
+      );
+
+      sha = latest.data.sha;
+      nfMessageTimeSha.set(file, sha);
+    } catch (error) {
+      if (error?.response?.status !== 404) throw error;
+      sha = undefined;
+    }
+
+    const body = {
+      message: 'Update AI message cleanup session',
+      content: Buffer.from(
+        JSON.stringify(data, null, 2),
+        'utf8'
+      ).toString('base64'),
+      branch: GITHUB_BRANCH
+    };
+
+    if (sha) body.sha = sha;
+
+    const response = await axios.put(
+      nfMessageTimeApiUrl(file),
+      body,
+      {
+        headers: nfMessageTimeHeaders(),
+        timeout: 20000
+      }
+    );
+
+    nfMessageTimeSha.set(file, response.data.content.sha);
+  });
+
+  nfMessageTimeSaving.set(file, current);
+
+  try {
+    await current;
+  } finally {
+    if (nfMessageTimeSaving.get(file) === current) {
+      nfMessageTimeSaving.delete(file);
+    }
+  }
+}
+
+function nfMessageTimeData(ctx) {
+  const key = nfKey(ctx);
+  const state = nfState(ctx);
+
+  if (!Array.isArray(state.cleanupMessageIds)) {
+    state.cleanupMessageIds = [];
+  }
+
+  if (!state.cleanupChatId) {
+    state.cleanupChatId = Number(ctx.chat?.id || 0);
+  }
+
+  if (!state.cleanupUserId) {
+    state.cleanupUserId = Number(ctx.from?.id || 0);
+  }
+
+  return {
+    version: 1,
+    key,
+    chatId: Number(ctx.chat?.id || 0),
+    userId: Number(ctx.from?.id || 0),
+    messageIds: state.cleanupMessageIds,
+    lastActivityAt: state.cleanupLastActivityAt || Date.now()
+  };
+}
+
+function nfMessageTimeTouch(ctx, messageId) {
+  const state = nfState(ctx);
+
+  if (!Array.isArray(state.cleanupMessageIds)) {
+    state.cleanupMessageIds = [];
+  }
+
+  if (messageId) {
+    const id = Number(messageId);
+
+    if (
+      Number.isSafeInteger(id) &&
+      id > 0 &&
+      !state.cleanupMessageIds.includes(id)
+    ) {
+      state.cleanupMessageIds.push(id);
+    }
+  }
+
+  // آخرین فعالیت کاربر یا آخرین پیام ربات
+  state.cleanupLastActivityAt = Date.now();
+
+  // فقط شناسه‌های پیام همین گفت‌وگو نگهداری می‌شوند.
+  if (state.cleanupMessageIds.length > 300) {
+    state.cleanupMessageIds =
+      state.cleanupMessageIds.slice(-300);
+  }
+
+  const data = nfMessageTimeData(ctx);
+  const file = nfMessageTimeFile(nfKey(ctx));
+
+  // خطای ذخیره نباید پاسخ‌گویی AI را متوقف کند.
+  nfMessageTimeWrite(file, data).catch(error => {
+    console.error(
+      '[NF MESSAGE TIME SAVE ERROR]',
+      error?.response?.status || '',
+      error?.message || error
+    );
+  });
+}
+
+async function nfMessageTimeCleanupOne(key, data) {
+  if (nfMessageTimeRunning.has(key)) return;
+
+  if (!data || !data.chatId || !Array.isArray(data.messageIds)) {
+    return;
+  }
+
+  const lastActivity = Number(data.lastActivityAt || 0);
+
+  if (
+    !lastActivity ||
+    Date.now() - lastActivity < NF_MESSAGE_TIME_LIMIT
+  ) {
+    return;
+  }
+
+  nfMessageTimeRunning.add(key);
+
+  try {
+    // اگر پردازش همین کاربر هنوز فعال است، صبر کن.
+    if (nfLocks.has(key)) return;
+
+    for (const messageId of [...data.messageIds].reverse()) {
+      try {
+        await bot.telegram.deleteMessage(
+          Number(data.chatId),
+          Number(messageId)
+        );
+      } catch (error) {
+        console.warn(
+          '[NF MESSAGE DELETE FAILED]',
+          key,
+          messageId,
+          error?.response?.description || error?.message || error
+        );
+      }
+    }
+
+    // شناسه‌های قبلی دیگر نباید در دور بعدی حذف شوند.
+    const file = nfMessageTimeFile(key);
+
+    await nfMessageTimeWrite(file, {
+      version: 1,
+      key,
+      chatId: Number(data.chatId),
+      userId: Number(data.userId || 0),
+      messageIds: [],
+      lastActivityAt: 0,
+      cleanedAt: Date.now()
+    });
+
+    const state = nfConversationState.get(key);
+
+    if (state) {
+      state.cleanupMessageIds = [];
+      state.cleanupLastActivityAt = 0;
+    }
+  } catch (error) {
+    console.error(
+      '[NF MESSAGE TIME CLEANUP ERROR]',
+      key,
+      error?.message || error
+    );
+  } finally {
+    nfMessageTimeRunning.delete(key);
+  }
+}
+
+async function nfMessageTimeCheck() {
+  for (const [key, state] of nfConversationState.entries()) {
+    const data = {
+      key,
+      chatId: Number(state.cleanupChatId || key.split(':')[0]),
+      userId: Number(state.cleanupUserId || key.split(':')[1]),
+      messageIds: state.cleanupMessageIds || [],
+      lastActivityAt: Number(state.cleanupLastActivityAt || 0)
+    };
+
+    if (
+      data.messageIds.length &&
+      data.lastActivityAt &&
+      Date.now() - data.lastActivityAt >= NF_MESSAGE_TIME_LIMIT
+    ) {
+      await nfMessageTimeCleanupOne(key, data);
+    }
+  }
+}
+
+async function nfMessageTimeRestore() {
+  if (!GITHUB_TOKEN) {
+    console.error('[NF MESSAGE TIME] GITHUB_TOKEN is missing.');
+    return;
+  }
+
+  try {
+    const response = await axios.get(
+      nfMessageTimeApiUrl(NF_MESSAGE_TIME_DIR),
+      {
+        headers: nfMessageTimeHeaders(),
+        params: { ref: GITHUB_BRANCH },
+        timeout: 15000
+      }
+    );
+
+    const files = Array.isArray(response.data)
+      ? response.data.filter(item =>
+          item.type === 'file' &&
+          item.name.endsWith('.json')
+        )
+      : [];
+
+    for (const item of files) {
+      try {
+        const data = await nfMessageTimeRead(item.path);
+
+        if (
+          !data ||
+          !data.key ||
+          !data.chatId ||
+          !data.userId ||
+          !Array.isArray(data.messageIds) ||
+          !data.messageIds.length ||
+          !data.lastActivityAt
+        ) {
+          continue;
+        }
+
+        const state = nfConversationState.get(data.key) || {
+          history: [],
+          botMessageIds: [],
+          lastUserMessageId: null
+        };
+
+        state.cleanupMessageIds = data.messageIds;
+        state.cleanupChatId = Number(data.chatId);
+        state.cleanupUserId = Number(data.userId);
+        state.cleanupLastActivityAt = Number(data.lastActivityAt);
+
+        nfConversationState.set(data.key, state);
+      } catch (error) {
+        console.error(
+          '[NF MESSAGE TIME RESTORE FILE ERROR]',
+          item.path,
+          error?.message || error
+        );
+      }
+    }
+
+    await nfMessageTimeCheck();
+
+    console.log('[NF MESSAGE TIME] Restore completed.');
+  } catch (error) {
+    console.error(
+      '[NF MESSAGE TIME RESTORE ERROR]',
+      error?.response?.status || '',
+      error?.message || error
+    );
+  }
+}
+
+// #new
+// راه‌اندازی بررسی دوره‌ای
+let nfMessageTimeStarted = false;
+
+function nfStartMessageTimeCleanup() {
+  if (nfMessageTimeStarted) return;
+  nfMessageTimeStarted = true;
+
+  nfMessageTimeRestore().catch(error => {
+    console.error('[NF MESSAGE TIME START ERROR]', error);
+  });
+
+  setInterval(() => {
+    nfMessageTimeCheck().catch(error => {
+      console.error('[NF MESSAGE TIME TIMER ERROR]', error);
+    });
+  }, NF_MESSAGE_TIME_CHECK);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // #new
 function nfArchiveExpandSearchQueries(text) {
@@ -26204,6 +26665,10 @@ function postNewsKeyboard() {
     resize_keyboard: true
   };
 }
+
+
+// #new
+nfStartMessageTimeCleanup();
 
 bot.command('postnews', async ctx => {
   try {
