@@ -1382,73 +1382,110 @@ bot.action(
     }
 )
 
-// #new
-// گزارش مستقل پیام‌های ورود اعضا برای مالک
 
-bot.on('message', async (ctx, next) => {
+ // #new
+ // تشخیص ورود عضو از طریق message و chat_member
+
+const joinEventLocks = new Set();
+
+async function sendJoinEventLog(data) {
   try {
-    const msg = ctx.message;
-
-    if (!msg || !ctx.chat) {
-      return next();
-    }
-
-    const serviceKeys = Object.keys(msg).filter(
-      key =>
-        key.startsWith('new_chat_') ||
-        key === 'left_chat_member'
-    );
-
-    const hasJoinService =
-      Array.isArray(msg.new_chat_members) ||
-      Boolean(msg.new_chat_participant);
-
-    const hasLeaveService =
-      Boolean(msg.left_chat_member);
-
-    if (!hasJoinService && !hasLeaveService) {
-      return next();
-    }
-
-    const report = {
-      chatId: ctx.chat.id,
-      chatTitle: ctx.chat.title || '',
-      chatType: ctx.chat.type,
-      messageId: msg.message_id,
-      serviceKeys,
-      newChatMembers:
-        msg.new_chat_members?.map(user => ({
-          id: user.id,
-          name: user.first_name || '',
-          username: user.username || '',
-          isBot: user.is_bot
-        })) || [],
-      newChatParticipant: msg.new_chat_participant
-        ? {
-            id: msg.new_chat_participant.id,
-            name: msg.new_chat_participant.first_name || ''
-          }
-        : null,
-      text: msg.text || '',
-      caption: msg.caption || ''
-    };
-
-    await ctx.telegram.sendMessage(
-      OWNER_ID,
-      '<b>🔎 گزارش تشخیص ورود عضو</b>\n\n<pre>' +
-        escapeHtml(JSON.stringify(report, null, 2)) +
+    await bot.telegram.sendMessage(
+      UPDATE_ADMIN_ID,
+      '<b>🔎 گزارش ورود عضو</b>\n\n<pre>' +
+        escapeHtml(JSON.stringify(data, null, 2)) +
         '</pre>',
       { parse_mode: 'HTML' }
     );
   } catch (error) {
     console.error(
-      'JOIN DEBUG ERROR:',
+      'JOIN EVENT LOG ERROR:',
       error?.message || error
     );
   }
+}
 
-  return next();
+async function handleChatMemberJoin(ctx) {
+  const update = ctx.chatMember;
+
+  if (!update?.chat || !update?.new_chat_member) {
+    return;
+  }
+
+  const oldStatus = update.old_chat_member?.status;
+  const newMember = update.new_chat_member;
+  const user = newMember.user;
+  const chat = update.chat;
+
+  const wasMember = [
+    'creator',
+    'administrator',
+    'member'
+  ].includes(oldStatus) ||
+    (
+      oldStatus === 'restricted' &&
+      update.old_chat_member?.is_member === true
+    );
+
+  const isNowMember = [
+    'creator',
+    'administrator',
+    'member'
+  ].includes(newMember.status) ||
+    (
+      newMember.status === 'restricted' &&
+      newMember.is_member === true
+    );
+
+  if (wasMember || !isNowMember || user?.is_bot) {
+    return;
+  }
+
+  const eventKey = `${chat.id}:${user.id}`;
+
+  if (joinEventLocks.has(eventKey)) {
+    return;
+  }
+
+  joinEventLocks.add(eventKey);
+
+  try {
+    await sendJoinEventLog({
+      event: 'chat_member_join',
+      chatId: chat.id,
+      chatTitle: chat.title || '',
+      userId: user.id,
+      userName: user.first_name || '',
+      username: user.username || '',
+      oldStatus,
+      newStatus: newMember.status,
+      inviteLink: update.invite_link?.invite_link || null,
+      viaJoinRequest: update.via_join_request || false,
+      date: update.date
+        ? new Date(update.date * 1000).toISOString()
+        : null
+    });
+
+    // پیام خوش‌آمدگویی فعلی را در این مسیر فراخوانی نکن
+    // تا زمانی که دریافت chat_member و جلوگیری از تکرار
+    // آزمایش نشده است.
+  } finally {
+    joinEventLocks.delete(eventKey);
+  }
+}
+
+bot.on('chat_member', async ctx => {
+  try {
+    await handleChatMemberJoin(ctx);
+  } catch (error) {
+    console.error(
+      'CHAT MEMBER JOIN ERROR:',
+      error?.message || error
+    );
+  }
 });
+
+
 bot.on(
   'message',
   async (ctx, next) => {
