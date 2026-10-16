@@ -9891,6 +9891,196 @@ bot.command('archive', async (ctx) => {
 
 
 
+// #new
+const AFAC3_GROUP_USERNAME = 'anime_faarsichat';
+const AFAC3_CHANNEL_USERNAME = 'anime_faarsi';
+const AFAC3_AI_ENDPOINT = 'https://prexzyapis.com/ai/gemini';
+
+// #new
+const afac3CommentedPosts = new Set();
+const afac3CommentLocks = new Set();
+
+// #new
+function afac3GetPostText(message) {
+  return String(
+    message?.text ||
+    message?.caption ||
+    ''
+  ).trim();
+}
+
+// #new
+function afac3BuildCommentPrompt(postText) {
+  return [
+    'تو نویسنده کامنت خودکار و حرفه‌ای برای کانال تلگرامی انیمه فارسی هستی.',
+    'با توجه به محتوای پست، فقط یک کامنت فارسی طبیعی، جذاب، طرفدارانه و تعریف‌آمیز بنویس.',
+    'لحن باید صمیمی، باهوش، پرانرژی و کمی چاپلوسانه باشد؛ نه خشک و رسمی.',
+    'کامنت باید نشان دهد که محتوای پست را فهمیده‌ای و صرفاً یک تعریف عمومی نیست.',
+    'اگر پست درباره انیمه جدید است، درباره جذابیت داستان، شخصیت‌ها، فصل یا قسمت جدید واکنش بده.',
+    'اگر پست خبری است، به خبر اصلی واکنش نشان بده و در صورت مناسب بودن نظر کوتاه و بامزه‌ای اضافه کن.',
+    'اگر پست درباره کالکشن است، به ارزش مجموعه، خاطره‌انگیز بودن آثار یا تنوع آن‌ها اشاره کن.',
+    'اگر پست درباره زیرنویس، دوبله یا انتشار انیمه است، به شکل طبیعی از تیم انیمه فارسی و زحماتش تعریف یا تشکر کن.',
+    'در صورت تناسب با محتوا، نام انیمه فارسی یا تیم انیمه فارسی را به شکلی روان در کامنت بیاور؛ تبلیغ را مصنوعی و تکراری نکن.',
+    'هر بار کامنت تازه و متناسب با همان پست بنویس؛ از جمله‌های کلیشه‌ای و تکراری دوری کن.',
+    'اگر خود پست لحن طنز دارد، کامنت هم می‌تواند شوخ‌طبعانه باشد.',
+    'اطلاعات، اخبار، نام‌ها و جزئیاتی را که در پست نیستند از خودت نساز.',
+    'ادعا نکن که شخصاً انیمه را دیده‌ای یا منتظرش بوده‌ای.',
+    'از تعریف اغراق‌آمیز اما طبیعی استفاده کن؛ چاپلوسی نباید توهین‌آمیز یا غیرواقعی باشد.',
+    'از ایموجی مناسب مانند 🔥❤️‍🔥✨🎬 استفاده کن، اما در تعداد کم.',
+    'کامنت فقط یک یا دو جمله و حداکثر ۳۵۰ کاراکتر باشد.',
+    'هیچ مقدمه، توضیح، عنوان، هشتگ یا لینک اضافه نکن.',
+    'فقط متن نهایی کامنت را برگردان.',
+    '',
+    'متن پست کانال انیمه فارسی:',
+    postText || 'پست رسانه‌ای بدون کپشن؛ درباره محتوای قابل مشاهده نظر کوتاه و مناسب بنویس.'
+  ].join('\n');
+}
+
+// #new
+async function afac3GenerateComment(postText) {
+  const response = await axios.post(
+    AFAC3_AI_ENDPOINT,
+    {
+      prompt: afac3BuildCommentPrompt(postText)
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 20000
+    }
+  );
+
+  const data = response?.data;
+
+  if (!data || data.status !== true ||
+      typeof data.response !== 'string') {
+    throw new Error('AFAC3_INVALID_AI_RESPONSE');
+  }
+
+  const comment = data.response
+    .replace(/\\n/g, '\n')
+    .replace(/^(کامنت|نظر پیشنهادی|متن کامنت)\s*[:：-]\s*/iu, '')
+    .replace(/https?:\/\/\S+/giu, '')
+    .replace(/^[«"']+|[»"']+$/gu, '')
+    .trim();
+
+  if (!comment) {
+    throw new Error('AFAC3_EMPTY_COMMENT');
+  }
+
+  return comment.slice(0, 350);
+}
+
+// #new
+function afac3GetForwardedPost(message) {
+  if (!message || message.is_automatic_forward !== true) {
+    return null;
+  }
+
+  const origin = message.forward_origin;
+  const sourceChat =
+    message.forward_from_chat ||
+    origin?.chat;
+
+  const sourceMessageId =
+    message.forward_from_message_id ||
+    origin?.message_id;
+
+  if (!sourceChat?.id || !sourceMessageId) {
+    return null;
+  }
+
+  return {
+    channelId: sourceChat.id,
+    channelUsername: String(sourceChat.username || '')
+      .replace(/^@/, '')
+      .toLowerCase(),
+    sourceMessageId,
+    discussionMessageId: message.message_id
+  };
+}
+
+// #new
+bot.on('message', async (ctx, next) => {
+  let matchedTargetPost = false;
+
+  try {
+    const chatUsername = String(
+      ctx.chat?.username || ''
+    ).replace(/^@/, '').toLowerCase();
+
+    if (chatUsername !== AFAC3_GROUP_USERNAME) {
+      return await next();
+    }
+
+    const forwarded = afac3GetForwardedPost(ctx.message);
+
+    if (!forwarded) {
+      return await next();
+    }
+
+    if (forwarded.channelUsername !== AFAC3_CHANNEL_USERNAME) {
+      return await next();
+    }
+
+    matchedTargetPost = true;
+
+    const postKey =
+      String(forwarded.channelId) + ':' +
+      String(forwarded.sourceMessageId);
+
+    if (
+      afac3CommentedPosts.has(postKey) ||
+      afac3CommentLocks.has(postKey)
+    ) {
+      return;
+    }
+
+    afac3CommentLocks.add(postKey);
+
+    try {
+      const postText = afac3GetPostText(ctx.message);
+      const comment = await afac3GenerateComment(postText);
+
+      await ctx.telegram.sendMessage(
+        ctx.chat.id,
+        comment,
+        {
+          reply_to_message_id: forwarded.discussionMessageId,
+          allow_sending_without_reply: true
+        }
+      );
+
+      afac3CommentedPosts.add(postKey);
+
+      if (afac3CommentedPosts.size > 2000) {
+        const oldestKey =
+          afac3CommentedPosts.values().next().value;
+
+        afac3CommentedPosts.delete(oldestKey);
+      }
+
+      console.log('[AFAC3] Comment sent:', postKey);
+
+    } finally {
+      afac3CommentLocks.delete(postKey);
+    }
+
+  } catch (error) {
+    console.error(
+      '[AFAC3] Auto-comment error:',
+      error?.stack || error?.message || error
+    );
+
+    // خطای کامنت نباید پردازش عادی ربات را متوقف کند.
+    if (!matchedTargetPost) {
+      return await next();
+    }
+  }
+});
+
+
 bot.command(
   'nfon',
   async ctx => {
