@@ -17,11 +17,13 @@
   },
   {
     "kind": "pending",
-    "userId": 7851583351,
+    "userId": 7557410490,
     "chatId": -1002239235244,
-    "chatTitle": "Anime Faarsi Chats | چت انیمه فارسی",
-    "welcomeMessageId": 3530,
-    "createdAt": "2026-09-25T02:08:40.560Z"
+    "chatTitle": "Anime Faarsi Chats | گروه چت انیمه فارسی",
+    "welcomeMessageId": 6439,
+    "createdAt": "2026-10-16T08:39:33.103Z",
+    "captchaToken": "mvapv939_go5fxhyx",
+    "rulesMessageId": null
   },
   {
     "kind": "pending",
