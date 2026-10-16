@@ -9892,11 +9892,17 @@ bot.command('archive', async (ctx) => {
 
 
 // #new
-const AFAC3_GROUP_USERNAME = 'anime_faarsichat';
-const AFAC3_CHANNEL_USERNAME = 'anime_faarsi';
-const AFAC3_AI_ENDPOINT = 'https://prexzyapis.com/ai/gemini';
+const AFAC3_CHANNEL_USERNAMES = [
+  'anime_faarsi',
+  'faarsimovie',
+  'animitionfaarsi',
+  'anime_faarsiedits',
+  'anime_faarsinews'
+];
 
 // #new
+const AFAC3_AI_ENDPOINT = 'https://prexzyapis.com/ai/gemini';
+
 const afac3CommentedPosts = new Set();
 const afac3CommentLocks = new Set();
 
@@ -9912,25 +9918,25 @@ function afac3GetPostText(message) {
 // #new
 function afac3BuildCommentPrompt(postText) {
   return [
-    'تو نویسنده کامنت خودکار برای کانال تلگرامی انیمه فارسی هستی.',
-    'فقط یک کامنت فارسی طبیعی، جذاب، طرفدارانه، تحسین‌آمیز و کمی چاپلوسانه بنویس.',
-    'کامنت باید نشان دهد که محتوای پست را واقعاً فهمیده‌ای و فقط تعریف عمومی نباشد.',
-    'اگر پست درباره انیمه یا مجموعه‌ای از انیمه‌هاست، به داستان، فضای اثر، شخصیت‌ها یا جذابیت آن اشاره کن.',
-    'اگر پست شامل فصل، قسمت یا چند فیلم سینمایی از یک مجموعه است، در صورت پشتیبانی متن پست، از کامل بودن مجموعه و فراهم بودن بخش‌های مختلف آن تعریف کن.',
-    'اگر پست می‌گوید یک دوبله یا زیرنویس برای اولین بار منتشر شده، می‌توانی به این ویژگی اشاره کنی.',
-    'در صورت مرتبط بودن، از زحمات تیم انیمه فارسی برای آماده‌سازی، ترجمه، دوبله یا انتشار اثر تشکر کن.',
-    'نام انیمه فارسی یا تیم آن را طبیعی به کار ببر؛ تبلیغ نباید اجباری یا تکراری باشد.',
-    'برای خبرها به خود خبر واکنش بده؛ برای کالکشن‌ها به تنوع آثار یا خاطره‌انگیز بودنشان اشاره کن.',
-    'اگر پست طنز دارد، می‌توانی واکنشی بامزه و مرتبط بنویسی.',
-    'اطلاعاتی را که در پست نیست از خودت نساز و ادعا نکن شخصاً اثر را تماشا کرده‌ای.',
-    'لحن صمیمی و پرانرژی باشد؛ چاپلوسی باید طبیعی و محترمانه بماند.',
-    'از ایموجی مناسب مانند 😍🔥❤️‍🔥✨🎬 استفاده کن، اما زیاده‌روی نکن.',
-    'کامنت فقط یک یا دو جمله و حداکثر 350 کاراکتر باشد.',
-    'هیچ مقدمه، عنوان، هشتگ، لینک یا توضیحی اضافه نکن.',
-    'فقط متن نهایی کامنت را برگردان.',
+    'تو نویسنده کامنت خودکار کانال‌های انیمه فارسی هستی.',
+    'فقط یک کامنت فارسی طبیعی، جذاب، تعریف‌آمیز، طرفدارانه و کمی چاپلوسانه بنویس.',
+    'محتوای پست را دقیق بررسی کن و کامنتی متناسب با همان اثر یا خبر بساز.',
+    'برای انیمه، فیلم و سریال انیمیشن درباره داستان، شخصیت‌ها یا جذابیت اثر نظر بده.',
+    'برای مجموعه‌ها، اگر اطلاعات پست تأیید می‌کند، به کامل بودن فصل‌ها، قسمت‌ها و فیلم‌های سینمایی اشاره کن.',
+    'برای دوبله و زیرنویس، در صورت مرتبط بودن از زحمات تیم انیمه فارسی تشکر کن.',
+    'اگر پست به انتشار اختصاصی یا اولین انتشار اشاره دارد، می‌توانی به آن اشاره کنی.',
+    'برای کالکشن‌ها درباره تنوع آثار یا خاطره‌انگیز بودن آن‌ها نظر بده.',
+    'برای اخبار، واکنشی هوشمندانه و گاهی شوخ‌طبعانه و مرتبط با خبر بنویس.',
+    'نام تیم یا کانال را طبیعی و فقط در صورت مرتبط بودن بیاور.',
+    'از اطلاعاتی که در پست نیست استفاده نکن.',
+    'ادعا نکن که شخصاً اثر را دیده‌ای یا تجربه‌ای واقعی داشته‌ای.',
+    'لحن صمیمی، پرانرژی و تحسین‌آمیز باشد؛ تعریف‌ها مصنوعی و تکراری نباشند.',
+    'از ایموجی مناسب مثل 😍🔥❤️‍🔥✨🎬 به‌اندازه استفاده کن.',
+    'کامنت باید یک یا دو جمله و حداکثر 350 کاراکتر باشد.',
+    'فقط متن نهایی کامنت را برگردان؛ بدون مقدمه، عنوان، هشتگ یا لینک.',
     '',
     'متن پست:',
-    postText || 'پست رسانه‌ای بدون کپشن؛ کامنتی کوتاه و متناسب با اطلاعات قابل مشاهده بنویس.'
+    postText || 'پست رسانه‌ای بدون کپشن؛ یک کامنت کوتاه و مرتبط بنویس.'
   ].join('\n');
 }
 
@@ -9960,14 +9966,17 @@ async function afac3GenerateComment(postText) {
   }
 
   const comment = data.response
-    // پاک‌سازی کدهای خام یونیکد
+    // حذف کدهای خام یونیکد
     .replace(/\\u200c/giu, '')
     .replace(/\\u200e|\\u200f/giu, '')
     .replace(/\\uFEFF/giu, '')
-    // پاک‌سازی نویسه‌های نامرئی واقعی
+    // حذف نویسه‌های نامرئی واقعی
     .replace(/[\u200B-\u200F\uFEFF]/gu, '')
     .replace(/\\n/g, '\n')
-    .replace(/^(کامنت|نظر پیشنهادی|متن کامنت)\s*[:：-]\s*/iu, '')
+    .replace(
+      /^(کامنت|نظر پیشنهادی|متن کامنت)\s*[:：-]\s*/iu,
+      ''
+    )
     .replace(/https?:\/\/\S+/giu, '')
     .replace(/^[«"']+|[»"']+$/gu, '')
     .trim();
@@ -9986,6 +9995,7 @@ function afac3GetForwardedPost(message) {
   }
 
   const origin = message.forward_origin;
+
   const sourceChat =
     message.forward_from_chat ||
     origin?.chat;
@@ -10013,14 +10023,6 @@ bot.on('message', async (ctx, next) => {
   let matchedTargetPost = false;
 
   try {
-    const chatUsername = String(
-      ctx.chat?.username || ''
-    ).replace(/^@/, '').toLowerCase();
-
-    if (chatUsername !== AFAC3_GROUP_USERNAME) {
-      return await next();
-    }
-
     const forwarded = afac3GetForwardedPost(ctx.message);
 
     if (!forwarded) {
@@ -10028,14 +10030,16 @@ bot.on('message', async (ctx, next) => {
     }
 
     if (
-      forwarded.channelUsername !==
-      AFAC3_CHANNEL_USERNAME
+      !AFAC3_CHANNEL_USERNAMES.includes(
+        forwarded.channelUsername
+      )
     ) {
       return await next();
     }
 
     matchedTargetPost = true;
 
+    // هر کانال و پست شناسه مستقل دارد.
     const postKey =
       String(forwarded.channelId) + ':' +
       String(forwarded.sourceMessageId);
@@ -10051,15 +10055,25 @@ bot.on('message', async (ctx, next) => {
 
     try {
       const postText = afac3GetPostText(ctx.message);
-      const comment = await afac3GenerateComment(postText);
 
+      const comment =
+        await afac3GenerateComment(postText);
+
+      // پاسخ زیر همان پست در گروه بحث مربوطه ارسال می‌شود.
       await ctx.telegram.sendMessage(
         ctx.chat.id,
         comment,
         {
           reply_to_message_id:
             forwarded.discussionMessageId,
-          allow_sending_without_reply: true
+          allow_sending_without_reply: true,
+          entities: [
+            {
+              type: 'bold',
+              offset: 0,
+              length: comment.length
+            }
+          ]
         }
       );
 
@@ -10074,6 +10088,7 @@ bot.on('message', async (ctx, next) => {
 
       console.log(
         '[AFAC3] Comment sent:',
+        forwarded.channelUsername,
         postKey
       );
 
@@ -10092,7 +10107,6 @@ bot.on('message', async (ctx, next) => {
     }
   }
 });
-
 
 bot.command(
   'nfon',
@@ -21156,11 +21170,32 @@ bot.command(
 
 
 
+
+// #update
 const MAIN_GROUP_ID = -1003900501194;
 const ALLOWED_GROUP_ID_2 = -1002239235244;
 const ALLOWED_GROUP_ID_3 = -1004489761102;
 const ALLOWED_GROUP_ID_4 = -1004328029117;
 
+// #new
+const NEWS_GROUP_ID = -1004490494237;
+const MOVIE_GROUP_ID = -1002689317194;
+const EDIT_GROUP_ID = -1004410931384;
+const ANIMATION_GROUP_ID = -1003945704350;
+
+// #update
+const ALLOWED_GROUP_IDS = new Set([
+  MAIN_GROUP_ID,
+  ALLOWED_GROUP_ID_2,
+  ALLOWED_GROUP_ID_3,
+  ALLOWED_GROUP_ID_4,
+  NEWS_GROUP_ID,
+  MOVIE_GROUP_ID,
+  EDIT_GROUP_ID,
+  ANIMATION_GROUP_ID
+].map(Number));
+
+// #update
 bot.use(
   async (ctx, next) => {
     const chat = ctx.chat;
@@ -21171,12 +21206,7 @@ bot.use(
 
     const chatId = Number(chat.id);
 
-    if (
-      chatId === Number(MAIN_GROUP_ID) ||
-      chatId === Number(ALLOWED_GROUP_ID_2) ||
-      chatId === Number(ALLOWED_GROUP_ID_3) ||
-      chatId === Number(ALLOWED_GROUP_ID_4)
-    ) {
+    if (ALLOWED_GROUP_IDS.has(chatId)) {
       return next();
     }
 
@@ -21206,14 +21236,13 @@ bot.use(
     } catch {}
 
     try {
-      await ctx.telegram.leaveChat(
-        chat.id
-      );
+      await ctx.telegram.leaveChat(chat.id);
     } catch {}
 
     return;
   }
 );
+
 
 const REQUIRED_CHANNELS = [
   '@Anime_Faarsi',
