@@ -6878,6 +6878,185 @@ function nfArchiveWords(
   ];
 }
 
+
+// #new
+const AFAC2_GROUP_USERNAME = 'anime_faarsichat';
+const AFAC2_CHANNEL_USERNAME = 'anime_faarsi';
+const AFAC2_AI_ENDPOINT = 'https://prexzyapis.com/ai/gemini';
+
+// #new
+const afac2CommentedPosts = new Set();
+const afac2CommentLocks = new Set();
+
+// #new
+function afac2GetPostText(message) {
+  return String(
+    message && (message.text || message.caption) || ''
+  ).trim();
+}
+
+// #new
+function afac2BuildCommentPrompt(postText) {
+  return [
+    'فقط یک کامنت فارسی برای پست زیر بنویس.',
+    'کامنت باید طبیعی، روان، جذاب، پرانرژی و تحسین‌آمیز باشد.',
+    'لحن صمیمی و هیجان‌زده باشد؛ مثل واکنش واقعی یک طرفدار انیمه.',
+    'هر بار متن تازه بساز و نمونه‌های قبلی را عیناً تکرار نکن.',
+    'اگر عنوان اثر یا شماره فصل و قسمت مشخص است، به آن اشاره کن.',
+    'در صورت مرتبط بودن، از تیم انیمه فارسی بابت ترجمه، زیرنویس یا انتشار تشکر کن.',
+    'از تعریف‌های زیبا و ایموجی مناسب مانند 🔥❤️‍🔥✨ استفاده کن.',
+    'ادعای ساختگی درباره انتظار شخصی یا تماشای اثر نکن.',
+    'کامنت باید کوتاه و در حد یک یا دو جمله باشد.',
+    'مقدمه، توضیح، هشتگ و لینک ننویس.',
+    '',
+    'متن پست:',
+    postText || 'پست رسانه‌ای بدون کپشن'
+  ].join('\n');
+}
+
+// #new
+async function afac2GenerateComment(postText) {
+  const response = await axios.post(
+    AFAC2_AI_ENDPOINT,
+    {
+      prompt: afac2BuildCommentPrompt(postText)
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    }
+  );
+
+  const data = response && response.data;
+
+  if (!data || data.status !== true ||
+      typeof data.response !== 'string') {
+    throw new Error('AFAC2_INVALID_AI_RESPONSE');
+  }
+
+  const comment = data.response
+    .replace(/\\n/g, '\n')
+    .replace(/^(کامنت|نظر پیشنهادی|متن کامنت)\s*[:：-]\s*/iu, '')
+    .replace(/https?:\/\/\S+/giu, '')
+    .replace(/^[«"']+|[»"']+$/gu, '')
+    .trim();
+
+  if (!comment) {
+    throw new Error('AFAC2_EMPTY_COMMENT');
+  }
+
+  return comment.slice(0, 450);
+}
+
+// #new
+function afac2GetForwardedPost(message) {
+  if (!message || message.is_automatic_forward !== true) {
+    return null;
+  }
+
+  const origin = message.forward_origin;
+  const sourceChat =
+    message.forward_from_chat ||
+    (origin && origin.chat);
+
+  const sourceMessageId =
+    message.forward_from_message_id ||
+    (origin && origin.message_id);
+
+  if (!sourceChat || !sourceChat.id || !sourceMessageId) {
+    return null;
+  }
+
+  return {
+    channelId: sourceChat.id,
+    channelUsername: String(sourceChat.username || '')
+      .replace(/^@/, '')
+      .toLowerCase(),
+    sourceMessageId: sourceMessageId,
+    discussionMessageId: message.message_id
+  };
+}
+
+// #new
+async function afac2SendComment(ctx, messageId, comment) {
+  await ctx.telegram.sendMessage(
+    ctx.chat.id,
+    comment,
+    {
+      reply_to_message_id: messageId
+    }
+  );
+}
+
+// #new
+bot.on('message', async function afac2HandleMessage(ctx) {
+  try {
+    const chatUsername = String(
+      ctx.chat && ctx.chat.username || ''
+    ).toLowerCase();
+
+    if (chatUsername !== AFAC2_GROUP_USERNAME) {
+      return;
+    }
+
+    const message = ctx.message;
+    const forwarded = afac2GetForwardedPost(message);
+
+    if (!forwarded) {
+      return;
+    }
+
+    if (forwarded.channelUsername !== AFAC2_CHANNEL_USERNAME) {
+      return;
+    }
+
+    const postKey =
+      String(forwarded.channelId) + ':' +
+      String(forwarded.sourceMessageId);
+
+    if (
+      afac2CommentedPosts.has(postKey) ||
+      afac2CommentLocks.has(postKey)
+    ) {
+      return;
+    }
+
+    afac2CommentLocks.add(postKey);
+
+    try {
+      const postText = afac2GetPostText(message);
+      const comment = await afac2GenerateComment(postText);
+
+      await afac2SendComment(
+        ctx,
+        forwarded.discussionMessageId,
+        comment
+      );
+
+      afac2CommentedPosts.add(postKey);
+
+      if (afac2CommentedPosts.size > 2000) {
+        const oldestKey =
+          afac2CommentedPosts.values().next().value;
+
+        afac2CommentedPosts.delete(oldestKey);
+      }
+
+      console.log('[AFAC2] Comment sent:', postKey);
+    } finally {
+      afac2CommentLocks.delete(postKey);
+    }
+  } catch (error) {
+    console.error(
+      '[AFAC2] Auto-comment error:',
+      error && error.message || error
+    );
+  }
+});
+
+
 function nfArchiveTitleScore(
   query,
   title
