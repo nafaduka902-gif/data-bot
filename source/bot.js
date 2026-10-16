@@ -9007,152 +9007,7 @@ async function nfProcess(
       }
     }
 
-    // Archive question detection.
-    logStage('ARCHIVE_COUNT_CHECK');
 
-    const normalizedQuestion =
-      nfArchiveNormalize(
-        directText
-      );
-
-    
-    const isArchiveCountQuestion =
-      /(?:چند|تعداد|آمار|مجموع|کل|همه).*(?:انیمه|انیمیشن|سینمایی|فیلم|سریال|آرشیو|رکورد|عنوان|پست|محتوا)|(?:انیمه|انیمیشن|سینمایی|فیلم|سریال|آرشیو|رکورد|عنوان|پست|محتوا).*(?:چند|تعداد|آمار|مجموع|کل|همه)/iu.test(
-        normalizedQuestion
-      );
-
-
-    // Read both archive sources for count questions.
-    if (isArchiveCountQuestion) {
-      let mainRecords = [];
-      let addedPosts = [];
-
-      try {
-        logStage('ARCHIVE_COUNT_MAIN');
-
-        mainRecords = await nfWithTimeout(
-          () => nfReadArchive(),
-          10000,
-          'ARCHIVE_COUNT_MAIN'
-        );
-
-      } catch (error) {
-        console.error(
-          '[NF] ARCHIVE COUNT READ ERROR:',
-          error?.message || error
-        );
-      }
-
-      if (
-        nfLocks.get(key) !== requestId
-      ) {
-        return;
-      }
-
-      try {
-        logStage('ARCHIVE_COUNT_ADDED');
-
-        addedPosts = await nfWithTimeout(
-          () => nfReadAddedArchivePosts(),
-          10000,
-          'ARCHIVE_COUNT_ADDED'
-        );
-
-      } catch (error) {
-        console.error(
-          '[NF] ADDED COUNT READ ERROR:',
-          error?.message || error
-        );
-      }
-
-      if (
-        nfLocks.get(key) !== requestId
-      ) {
-        return;
-      }
-
-      const allRecords = [
-        ...(
-          Array.isArray(mainRecords)
-            ? mainRecords
-            : []
-        ),
-        ...(
-          Array.isArray(addedPosts)
-            ? addedPosts
-            : []
-        )
-      ];
-
-      const uniqueRecords = new Map();
-
-      for (const record of allRecords) {
-        if (
-          !record ||
-          typeof record !== 'object'
-        ) {
-          continue;
-        }
-
-        const recordKey = String(
-          record.link ||
-          record.postUrl ||
-          (
-            record.channel &&
-            record.messageId
-              ? `${record.channel}:${record.messageId}`
-              : ''
-          ) ||
-          record.id ||
-          [
-            record.name ||
-            record.title ||
-            '',
-            record.channel || '',
-            record.text || ''
-          ].join('|')
-        ).trim();
-
-        if (recordKey) {
-          uniqueRecords.set(
-            recordKey,
-            record
-          );
-        }
-      }
-
-      const records = [
-        ...uniqueRecords.values()
-      ];
-
-      const answer = [
-        '📊 آمار آرشیو Anime Faarsi',
-        '',
-        `📚 مجموع رکوردهای یکتا: ${records.length}`,
-        '',
-        'ℹ️ این عدد تعداد رکوردهای ذخیره‌شده است و لزوماً تعداد عنوان‌های یکتا نیست.'
-      ].join('\n');
-
-      nfRemember(
-        ctx,
-        'assistant',
-        answer
-      );
-
-      logStage('ARCHIVE_COUNT_RESULT');
-
-      await nfWithTimeout(
-        () => nfSendResult(
-          ctx,
-          answer,
-          thinking?.message_id
-        ),
-        15000,
-        'ARCHIVE_COUNT_RESULT_SEND'
-      );
-
-      return;
-    }
     // #new
     // پاسخ مستقیم به درخواست معرفی انیمه براساس ژانر
     try {
@@ -10108,6 +9963,93 @@ function nfCanUseAI(ctx) {
 
 
 
+
+// #new
+bot.command('archive', async (ctx) => {
+  try {
+    await ctx.reply('⏳ در حال محاسبه آمار آرشیو...');
+
+    let mainRecords = [];
+    let addedPosts = [];
+
+    try {
+      const result = await nfReadArchive();
+      if (Array.isArray(result)) {
+        mainRecords = result;
+      }
+    } catch (error) {
+      console.error(
+        '[NF] ARCHIVE MAIN ERROR:',
+        error?.message || error
+      );
+    }
+
+    try {
+      const result = await nfReadAddedArchivePosts();
+      if (Array.isArray(result)) {
+        addedPosts = result;
+      }
+    } catch (error) {
+      console.error(
+        '[NF] ARCHIVE ADDED ERROR:',
+        error?.message || error
+      );
+    }
+
+    const allRecords = [
+      ...mainRecords,
+      ...addedPosts
+    ];
+
+    const uniqueRecords = new Map();
+
+    for (const record of allRecords) {
+      if (!record || typeof record !== 'object') {
+        continue;
+      }
+
+      const recordKey = String(
+        record.link ||
+        record.postUrl ||
+        (
+          record.channel && record.messageId
+            ? `${record.channel}:${record.messageId}`
+            : ''
+        ) ||
+        record.id ||
+        [
+          record.name || record.title || '',
+          record.channel || '',
+          record.text || ''
+        ].join('|')
+      ).trim();
+
+      if (recordKey) {
+        uniqueRecords.set(recordKey, record);
+      }
+    }
+
+    const total = uniqueRecords.size;
+
+    await ctx.reply([
+      '📊 آمار آرشیو انیمه فارسی',
+      '',
+      `📚 مجموع رکوردهای یکتا: ${total}`,
+      '',
+      '✅ آمار از آرشیو اصلی و پست‌های اضافه‌شده محاسبه شد.'
+    ].join('\n'));
+
+  } catch (error) {
+    console.error(
+      '[NF] ARCHIVE COMMAND ERROR:',
+      error?.message || error
+    );
+
+    await ctx.reply(
+      '❌ دریافت آمار آرشیو ناموفق بود. لطفاً خطای ربات را بررسی کنید.'
+    );
+  }
+});
 
 bot.command(
   'nfon',
