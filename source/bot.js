@@ -10661,7 +10661,7 @@ bot.on('message', async (ctx, next) => {
 
   } catch (error) {
     console.error(
-      '[AFAC3] Auto-comment error:',
+      '[AFAC3] Auto-comment  error:',
       error?.stack || error?.message || error
     );
 
