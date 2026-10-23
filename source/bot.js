@@ -19333,6 +19333,9 @@ ${commands.join('\n')}
 }
 
 bot.command('cmd', async ctx => {
+if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
+  return;
+}
   try {
     await ctx.reply('🔎 در حال بررسی سورس کد و استخراج دستورات...');
 
@@ -20679,8 +20682,8 @@ ${progress} ${percent}%
 bot.command('updatebot', async (ctx) => {
   try {
     if (Number(ctx.from.id) !== UPDATE_ADMIN_ID) {
-      return ctx.reply('❌ Only the main owner can use this command.');
-    }
+  return;
+}
 
     updateBotStates.set(ctx.from.id, {
       waitingForFile: true
@@ -28066,6 +28069,8 @@ bot.on(
     console.error('startup version check:', error);
   }
 })();
+
+
 
 
 
