@@ -17104,6 +17104,275 @@ async function handleChannelEditName(
   );
 }
 
+
+
+
+
+
+
+
+ // #new
+// پایش درخواست‌های GitHub و گزارش به تلگرام مالک
+
+const NF_GH_MONITOR_OWNER = Number(UPDATE_ADMIN_ID);
+const NF_GH_MONITOR_INTERVAL = 60000;
+
+let nfGhMonitorStarted = false;
+let nfGhMonitorEvents = [];
+let nfGhMonitorLastUsed = null;
+let nfGhMonitorLastRemaining = null;
+let nfGhMonitorRunning = false;
+
+function nfGhMonitorIsGitHub(config) {
+  const url = String(config?.url || '');
+  const baseURL = String(config?.baseURL || '');
+
+  return /(^|\.)api\.github\.com([/:]|$)/i.test(
+    url.replace(/^https?:\/\//i, '')
+  ) || /api\.github\.com/i.test(baseURL);
+}
+
+function nfGhMonitorRecord(event) {
+  nfGhMonitorEvents.push({
+    time: new Date().toISOString(),
+    method: event.method || 'UNKNOWN',
+    url: event.url || 'UNKNOWN',
+    status: event.status || 0,
+    duration: event.duration || 0,
+    error: event.error || '',
+    stack: event.stack || ''
+  });
+
+  if (nfGhMonitorEvents.length > 1000) {
+    nfGhMonitorEvents =
+      nfGhMonitorEvents.slice(-1000);
+  }
+}
+
+// ثبت درخواست‌ها و پاسخ‌های GitHub
+if (!nfGhMonitorStarted) {
+  nfGhMonitorStarted = true;
+
+  axios.interceptors.request.use(
+    config => {
+      if (
+        nfGhMonitorIsGitHub(config) &&
+        !config._nfGhMonitorCheck
+      ) {
+        config._nfGhMonitorStart = Date.now();
+        config._nfGhMonitorStack =
+          new Error('GitHub request trace').stack || '';
+      }
+
+      return config;
+    },
+    error => Promise.reject(error)
+  );
+
+  axios.interceptors.response.use(
+    response => {
+      const config = response.config || {};
+
+      if (
+        nfGhMonitorIsGitHub(config) &&
+        !config._nfGhMonitorCheck
+      ) {
+        nfGhMonitorRecord({
+          method: config.method?.toUpperCase(),
+          url: config.url,
+          status: response.status,
+          duration: Date.now() -
+            (config._nfGhMonitorStart || Date.now()),
+          stack: config._nfGhMonitorStack
+        });
+      }
+
+      return response;
+    },
+    error => {
+      const config = error.config || {};
+
+      if (
+        nfGhMonitorIsGitHub(config) &&
+        !config._nfGhMonitorCheck
+      ) {
+        nfGhMonitorRecord({
+          method: config.method?.toUpperCase(),
+          url: config.url,
+          status: error.response?.status || 0,
+          duration: Date.now() -
+            (config._nfGhMonitorStart || Date.now()),
+          error: String(
+            error.response?.data?.message ||
+            error.message ||
+            'Unknown error'
+          ),
+          stack: config._nfGhMonitorStack
+        });
+      }
+
+      return Promise.reject(error);
+    }
+  );
+}
+
+// گزارش دوره‌ای به مالک
+async function nfGhMonitorSendReport() {
+  if (nfGhMonitorRunning) return;
+  nfGhMonitorRunning = true;
+
+  try {
+    const events = nfGhMonitorEvents.splice(0);
+    let rateText = 'اطلاعات سهمیه دریافت نشد';
+
+    try {
+      const response = await axios.get(
+        'https://api.github.com/rate_limit',
+        {
+          timeout: 12000,
+          _nfGhMonitorCheck: true,
+          headers: {
+            Authorization: `Bearer ${GITHUB_TOKEN}`,
+            Accept: 'application/vnd.github+json',
+            'User-Agent': 'AnimeFaarsi-Bot'
+          }
+        }
+      );
+
+      const rate = response.data?.resources?.core;
+
+      if (rate) {
+        const delta = nfGhMonitorLastUsed === null
+          ? 'اولین بررسی'
+          : `تغییر مصرف: ${rate.used - nfGhMonitorLastUsed}`;
+
+        rateText =
+          `سقف: ${rate.limit}\n` +
+          `مصرف‌شده: ${rate.used}\n` +
+          `باقی‌مانده: ${rate.remaining}\n` +
+          `${delta}`;
+
+        nfGhMonitorLastUsed = rate.used;
+        nfGhMonitorLastRemaining = rate.remaining;
+      }
+    } catch (error) {
+      rateText =
+        `خطای بررسی سهمیه: ${
+          error.response?.status || error.message
+        }`;
+    }
+
+    const counts = {};
+
+    for (const event of events) {
+      const key =
+        `${event.method} ${event.url} [HTTP ${event.status}]`;
+
+      counts[key] = (counts[key] || 0) + 1;
+    }
+
+    const lines = [
+      '🐙 گزارش پایش GitHub',
+      '',
+      `🕒 زمان: ${new Date().toISOString()}`,
+      '',
+      '📊 سهمیه API:',
+      rateText,
+      '',
+      `📡 درخواست‌های ثبت‌شده: ${events.length}`,
+      ''
+    ];
+
+    if (!events.length) {
+      lines.push(
+        'در این بازه درخواست GitHub ثبت نشده است.'
+      );
+    } else {
+      lines.push('📋 درخواست‌ها:');
+
+      for (const [key, count] of Object.entries(counts)) {
+        lines.push(`${count}× ${key}`);
+      }
+
+      lines.push('', '🔎 جزئیات آخرین درخواست‌ها:');
+
+      for (const event of events.slice(-8)) {
+        lines.push(
+          '',
+          `${event.time}`,
+          `${event.method} ${event.url}`,
+          `HTTP: ${event.status || 'خطا'} | مدت: ${event.duration}ms`
+        );
+
+        if (event.error) {
+          lines.push(`خطا: ${event.error.slice(0, 250)}`);
+        }
+
+        if (event.stack) {
+          lines.push(
+            `Stack: ${event.stack.split('\n').slice(0, 4).join('\n').slice(0, 500)}`
+          );
+        }
+      }
+    }
+
+    const report = lines.join('\n');
+
+    for (let i = 0; i < report.length; i += 3500) {
+      await bot.telegram.sendMessage(
+        NF_GH_MONITOR_OWNER,
+        report.slice(i, i + 3500)
+      );
+    }
+  } catch (error) {
+    console.error(
+      '[GH MONITOR REPORT ERROR]',
+      error?.message || error
+    );
+  } finally {
+    nfGhMonitorRunning = false;
+  }
+}
+
+if (!nfGhMonitorStarted || !globalThis.__nfGhMonitorTimer) {
+  globalThis.__nfGhMonitorTimer = setInterval(
+    nfGhMonitorSendReport,
+    NF_GH_MONITOR_INTERVAL
+  );
+
+  nfGhMonitorSendReport();
+}
+
+
+
+
+
+// #new
+bot.command('gmit-ch', async (ctx) => {
+  if (Number(ctx.from?.id) !== Number(UPDATE_ADMIN_ID)) {
+    return ctx.reply('⛔️ این دستور فقط برای مالک ربات است.');
+  }
+
+  const arg = String(ctx.message?.text || '')
+    .trim()
+    .split(/\s+/)[1]
+    ?.toLowerCase();
+
+  if (arg !== 'token') {
+    return ctx.reply('استفاده صحیح:\n/gmit-ch token');
+  }
+
+  await ctx.reply('🔎 در حال دریافت گزارش مصرف GitHub Token...');
+
+  try {
+    await nfGhMonitorSendReport();
+  } catch (error) {
+    await ctx.reply(
+      `❌ خطا در گزارش:\n${String(error?.message || error).slice(0, 1000)}`
+    );
+  }
+});
+
 async function handleChannelEditLink(
   ctx,
   link
