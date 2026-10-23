@@ -764,5 +764,15 @@
     "files": [],
     "createdAt": 1792797223368,
     "updatedAt": 1792797223368
+  },
+  {
+    "id": "up_1792797292924_8tlhmm",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": "group",
+    "status": "waiting_files",
+    "files": [],
+    "createdAt": 1792797292924,
+    "updatedAt": 1792797292924
   }
 ]
