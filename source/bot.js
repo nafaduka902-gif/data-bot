@@ -8117,7 +8117,7 @@ async function nfAskAI(
     // #update
     // جلوگیری از نمایش جزئیات فنی API به کاربر
     throw new Error(
-      'NF_AI_GEMINI_FAILED'
+      'NFFFFF_AI_GEMINI_FAILED'
     );
   }
 }
