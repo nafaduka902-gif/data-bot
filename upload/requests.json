@@ -754,5 +754,15 @@
     "files": [],
     "createdAt": 1792796698787,
     "updatedAt": 1792796698787
+  },
+  {
+    "id": "up_1792797223368_ue67mo",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": "group",
+    "status": "waiting_files",
+    "files": [],
+    "createdAt": 1792797223368,
+    "updatedAt": 1792797223368
   }
 ]
