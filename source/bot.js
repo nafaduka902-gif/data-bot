@@ -18780,7 +18780,7 @@ bot.start(
 
     if (isAdmin(ctx)) {
       await ctx.reply(
-        '<b>Ownnnner Panel</b>',
+        '<b>Owner Panel</b>',
         {
           parse_mode: 'HTML',
           reply_markup:
