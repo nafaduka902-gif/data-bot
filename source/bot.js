@@ -16987,6 +16987,83 @@ if (!nfGhMonitorStarted) {
   );
 }
 
+// #new
+let nfGhTelegraphToken = null;
+let nfGhTelegraphAccountPromise = null;
+
+async function nfGhGetTelegraphToken() {
+  if (nfGhTelegraphToken) {
+    return nfGhTelegraphToken;
+  }
+
+  if (!nfGhTelegraphAccountPromise) {
+    nfGhTelegraphAccountPromise = axios.post(
+      'https://api.telegra.ph/createAccount',
+      new URLSearchParams({
+        short_name: 'AnimeFaarsi',
+        author_name: 'Anime Faarsi GitHub Monitor'
+      }).toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        timeout: 15000
+      }
+    ).then(response => {
+      if (!response.data?.ok ||
+          !response.data?.result?.access_token) {
+        throw new Error(
+          response.data?.error || 'Telegraph account creation failed'
+        );
+      }
+
+      nfGhTelegraphToken =
+        response.data.result.access_token;
+
+      return nfGhTelegraphToken;
+    }).catch(error => {
+      nfGhTelegraphAccountPromise = null;
+      throw error;
+    });
+  }
+
+  return nfGhTelegraphAccountPromise;
+}
+
+async function nfGhCreateTelegraphReport(report) {
+  const token = await nfGhGetTelegraphToken();
+
+  const content = report.split('\n').map(line => ({
+    tag: 'p',
+    children: [line || '\u00A0']
+  }));
+
+  const response = await axios.post(
+    'https://api.telegra.ph/createPage',
+    new URLSearchParams({
+      access_token: token,
+      title: `GitHub Monitor ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`,
+      author_name: 'Anime Faarsi GitHub Monitor',
+      content: JSON.stringify(content),
+      return_content: 'false'
+    }).toString(),
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      timeout: 20000
+    }
+  );
+
+  if (!response.data?.ok || !response.data?.result?.url) {
+    throw new Error(
+      response.data?.error || 'Telegraph page creation failed'
+    );
+  }
+
+  return response.data.result.url;
+}
+
 // گزارش دوره‌ای به مالک
 async function nfGhMonitorSendReport() {
   if (nfGhMonitorRunning) return;
@@ -17088,27 +17165,56 @@ async function nfGhMonitorSendReport() {
     }
 
     // #update
+    // #update
+    // #update
     const report = lines.join('\n');
-    const escapedReport = report
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
     
-    const sent = await bot.telegram.sendMessage(
-      NF_GH_MONITOR_OWNER,
-      `<blockquote expandable>${escapedReport}</blockquote>`,
-      {
-        parse_mode: 'HTML'
-      }
-    );
+    let reportUrl = '';
     
-    setTimeout(() => {
-      bot.telegram.deleteMessage(
-        NF_GH_MONITOR_OWNER,
-        sent.message_id
-      ).catch(() => {});
-    }, 60000);
+    try {
+      reportUrl = await nfGhCreateTelegraphReport(report);
+    } catch (error) {
+      console.error(
+        '[GH MONITOR TELEGRAPH ERROR]',
+        error?.response?.data || error?.message || error
+      );
     }
+
+    const summary = [
+  '🐙 گزارش پایش GitHub',
+  '',
+  `🕒 زمان: ${new Date().toISOString()}`,
+  '',
+  '📊 سهمیه API:',
+  rateText,
+  '',
+  `📡 درخواست‌های ثبت‌شده: ${events.length}`
+    ];
+
+    if (reportUrl) {
+      summary.push(
+        '',
+        '📄 جزئیات کامل درخواست‌ها:',
+        reportUrl
+      );
+    } else {
+  summary.push(
+    '',
+    '⚠️ ساخت صفحه گزارش ناموفق بود.'
+      );
+    }
+
+    const sent = await bot.telegram.sendMessage(
+  NF_GH_MONITOR_OWNER,
+  summary.join('\n')
+    );
+
+    setTimeout(() => {
+  bot.telegram.deleteMessage(
+    NF_GH_MONITOR_OWNER,
+    sent.message_id
+  ).catch(() => {});
+    }, 60000);
     }
   } catch (error) {
     console.error(
