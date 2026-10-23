@@ -744,5 +744,15 @@
     "files": [],
     "createdAt": 1792796515924,
     "updatedAt": 1792796515924
+  },
+  {
+    "id": "up_1792796698787_5uxel3",
+    "userId": 2048310529,
+    "chatId": 2048310529,
+    "mode": "group",
+    "status": "waiting_files",
+    "files": [],
+    "createdAt": 1792796698787,
+    "updatedAt": 1792796698787
   }
 ]
