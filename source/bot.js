@@ -16991,13 +16991,16 @@ if (!nfGhMonitorStarted) {
 
 
 // #update
+// #update
 async function nfGhCreateTelegraphReport(report) {
   const response = await axios.post(
-    'https://pste.us/api/v1/pastes',
+    'https://freepastebin.com/api/pastes',
     {
+      title: `Anime Faarsi GitHub Monitor ${new Date().toISOString()}`,
       content: String(report),
       language: 'text',
-      expires_in: '1d'
+      expires_in: 86400,
+      visibility: 'unlisted'
     },
     {
       headers: {
@@ -17009,15 +17012,12 @@ async function nfGhCreateTelegraphReport(report) {
   );
 
   const data = response.data;
-  const id = data?.id || data?.paste?.id;
-  const url =
-    data?.url ||
-    data?.paste?.url ||
-    (id ? `https://pste.us/view/${id}` : null);
+  const url = data?.url || data?.paste?.url;
 
   if (!url) {
     throw new Error(
-      'Pste.us response: ' + JSON.stringify(data)
+      'FreePastebin response: ' +
+      JSON.stringify(data)
     );
   }
 
@@ -17178,7 +17178,6 @@ setTimeout(() => {
     sent.message_id
   ).catch(() => {});
 }, 60000);
-    }
   } catch (error) {
     console.error(
       '[GH MONITOR REPORT ERROR]',
