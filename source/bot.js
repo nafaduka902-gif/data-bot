@@ -17089,22 +17089,26 @@ async function nfGhMonitorSendReport() {
 
     // #update
     const report = lines.join('\n');
-
-    for (let i = 0; i < report.length; i += 3500) {
-      const sent = await bot.telegram.sendMessage(
+    const escapedReport = report
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    
+    const sent = await bot.telegram.sendMessage(
+      NF_GH_MONITOR_OWNER,
+      `<blockquote expandable>${escapedReport}</blockquote>`,
+      {
+        parse_mode: 'HTML'
+      }
+    );
+    
+    setTimeout(() => {
+      bot.telegram.deleteMessage(
         NF_GH_MONITOR_OWNER,
-        `> ${report.slice(i, i + 3500).replace(/\n/g, '\n> ')}`,
-        {
-          parse_mode: 'Markdown'
-        }
-      );
-
-      setTimeout(() => {
-        bot.telegram.deleteMessage(
-          NF_GH_MONITOR_OWNER,
-          sent.message_id
-        ).catch(() => {});
-      }, 60000);
+        sent.message_id
+      ).catch(() => {});
+    }, 60000);
+    }
     }
   } catch (error) {
     console.error(
