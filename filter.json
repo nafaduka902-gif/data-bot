@@ -2,9 +2,9 @@
   {
     "kind": "filter:-1002239235244",
     "chatId": -1002239235244,
-    "enabled": false,
+    "enabled": true,
     "autoWarning": true,
-    "updatedAt": "2026-10-23T02:21:51.149Z"
+    "updatedAt": "2026-10-23T13:31:37.915Z"
   },
   {
     "kind": "filter:-1004489761102",
