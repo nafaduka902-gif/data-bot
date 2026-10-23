@@ -8275,5 +8275,25 @@
     "date": 1792722174,
     "createdAt": "2026-10-23T02:22:57.027Z",
     "updatedAt": "2026-10-23T02:22:57.027Z"
+  },
+  {
+    "id": "anime_faarsi:1064",
+    "name": "Post 1064",
+    "nameNormalized": "post 1064",
+    "aliases": [],
+    "aliasesNormalized": [],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "",
+    "link": "https://t.me/Anime_Faarsi/1064",
+    "channel": "Anime_Faarsi",
+    "channelNormalized": "anime_faarsi",
+    "channelType": "anime",
+    "messageId": 1064,
+    "text": "",
+    "caption": "",
+    "date": 1792722442,
+    "createdAt": "2026-10-23T02:27:23.995Z",
+    "updatedAt": "2026-10-23T02:27:23.995Z"
   }
 ]
