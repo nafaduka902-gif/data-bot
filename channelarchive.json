@@ -8363,5 +8363,25 @@
     "date": 1792722900,
     "createdAt": "2026-10-23T02:35:02.481Z",
     "updatedAt": "2026-10-23T02:35:02.481Z"
+  },
+  {
+    "id": "animefaarsi:9",
+    "name": "Post 9",
+    "nameNormalized": "post 9",
+    "aliases": [],
+    "aliasesNormalized": [],
+    "animeName": "",
+    "englishName": "",
+    "persianName": "",
+    "link": "https://t.me/animefaarsi/9",
+    "channel": "animefaarsi",
+    "channelNormalized": "animefaarsi",
+    "channelType": "anime",
+    "messageId": 9,
+    "text": "",
+    "caption": "",
+    "date": 1792723051,
+    "createdAt": "2026-10-23T02:37:32.712Z",
+    "updatedAt": "2026-10-23T02:37:32.712Z"
   }
 ]
