@@ -7919,21 +7919,24 @@ async function nfAskAI(
   });
 
   // #update
-  // ارسال مستقیم درخواست به Prexzy Gemini
+  // API اصلی: Prexzy Gemini
+  // پشتیبان اول: Shizo GPT
+  const prompt = messages
+    .map(item => {
+      const role = String(
+        item.role || 'user'
+      ).toUpperCase();
+
+      return (
+        `${role}:\n` +
+        String(item.content || '')
+      );
+    })
+    .join('\n\n');
+
+  let answer = '';
+
   try {
-    const prompt = messages
-      .map(item => {
-        const role = String(
-          item.role || 'user'
-        ).toUpperCase();
-
-        return (
-          `${role}:\n` +
-          String(item.content || '')
-        );
-      })
-      .join('\n\n');
-
     const response = await axios.post(
       'https://prexzyapis.com/ai/gemini',
       {
@@ -7949,7 +7952,7 @@ async function nfAskAI(
 
     const data = response?.data;
 
-    let answer = String(
+    answer = String(
       data?.response || ''
     )
       .replace(/\\u200c/gi, '\u200c')
@@ -7971,6 +7974,63 @@ async function nfAskAI(
         'NF_AI_GEMINI_INVALID_RESPONSE'
       );
     }
+
+  } catch (primaryError) {
+    console.error(
+      '[NF] GEMINI FAILED, TRYING BACKUP API 1:',
+      primaryError?.response?.data ||
+        primaryError?.message ||
+        primaryError
+    );
+
+    // #update
+    // Backup API 1: Shizo GPT
+    try {
+      const backupResponse = await axios.get(
+        'https://api.shizo.top/ai/gpt',
+        {
+          params: {
+            apikey: 'shizo',
+            query: prompt
+          },
+          timeout: 12000
+        }
+      );
+
+      const backupData = backupResponse?.data;
+
+      const backupAnswer = String(
+        backupData?.msg || ''
+      ).trim();
+
+      if (
+        !backupData?.status ||
+        !backupAnswer
+      ) {
+        throw new Error(
+          'NF_AI_BACKUP1_INVALID_RESPONSE'
+        );
+      }
+
+      answer = backupAnswer;
+
+      console.log(
+        '[NF] BACKUP API 1 SUCCESS'
+      );
+
+    } catch (backupError) {
+      console.error(
+        '[NF] BACKUP API 1 FAILED:',
+        backupError?.response?.data ||
+          backupError?.message ||
+          backupError
+      );
+
+      throw new Error(
+        'NF_AI_ALL_PROVIDERS_FAILED'
+      );
+    }
+  }
 
     // #update
     // حذف URLهای کاملاً تکراری از پاسخ
