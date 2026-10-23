@@ -8343,7 +8343,7 @@ function nfGenreGetRequested(text) {
 }
 
 // #new
-// استخراج ژانرها فقط از خط ژانر آرشیو
+// استخراج ژانرها فقط از خط ژانر آرشیون
 function nfGenreGetRecordGenres(record) {
   const content = String(
     record?.text ||
