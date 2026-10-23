@@ -17087,13 +17087,24 @@ async function nfGhMonitorSendReport() {
       }
     }
 
+    // #update
     const report = lines.join('\n');
 
     for (let i = 0; i < report.length; i += 3500) {
-      await bot.telegram.sendMessage(
+      const sent = await bot.telegram.sendMessage(
         NF_GH_MONITOR_OWNER,
-        report.slice(i, i + 3500)
+        `> ${report.slice(i, i + 3500).replace(/\n/g, '\n> ')}`,
+        {
+          parse_mode: 'Markdown'
+        }
       );
+
+      setTimeout(() => {
+        bot.telegram.deleteMessage(
+          NF_GH_MONITOR_OWNER,
+          sent.message_id
+        ).catch(() => {});
+      }, 60000);
     }
   } catch (error) {
     console.error(
