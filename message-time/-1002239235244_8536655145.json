@@ -3,7 +3,8 @@
   "key": "-1002239235244:8536655145",
   "chatId": -1002239235244,
   "userId": 8536655145,
-  "messageIds": [],
-  "lastActivityAt": 0,
-  "cleanedAt": 1792165697327
+  "messageIds": [
+    7074
+  ],
+  "lastActivityAt": 1792718956507
 }
