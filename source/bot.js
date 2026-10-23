@@ -8032,7 +8032,7 @@ async function nfAskAI(
     }
   }
 
-    // #update
+    // #update 
     // حذف URLهای کاملاً تکراری از پاسخ
     const seenUrls = new Set();
 
