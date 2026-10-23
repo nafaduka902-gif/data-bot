@@ -27150,7 +27150,7 @@ bot.on(
 
         await bot.telegram.sendMessage(
           UPDATE_ADMIN_ID,
-          '🚀 Bott started successfully.\n\n' +
+          '🚀 Bot started successfully.\n\n' +
           '🔖 Version: ' +
           nowData.version.substring(0, 7) +
           '\n' +
