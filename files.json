@@ -1,0 +1,39 @@
+{
+  "batches": {
+    "1792797987321": {
+      "batch_id": "1792797987321",
+      "created_at": "2026-10-23T23:26:27.321Z",
+      "owner_id": 2048310529,
+      "file_count": 2,
+      "total_size": 1122256,
+      "files": [
+        {
+          "file_id": "BQACAgQAAxkBAAJUE2rb5h7JvKIvc93r7828HmTAh6XxAAJ-IQACtq3gUrn0_iduexQ6PQQ",
+          "file_unique_id": "AgADfiEAArat4FI",
+          "type": "document",
+          "file_name": "bot.js",
+          "mime_type": "text/javascript",
+          "size": 561128,
+          "caption": "",
+          "uploaded_at": "2026-10-23T23:26:31.276Z",
+          "uploaded_by": 2048310529,
+          "chat_id": 2048310529,
+          "message_id": 21650
+        },
+        {
+          "file_id": "BQACAgQAAxkBAAJUE2rb5h7JvKIvc93r7828HmTAh6XxAAJ-IQACtq3gUrn0_iduexQ6PQQ",
+          "file_unique_id": "AgADfiEAArat4FI",
+          "type": "document",
+          "file_name": "bot.js",
+          "mime_type": "text/javascript",
+          "size": 561128,
+          "caption": "",
+          "uploaded_at": "2026-10-23T23:26:31.388Z",
+          "uploaded_by": 2048310529,
+          "chat_id": 2048310529,
+          "message_id": 21651
+        }
+      ]
+    }
+  }
+}
