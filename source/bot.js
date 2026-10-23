@@ -17000,7 +17000,7 @@ async function nfGhCreateTelegraphReport(report) {
       content: String(report),
       language: 'text',
       expires_in: 86400,
-      visibility: 'unlisted'
+      visibility: 'public'
     },
     {
       headers: {
@@ -18112,6 +18112,598 @@ async function sendRulesToUser(
 }
 
 
+
+const NF_UPLOAD_OWNER_ID = 2048310529;
+const NF_UPLOAD_GH_OWNER = 'nafaduka902-gif';
+const NF_UPLOAD_GH_REPO = 'data-bot';
+const NF_UPLOAD_GH_BRANCH = 'main';
+const NF_UPLOAD_GH_FILE = 'files.json';
+const NF_UPLOAD_BOT_USERNAME = 'AnimeFaarsiBot';
+
+const NF_UPLOAD_SESSIONS = new Map();
+
+const NF_UPLOAD_REQUIRED_CHANNELS = [
+  {
+    username: '@Anime_Faarsi',
+    url: 'https://t.me/Anime_Faarsi',
+    label: 'Anime Faarsi'
+  },
+  {
+    username: '@Anime_FaarsiNews',
+    url: 'https://t.me/Anime_FaarsiNews',
+    label: 'اخبار سینما'
+  },
+  {
+    username: '@FaarsiMovie',
+    url: 'https://t.me/FaarsiMovie',
+    label: 'فارسی مووی'
+  },
+  {
+    username: '@Anime_FaarsiChat',
+    url: 'https://t.me/Anime_FaarsiChat',
+    label: 'گروه چت انیمه فارسی'
+  },
+  {
+    username: '@AnimitionFaarsi',
+    url: 'https://t.me/AnimitionFaarsi',
+    label: 'کانال انیمیشن رسمی تیم'
+  },
+  {
+    username: '@Anime_Loveri',
+    url: 'https://t.me/Anime_Loveri',
+    label: 'کانال اطلاعات و معرفی انیمه'
+  },
+  {
+    username: '@Anime_FaarsiEdits',
+    url: 'https://t.me/Anime_FaarsiEdits',
+    label: 'کانال آیدیت انیمه فارسی'
+  },
+  {
+    username: '@animefaarsi',
+    url: 'https://t.me/animefaarsi',
+    label: 'زاپاس انیمه فارسی دوم'
+  },
+  {
+    username: '@Dubb_Anime',
+    url: 'https://t.me/Dubb_Anime',
+    label: 'زاپاس انیمه فارسی اول'
+  }
+];
+
+function nfUploadGetFile(message) {
+  if (!message) return null;
+
+  let file = null;
+  let type = '';
+  let extra = {};
+
+  if (message.document) {
+    file = message.document;
+    type = 'document';
+  } else if (message.video) {
+    file = message.video;
+    type = 'video';
+    extra.duration = message.video.duration;
+    extra.width = message.video.width;
+    extra.height = message.video.height;
+  } else if (message.audio) {
+    file = message.audio;
+    type = 'audio';
+    extra.duration = message.audio.duration;
+  } else if (message.animation) {
+    file = message.animation;
+    type = 'animation';
+    extra.duration = message.animation.duration;
+    extra.width = message.animation.width;
+    extra.height = message.animation.height;
+  } else if (message.photo?.length) {
+    file = message.photo[message.photo.length - 1];
+    type = 'photo';
+    extra.width = file.width;
+    extra.height = file.height;
+  } else if (message.voice) {
+    file = message.voice;
+    type = 'voice';
+    extra.duration = message.voice.duration;
+  } else if (message.video_note) {
+    file = message.video_note;
+    type = 'video_note';
+    extra.duration = message.video_note.duration;
+  } else if (message.sticker) {
+    file = message.sticker;
+    type = 'sticker';
+  }
+
+  if (!file?.file_id) return null;
+
+  return {
+    file_id: file.file_id,
+    file_unique_id: file.file_unique_id || '',
+    type,
+    file_name: file.file_name || '',
+    mime_type: file.mime_type || '',
+    size: Number(file.file_size || 0),
+    caption: message.caption || '',
+    ...extra
+  };
+}
+
+function nfUploadFormatSize(bytes) {
+  const size = Number(bytes || 0);
+
+  if (size >= 1024 ** 3) {
+    return (size / 1024 ** 3).toFixed(2) + ' GB';
+  }
+
+  if (size >= 1024 ** 2) {
+    return (size / 1024 ** 2).toFixed(2) + ' MB';
+  }
+
+  if (size >= 1024) {
+    return (size / 1024).toFixed(2) + ' KB';
+  }
+
+  return size + ' B';
+}
+
+function nfUploadBase64(text) {
+  const bytes = unescape(
+    encodeURIComponent(text)
+  );
+
+  return btoa(bytes);
+}
+
+async function nfUploadGitHubRequest() {
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!token) {
+    throw new Error('GITHUB_TOKEN تنظیم نشده است.');
+  }
+
+  const url =
+    `https://api.github.com/repos/${NF_UPLOAD_GH_OWNER}/${NF_UPLOAD_GH_REPO}/contents/${NF_UPLOAD_GH_FILE}`;
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+
+  let data = {
+    batches: {}
+  };
+
+  try {
+    const raw = await axios.get(
+      `https://raw.githubusercontent.com/${NF_UPLOAD_GH_OWNER}/${NF_UPLOAD_GH_REPO}/${NF_UPLOAD_GH_BRANCH}/${NF_UPLOAD_GH_FILE}`,
+      { responseType: 'text' }
+    );
+
+    if (typeof raw.data === 'string') {
+      data = JSON.parse(raw.data);
+    } else {
+      data = raw.data;
+    }
+  } catch (error) {
+    if (error.response?.status !== 404) {
+      throw error;
+    }
+  }
+
+  if (
+    !data ||
+    typeof data !== 'object' ||
+    Array.isArray(data)
+  ) {
+    data = { batches: {} };
+  }
+
+  if (
+    !data.batches ||
+    typeof data.batches !== 'object' ||
+    Array.isArray(data.batches)
+  ) {
+    data.batches = {};
+  }
+
+  let sha = null;
+
+  try {
+    const current = await axios.get(url, {
+      headers,
+      params: {
+        ref: NF_UPLOAD_GH_BRANCH
+      }
+    });
+
+    sha = current.data?.sha || null;
+  } catch (error) {
+    if (error.response?.status !== 404) {
+      throw error;
+    }
+  }
+
+  return {
+    url,
+    headers,
+    data,
+    sha
+  };
+}
+
+async function nfUploadSaveBatch(batchId, batch) {
+  const github = await nfUploadGitHubRequest();
+
+  github.data.batches[batchId] = batch;
+
+  const body = {
+    message: `Add upload batch ${batchId}`,
+    content: nfUploadBase64(
+      JSON.stringify(github.data, null, 2)
+    ),
+    branch: NF_UPLOAD_GH_BRANCH
+  };
+
+  if (github.sha) {
+    body.sha = github.sha;
+  }
+
+  await axios.put(
+    github.url,
+    body,
+    {
+      headers: github.headers
+    }
+  );
+
+  return true;
+}
+
+async function nfUploadReadBatch(batchId) {
+  const url =
+    `https://raw.githubusercontent.com/${NF_UPLOAD_GH_OWNER}/${NF_UPLOAD_GH_REPO}/${NF_UPLOAD_GH_BRANCH}/${NF_UPLOAD_GH_FILE}`;
+
+  const response = await axios.get(url, {
+    responseType: 'text'
+  });
+
+  const data =
+    typeof response.data === 'string'
+      ? JSON.parse(response.data)
+      : response.data;
+
+  return data?.batches?.[batchId] || null;
+}
+
+async function nfUploadIsMember(ctx, userId) {
+  for (const channel of NF_UPLOAD_REQUIRED_CHANNELS) {
+    try {
+      const member =
+        await ctx.telegram.getChatMember(
+          channel.username,
+          userId
+        );
+
+      const status = member.status;
+
+      const allowed =
+        status === 'creator' ||
+        status === 'administrator' ||
+        status === 'member' ||
+        (
+          status === 'restricted' &&
+          member.is_member === true
+        );
+
+      if (!allowed) return false;
+    } catch {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function nfUploadDeliverBatch(ctx, batchId) {
+  const userId = ctx.from?.id;
+
+  if (!userId) return;
+
+  let isMember = false;
+
+  try {
+    isMember = await nfUploadIsMember(
+      ctx,
+      userId
+    );
+  } catch {}
+
+  if (!isMember) {
+    const keyboard = [
+      ...NF_UPLOAD_REQUIRED_CHANNELS.map(
+        channel => [
+          {
+            text: channel.label,
+            url: channel.url
+          }
+        ]
+      ),
+      [
+        {
+          text: '✅ بررسی عضویت',
+          callback_data: `nfup_check_${batchId}`
+        }
+      ]
+    ];
+
+    await ctx.reply(
+      '🔒 برای دریافت فایل‌ها، ابتدا در هر ۹ کانال زیر عضو شوید؛ سپس عضویت خود را بررسی کنید.',
+      {
+        reply_markup: {
+          inline_keyboard: keyboard
+        }
+      }
+    );
+
+    return;
+  }
+
+  let batch;
+
+  try {
+    batch = await nfUploadReadBatch(batchId);
+  } catch {
+    await ctx.reply(
+      '⚠️ اطلاعات فایل‌ها فعلاً خوانده نشد. کمی بعد دوباره تلاش کنید.'
+    );
+    return;
+  }
+
+  if (!batch || !Array.isArray(batch.files)) {
+    await ctx.reply(
+      '❌ این لینک وجود ندارد یا فایل‌های آن در دسترس نیستند.'
+    );
+    return;
+  }
+
+  if (!batch.files.length) {
+    await ctx.reply('❌ هنوز فایلی برای این لینک ثبت نشده است.');
+    return;
+  }
+
+  await ctx.reply(
+    `📥 تعداد فایل‌ها: ${batch.files.length}\n⏳ ارسال فایل‌ها آغاز شد.`
+  );
+
+  for (const file of batch.files) {
+    try {
+      const options = file.caption
+        ? { caption: file.caption }
+        : {};
+
+      if (file.type === 'video') {
+        await ctx.telegram.sendVideo(
+          userId, file.file_id, options
+        );
+      } else if (file.type === 'audio') {
+        await ctx.telegram.sendAudio(
+          userId, file.file_id, options
+        );
+      } else if (file.type === 'animation') {
+        await ctx.telegram.sendAnimation(
+          userId, file.file_id, options
+        );
+      } else if (file.type === 'photo') {
+        await ctx.telegram.sendPhoto(
+          userId, file.file_id, options
+        );
+      } else if (file.type === 'voice') {
+        await ctx.telegram.sendVoice(
+          userId, file.file_id, options
+        );
+      } else if (file.type === 'video_note') {
+        await ctx.telegram.sendVideoNote(
+          userId, file.file_id
+        );
+      } else if (file.type === 'sticker') {
+        await ctx.telegram.sendSticker(
+          userId, file.file_id
+        );
+      } else {
+        await ctx.telegram.sendDocument(
+          userId, file.file_id, options
+        );
+      }
+    } catch {
+      await ctx.reply(
+        `⚠️ ارسال یک فایل ناموفق شد: ${file.file_name || file.type || 'فایل'}`
+      );
+    }
+  }
+
+  await ctx.reply('✅ ارسال فایل‌ها پایان یافت.');
+}
+
+
+
+bot.action(
+  /^nfup_check_(\d+)$/,
+  async ctx => {
+    const batchId = String(
+      ctx.match?.[1] || ''
+    );
+
+    await ctx.answerCbQuery();
+
+    await nfUploadDeliverBatch(
+      ctx,
+      batchId
+    );
+  }
+);
+
+bot.on(
+  'message',
+  async (ctx, next) => {
+    const userId = Number(ctx.from?.id);
+
+    const isOwner =
+      userId === NF_UPLOAD_OWNER_ID;
+
+    const text = String(
+      ctx.message?.text || ''
+    ).trim();
+
+    const session =
+      NF_UPLOAD_SESSIONS.get(userId);
+
+    if (
+      isOwner &&
+      /^\/upload(?:@\w+)?$/i.test(text)
+    ) {
+      const batchId = String(Date.now());
+
+      NF_UPLOAD_SESSIONS.set(userId, {
+        batchId,
+        chatId: ctx.chat.id,
+        files: [],
+        totalSize: 0,
+        startedAt: new Date().toISOString()
+      });
+
+      await ctx.reply(
+        'Video/Subtitle to HardSub:\n\n' +
+        '⚡️ حالت آپلود فعال شد\n' +
+        '📥 فایل‌ها را بفرستید؛ همه با یک لینک مشترک ذخیره می‌شوند.\n\n' +
+        `🔗 لینک : https://t.me/${NF_UPLOAD_BOT_USERNAME}?start=files_${batchId}\n\n` +
+        'برای پایان، «✖️ بازگشت به صفحه اصلی» را بزنید.',
+        {
+          reply_markup: {
+            keyboard: [
+              [
+                {
+                  text: '✖️ بازگشت به صفحه اصلی'
+                }
+              ]
+            ],
+            resize_keyboard: true,
+            is_persistent: true
+          }
+        }
+      );
+
+      return;
+    }
+
+    if (!isOwner || !session) {
+      return next();
+    }
+
+    if (
+      session.chatId !== ctx.chat.id
+    ) {
+      return next();
+    }
+
+    if (
+      text === '✖️ بازگشت به صفحه اصلی'
+    ) {
+      if (!session.files.length) {
+        NF_UPLOAD_SESSIONS.delete(userId);
+
+        await ctx.reply(
+          '⚠️ هیچ فایلی دریافت نشد؛ حالت آپلود پایان یافت.',
+          {
+            reply_markup: {
+              remove_keyboard: true
+            }
+          }
+        );
+
+        return;
+      }
+
+      const batch = {
+        batch_id: session.batchId,
+        created_at: session.startedAt,
+        owner_id: userId,
+        file_count: session.files.length,
+        total_size: session.totalSize,
+        files: session.files
+      };
+
+      try {
+        await nfUploadSaveBatch(
+          session.batchId,
+          batch
+        );
+
+        NF_UPLOAD_SESSIONS.delete(userId);
+
+        await ctx.reply(
+          '✅ آپلود با موفقیت پایان یافت.\n\n' +
+          `📦 تعداد فایل‌ها: ${session.files.length}\n` +
+          `💾 حجم مجموع: ${nfUploadFormatSize(session.totalSize)}\n\n` +
+          `🔗 لینک مشترک:\nhttps://t.me/${NF_UPLOAD_BOT_USERNAME}?start=files_${session.batchId}`,
+          {
+            reply_markup: {
+              remove_keyboard: true
+            },
+            link_preview_options: {
+              is_disabled: true
+            }
+          }
+        );
+      } catch (error) {
+        await ctx.reply(
+          '❌ ذخیره فایل‌ها در GitHub ناموفق بود.\n' +
+          'حالت آپلود باز می‌ماند؛ تنظیمات GITHUB_TOKEN و دسترسی مخزن را بررسی کنید و دوباره پایان آپلود را بزنید.'
+        );
+      }
+
+      return;
+    }
+
+    const file = nfUploadGetFile(
+      ctx.message
+    );
+
+    if (!file) {
+      return next();
+    }
+
+    session.files.push({
+      ...file,
+      uploaded_at: new Date().toISOString(),
+      uploaded_by: userId,
+      chat_id: ctx.chat.id,
+      message_id: ctx.message.message_id
+    });
+
+    session.totalSize += file.size;
+
+    NF_UPLOAD_SESSIONS.set(
+      userId,
+      session
+    );
+
+    await ctx.reply(
+      '✅ فایل با موفقیت دریافت شد\n' +
+      `📦 حجم : ${nfUploadFormatSize(file.size)}\n` +
+      `📁 تعداد فایل‌ها: ${session.files.length}\n\n` +
+      `🔗 لینک مشترک:\nhttps://t.me/${NF_UPLOAD_BOT_USERNAME}?start=files_${session.batchId}\n\n` +
+      '🤖 @AnimeLoverMessBot',
+      {
+        link_preview_options: {
+          is_disabled: true
+        }
+      }
+    );
+  }
+);
+
+
 bot.start(
   async ctx => {
     const text =
@@ -18124,6 +18716,17 @@ bot.start(
 
     const payload =
       String(match?.[1] || '').trim();
+    
+    if (/^files_\d+$/.test(payload)) {
+      const batchId = payload.slice(6);
+
+      await nfUploadDeliverBatch(
+        ctx,
+        batchId
+      );
+
+      return;
+    }
 
     if (
       payload.startsWith(
@@ -18608,6 +19211,179 @@ setInterval(
   },
   15000
 );
+
+
+// #new
+const AF_CMD_SOURCE_URL =
+  'https://raw.githubusercontent.com/nafaduka902-gif/data-bot/main/source/bot.js';
+
+const AF_CMD_AI_ENDPOINT =
+  process.env.AFAC3_AI_ENDPOINT ||
+  'https://prexzyapis.com/ai/gemini';
+
+async function afCmdReadSource() {
+  const response = await axios.get(AF_CMD_SOURCE_URL, {
+    timeout: 20000,
+    responseType: 'text',
+    headers: {
+      Accept: 'text/plain'
+    }
+  });
+
+  const source = String(response.data || '');
+
+  if (
+    !source ||
+    source.length < 100 ||
+    source.includes('<!DOCTYPE html')
+  ) {
+    throw new Error('Source file is unavailable');
+  }
+
+  return source;
+}
+
+function afCmdExtractCommands(source) {
+  const commands = new Set();
+
+  // استخراج دستورهای bot.command(...)
+  const commandPattern =
+    /\bbot\s*\.\s*command\s*\(\s*(['"`])([a-zA-Z][a-zA-Z0-9_]*)\1/g;
+
+  let match;
+
+  while ((match = commandPattern.exec(source)) !== null) {
+    commands.add('/' + match[2]);
+  }
+
+  // استخراج دستور /start
+  const startPattern = /\bbot\s*\.\s*start\s*\(/g;
+
+  if (startPattern.test(source)) {
+    commands.add('/start');
+  }
+
+  // استخراج دستورهایی که در الگوهای Regex کد نوشته شده‌اند
+  const regexCommandPattern =
+    /\\\/([a-zA-Z][a-zA-Z0-9_]*)/g;
+
+  while ((match = regexCommandPattern.exec(source)) !== null) {
+    commands.add('/' + match[1]);
+  }
+
+  return Array.from(commands).sort((a, b) =>
+    a.localeCompare(b)
+  );
+}
+
+async function afCmdGenerateGuide(commands) {
+  const prompt = `
+تو دستیار مستندسازی بات تلگرام «انیمه فارسی» هستی.
+
+فهرست زیر مستقیماً از سورس کد بات استخراج شده است:
+
+${commands.join('\n')}
+
+وظیفه:
+یک راهنمای مرتب، زیبا و قابل فهم به زبان فارسی دری برای کاربران بساز.
+
+قوانین:
+- فقط دستورهای موجود در فهرست را معرفی کن.
+- برای هر دستور، کاربرد را فقط در صورتی توضیح بده که از نام دستور و اطلاعات موجود قابل تشخیص باشد.
+- اگر کاربرد دقیق معلوم نیست، توضیح ساختگی نده؛ فقط نام دستور را نمایش بده.
+- دستورهای مشابه را حذف نکن.
+- دستورها را در گروه‌های مناسب مرتب کن، اما گروه‌بندی باید بر اساس شواهد موجود باشد.
+- هیچ دستور جدیدی اختراع نکن.
+- متن را با عنوان «📚 راهنمای دستورات انیمه فارسی» شروع کن.
+- خروجی ساده و آماده ارسال در تلگرام باشد.
+- از Markdown یا HTML استفاده نکن.
+- مقدمه طولانی و توضیحات اضافی ننویس.
+`;
+
+  const response = await axios.post(
+    AF_CMD_AI_ENDPOINT,
+    {
+      prompt,
+      message: prompt,
+      text: prompt
+    },
+    {
+      timeout: 45000,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  const data = response?.data;
+
+  const result =
+    typeof data === 'string'
+      ? data
+      : data?.response ||
+        data?.text ||
+        data?.answer ||
+        data?.result ||
+        data?.message ||
+        data?.content ||
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        '';
+
+  return String(result).trim();
+}
+
+bot.command('cmd', async ctx => {
+  try {
+    await ctx.reply('🔎 در حال بررسی سورس کد و استخراج دستورات...');
+
+    const source = await afCmdReadSource();
+    const commands = afCmdExtractCommands(source);
+
+    if (!commands.length) {
+      await ctx.reply(
+        '⚠️ هیچ دستوری از سورس کد استخراج نشد.'
+      );
+      return;
+    }
+
+    const guide = await afCmdGenerateGuide(commands);
+
+    if (!guide) {
+      await ctx.reply(
+        '⚠️ هوش مصنوعی نتوانست راهنمای دستورات را تولید کند.'
+      );
+      return;
+    }
+
+    const header =
+      '📚 راهنمای دستورات انیمه فارسی\n\n';
+
+    const footer =
+      '\n\n✅ @Anime_Faarsi';
+
+    const finalText = guide.startsWith(header.trim())
+      ? guide + footer
+      : header + guide + footer;
+
+    // تقسیم متن برای رعایت محدودیت پیام تلگرام
+    const limit = 3800;
+
+    for (let i = 0; i < finalText.length; i += limit) {
+      await ctx.reply(finalText.slice(i, i + limit), {
+        link_preview_options: {
+          is_disabled: true
+        }
+      });
+    }
+  } catch (error) {
+    console.error('CMD GUIDE ERROR:', error);
+
+    await ctx.reply(
+      '❌ دریافت سورس یا ساخت راهنمای دستورات ناموفق بود.\n' +
+      'لطفاً عمومی بودن فایل GitHub و دسترسی API هوش مصنوعی را بررسی کنید.'
+    );
+  }
+});
 
 bot.command(
   'settimep',
