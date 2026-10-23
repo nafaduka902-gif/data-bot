@@ -16987,11 +16987,18 @@ if (!nfGhMonitorStarted) {
   );
 }
 
-// #new
+// #update
 let nfGhTelegraphToken = null;
 let nfGhTelegraphAccountPromise = null;
 
 async function nfGhGetTelegraphToken() {
+  if (
+    process.env.TELEGRAPH_ACCESS_TOKEN &&
+    process.env.TELEGRAPH_ACCESS_TOKEN.trim()
+  ) {
+    return process.env.TELEGRAPH_ACCESS_TOKEN.trim();
+  }
+
   if (nfGhTelegraphToken) {
     return nfGhTelegraphToken;
   }
@@ -17000,26 +17007,26 @@ async function nfGhGetTelegraphToken() {
     nfGhTelegraphAccountPromise = axios.post(
       'https://api.telegra.ph/createAccount',
       new URLSearchParams({
-        short_name: 'AnimeFaarsi',
+        short_name: 'AnimeFaarsiMonitor',
         author_name: 'Anime Faarsi GitHub Monitor'
       }).toString(),
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        timeout: 15000
+        timeout: 20000
       }
     ).then(response => {
-      if (!response.data?.ok ||
-          !response.data?.result?.access_token) {
+      const data = response.data;
+
+      if (!data?.ok || !data?.result?.access_token) {
         throw new Error(
-          response.data?.error || 'Telegraph account creation failed'
+          'Telegraph createAccount: ' +
+          JSON.stringify(data)
         );
       }
 
-      nfGhTelegraphToken =
-        response.data.result.access_token;
-
+      nfGhTelegraphToken = data.result.access_token;
       return nfGhTelegraphToken;
     }).catch(error => {
       nfGhTelegraphAccountPromise = null;
@@ -17033,16 +17040,23 @@ async function nfGhGetTelegraphToken() {
 async function nfGhCreateTelegraphReport(report) {
   const token = await nfGhGetTelegraphToken();
 
-  const content = report.split('\n').map(line => ({
+  // #update
+  const safeReport = String(report).slice(0, 12000);
+
+  const content = safeReport.split('\n').map(line => ({
     tag: 'p',
-    children: [line || '\u00A0']
+    children: [line || ' ']
   }));
+
+  const title =
+    'GitHub Monitor ' +
+    new Date().toISOString().slice(0, 16).replace('T', ' ');
 
   const response = await axios.post(
     'https://api.telegra.ph/createPage',
     new URLSearchParams({
       access_token: token,
-      title: `GitHub Monitor ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`,
+      title,
       author_name: 'Anime Faarsi GitHub Monitor',
       content: JSON.stringify(content),
       return_content: 'false'
@@ -17051,17 +17065,20 @@ async function nfGhCreateTelegraphReport(report) {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      timeout: 20000
+      timeout: 30000
     }
   );
 
-  if (!response.data?.ok || !response.data?.result?.url) {
+  const data = response.data;
+
+  if (!data?.ok || !data?.result?.url) {
     throw new Error(
-      response.data?.error || 'Telegraph page creation failed'
+      'Telegraph createPage: ' +
+      JSON.stringify(data)
     );
   }
 
-  return response.data.result.url;
+  return data.result.url;
 }
 
 // گزارش دوره‌ای به مالک
@@ -17216,13 +17233,14 @@ async function nfGhMonitorSendReport() {
   ).catch(() => {});
     }, 60000);
   } catch (error) {
-    console.error(
-      '[GH MONITOR REPORT ERROR]',
-      error?.message || error
-    );
-  } finally {
-    nfGhMonitorRunning = false;
-  }
+  console.error(
+    '[GH MONITOR TELEGRAPH ERROR]',
+    JSON.stringify({
+      message: error?.message,
+      status: error?.response?.status,
+      data: error?.response?.data
+    })
+  );
 }
 
 if (!nfGhMonitorStarted || !globalThis.__nfGhMonitorTimer) {
