@@ -16987,98 +16987,41 @@ if (!nfGhMonitorStarted) {
   );
 }
 
+
+
+
 // #update
-let nfGhTelegraphToken = null;
-let nfGhTelegraphAccountPromise = null;
-
-async function nfGhGetTelegraphToken() {
-  if (
-    process.env.TELEGRAPH_ACCESS_TOKEN &&
-    process.env.TELEGRAPH_ACCESS_TOKEN.trim()
-  ) {
-    return process.env.TELEGRAPH_ACCESS_TOKEN.trim();
-  }
-
-  if (nfGhTelegraphToken) {
-    return nfGhTelegraphToken;
-  }
-
-  if (!nfGhTelegraphAccountPromise) {
-    nfGhTelegraphAccountPromise = axios.post(
-      'https://api.telegra.ph/createAccount',
-      new URLSearchParams({
-        short_name: 'AnimeFaarsiMonitor',
-        author_name: 'Anime Faarsi GitHub Monitor'
-      }).toString(),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        timeout: 20000
-      }
-    ).then(response => {
-      const data = response.data;
-
-      if (!data?.ok || !data?.result?.access_token) {
-        throw new Error(
-          'Telegraph createAccount: ' +
-          JSON.stringify(data)
-        );
-      }
-
-      nfGhTelegraphToken = data.result.access_token;
-      return nfGhTelegraphToken;
-    }).catch(error => {
-      nfGhTelegraphAccountPromise = null;
-      throw error;
-    });
-  }
-
-  return nfGhTelegraphAccountPromise;
-}
-
 async function nfGhCreateTelegraphReport(report) {
-  const token = await nfGhGetTelegraphToken();
-
-  // #update
-  const safeReport = String(report).slice(0, 12000);
-
-  const content = safeReport.split('\n').map(line => ({
-    tag: 'p',
-    children: [line || ' ']
-  }));
-
-  const title =
-    'GitHub Monitor ' +
-    new Date().toISOString().slice(0, 16).replace('T', ' ');
-
   const response = await axios.post(
-    'https://api.telegra.ph/createPage',
-    new URLSearchParams({
-      access_token: token,
-      title,
-      author_name: 'Anime Faarsi GitHub Monitor',
-      content: JSON.stringify(content),
-      return_content: 'false'
-    }).toString(),
+    'https://pste.us/api/v1/pastes',
+    {
+      content: String(report),
+      language: 'text',
+      expires_in: '1d'
+    },
     {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
       },
-      timeout: 30000
+      timeout: 20000
     }
   );
 
   const data = response.data;
+  const id = data?.id || data?.paste?.id;
+  const url =
+    data?.url ||
+    data?.paste?.url ||
+    (id ? `https://pste.us/view/${id}` : null);
 
-  if (!data?.ok || !data?.result?.url) {
+  if (!url) {
     throw new Error(
-      'Telegraph createPage: ' +
-      JSON.stringify(data)
+      'Pste.us response: ' + JSON.stringify(data)
     );
   }
 
-  return data.result.url;
+  return url;
 }
 
 // گزارش دوره‌ای به مالک
@@ -17184,20 +17127,23 @@ async function nfGhMonitorSendReport() {
     // #update
     // #update
     // #update
-    const report = lines.join('\n');
-    
-    let reportUrl = '';
-    
-    try {
-      reportUrl = await nfGhCreateTelegraphReport(report);
-    } catch (error) {
-      console.error(
-        '[GH MONITOR TELEGRAPH ERROR]',
-        error?.response?.data || error?.message || error
-      );
-    }
+const report = lines.join('\n');
+let reportUrl = '';
 
-    const summary = [
+try {
+  reportUrl = await nfGhCreateTelegraphReport(report);
+} catch (error) {
+  console.error(
+    '[GH MONITOR PASTE ERROR]',
+    JSON.stringify({
+      message: error?.message,
+      status: error?.response?.status,
+      data: error?.response?.data
+    })
+  );
+}
+
+const summary = [
   '🐙 گزارش پایش GitHub',
   '',
   `🕒 زمان: ${new Date().toISOString()}`,
@@ -17206,41 +17152,41 @@ async function nfGhMonitorSendReport() {
   rateText,
   '',
   `📡 درخواست‌های ثبت‌شده: ${events.length}`
-    ];
+];
 
-    if (reportUrl) {
-      summary.push(
-        '',
-        '📄 جزئیات کامل درخواست‌ها:',
-        reportUrl
-      );
-    } else {
+if (reportUrl) {
   summary.push(
     '',
-    '⚠️ ساخت صفحه گزارش ناموفق بود.'
-      );
-    }
+    '📄 جزئیات کامل گزارش:',
+    reportUrl
+  );
+} else {
+  summary.push(
+    '',
+    '⚠️ ساخت لینک گزارش ناموفق بود؛ جزئیات خطا در Live Logs ثبت شد.'
+  );
+}
 
-    const sent = await bot.telegram.sendMessage(
+const sent = await bot.telegram.sendMessage(
   NF_GH_MONITOR_OWNER,
   summary.join('\n')
-    );
+);
 
-    setTimeout(() => {
+setTimeout(() => {
   bot.telegram.deleteMessage(
     NF_GH_MONITOR_OWNER,
     sent.message_id
   ).catch(() => {});
-    }, 60000);
+}, 60000);
+    }
   } catch (error) {
-  console.error(
-    '[GH MONITOR TELEGRAPH ERROR]',
-    JSON.stringify({
-      message: error?.message,
-      status: error?.response?.status,
-      data: error?.response?.data
-    })
-  );
+    console.error(
+      '[GH MONITOR REPORT ERROR]',
+      error?.message || error
+    );
+  } finally {
+    nfGhMonitorRunning = false;
+  }
 }
 
 if (!nfGhMonitorStarted || !globalThis.__nfGhMonitorTimer) {
