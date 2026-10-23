@@ -17215,7 +17215,6 @@ async function nfGhMonitorSendReport() {
     sent.message_id
   ).catch(() => {});
     }, 60000);
-    }
   } catch (error) {
     console.error(
       '[GH MONITOR REPORT ERROR]',
