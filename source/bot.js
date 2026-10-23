@@ -8343,7 +8343,7 @@ function nfGenreGetRequested(text) {
 }
 
 // #new
-// استخراج ژانرها فقط از خط ژانر آرشیون
+// استخراج ژانرها فقط از خط ژانر آرشیو
 function nfGenreGetRecordGenres(record) {
   const content = String(
     record?.text ||
@@ -8426,115 +8426,65 @@ function nfGenreGetRequestedCount(text) {
 }
 
 // #new
-
-
-function nfGenreGetRequestedMedia(text) {
-  const query = nfGenreNormalize(text);
-
-  let media = '';
-  let format = '';
-
-  if (/(^|\s)انیمیشن(\s|$)/u.test(query)) {
-    media = 'animation';
-  } else if (/(^|\s)انیمه(\s|$)/u.test(query)) {
-    media = 'anime';
-  } else if (/(^|\s)(?:سریال|سریالی)(\s|$)/u.test(query)) {
-    format = 'series';
-  } else if (/(^|\s)(?:فیلم|سینمایی)(\s|$)/u.test(query)) {
-    format = 'movie';
-  }
-
-  if (media) {
-    if (/(^|\s)(?:سینمایی|فیلم)(\s|$)/u.test(query)) {
-      format = 'movie';
-    } else if (/(^|\s)(?:سریالی|سریال)(\s|$)/u.test(query)) {
-      format = 'series';
-    }
-  }
-
-  return { media, format };
-}
-
-
-
-function nfGenreGetRecordMedia(record) {
-  const content = String(
-    record?.text ||
-    record?.caption ||
-    record?.description ||
-    ''
-  );
-
-  const header = content.match(/📼\s*([^\r\n]+)/u)?.[1] || '';
-  const title = nfGenreNormalize(header);
-
-  let media = '';
-  let format = '';
-
-  if (/(^|\s)انیمیشن(\s|$)/u.test(title)) {
-    media = 'animation';
-  } else if (/(^|\s)انیمه(\s|$)/u.test(title)) {
-    media = 'anime';
-  }
-
-  if (/(^|\s)(?:سریالی|سریال)(\s|$)/u.test(title)) {
-    format = 'series';
-  } else if (/(^|\s)(?:سینمایی|فیلم)(\s|$)/u.test(title)) {
-    format = 'movie';
-  }
-
-  if (!media && format) {
-    media = 'live';
-  }
-
-  return { media, format };
-}
-
-
+// ساخت پاسخ مستقیم ژانری از آرشیو
 async function nfBuildGenreArchiveAnswer(userText) {
   const query = String(userText || '').trim();
   if (!query) return null;
 
-  const requestedGenres = nfGenreGetRequested(query);
-  const requestedMedia = nfGenreGetRequestedMedia(query);
+  const requestedGenres =
+    nfGenreGetRequested(query);
 
+  if (!requestedGenres.length) {
+    return null;
+  }
+
+  // #new
+  // فقط درخواست معرفی آثار کانال را پردازش کن
   if (
-    !requestedGenres.length &&
-    !requestedMedia.media &&
-    !requestedMedia.format
+    !/(انیمه|انیمیشن|آثار|اثر|معرفی|پیشنهاد|لیست|فهرست|کانال|بده|بفرست|معرفی کن)/iu
+      .test(query)
   ) {
     return null;
   }
 
-  if (
-    !/(انیمه|انیمیشن|سریال|فیلم|آثار|اثر|معرفی|پیشنهاد|لیست|فهرست|کانال|بده|بفرست|معرفی کن)/iu.test(query)
-  ) {
-    return null;
-  }
-
-  const [mainRecords, addedRecords] = await Promise.all([
-    nfReadArchive(),
-    nfReadAddedArchivePosts()
-  ]);
+  const [mainRecords, addedRecords] =
+    await Promise.all([
+      nfReadArchive(),
+      nfReadAddedArchivePosts()
+    ]);
 
   const allRecords = [
-    ...(Array.isArray(mainRecords) ? mainRecords : []),
-    ...(Array.isArray(addedRecords) ? addedRecords : [])
+    ...(Array.isArray(mainRecords)
+      ? mainRecords
+      : []),
+    ...(Array.isArray(addedRecords)
+      ? addedRecords
+      : [])
   ];
 
+  // #new
+  // حذف پست‌های تکراری
   const uniqueRecords = new Map();
 
   for (const record of allRecords) {
-    if (!record || typeof record !== 'object') continue;
+    if (!record || typeof record !== 'object') {
+      continue;
+    }
 
     const channel = String(
-      record.channel || record.channelUsername || ''
+      record.channel ||
+      record.channelUsername ||
+      ''
     ).trim().replace(/^@/, '');
 
-    const messageId = String(record.messageId || '').trim();
+    const messageId = String(
+      record.messageId || ''
+    ).trim();
 
     let link = String(
-      record.link || record.postUrl || ''
+      record.link ||
+      record.postUrl ||
+      ''
     ).trim();
 
     if (
@@ -8542,7 +8492,8 @@ async function nfBuildGenreArchiveAnswer(userText) {
       channel &&
       /^\d+$/.test(messageId)
     ) {
-      link = `https://t.me/${channel}/${messageId}`;
+      link =
+        `https://t.me/${channel}/${messageId}`;
     }
 
     const key = link
@@ -8555,34 +8506,25 @@ async function nfBuildGenreArchiveAnswer(userText) {
 
     if (!key) continue;
 
-    if (!uniqueRecords.has(key)) {
-      uniqueRecords.set(key, { ...record, link });
+    const previous = uniqueRecords.get(key);
+
+    if (!previous) {
+      uniqueRecords.set(key, {
+        ...record,
+        link
+      });
     }
   }
 
+  // #new
+  // فقط آثاری که همه ژانرهای خواسته‌شده را دارند
   const matches = [];
 
   for (const record of uniqueRecords.values()) {
-    const category = nfGenreGetRecordMedia(record);
+    const recordGenres =
+      nfGenreGetRecordGenres(record);
 
     if (
-      requestedMedia.media &&
-      category.media !== requestedMedia.media
-    ) {
-      continue;
-    }
-
-    if (
-      requestedMedia.format &&
-      category.format !== requestedMedia.format
-    ) {
-      continue;
-    }
-
-    const recordGenres = nfGenreGetRecordGenres(record);
-
-    if (
-      requestedGenres.length &&
       !requestedGenres.every(genre =>
         recordGenres.includes(genre)
       )
@@ -8607,13 +8549,13 @@ async function nfBuildGenreArchiveAnswer(userText) {
       ''
     ).trim();
 
-    if (!title) continue;
-
     const englishTitle = String(
       record.englishName || ''
     ).trim();
 
-    const status = [];
+    if (!title) continue;
+
+    let status = [];
 
     if (/دوبله\s*فارسی/iu.test(content)) {
       status.push('دوبله فارسی');
@@ -8628,98 +8570,62 @@ async function nfBuildGenreArchiveAnswer(userText) {
       englishTitle,
       genres: recordGenres,
       rating,
-      format: category.format,
       status: status.length
         ? status.join(' + ')
         : 'اطلاعات ثبت نشده',
-      link: /^https?:\/\/t\.me\//iu.test(record.link || '')
+      link: /^https?:\/\/t\.me\//iu.test(record.link)
         ? record.link
         : ''
     });
   }
 
-  // امتیاز بالاتر اول
+  // #new
+  // امتیاز بالاتر اول؛ آثار بدون امتیاز در انتها
   matches.sort((a, b) => b.rating - a.rating);
 
-  const requestedCount = nfGenreGetRequestedCount(query);
+  const requestedCount =
+    nfGenreGetRequestedCount(query);
 
-  const buildSection = (items, heading) => {
-    const results = items.slice(0, requestedCount);
+  const results =
+    matches.slice(0, requestedCount);
 
-    const lines = [
-      `🎭 ${heading}`,
-      `📊 تعداد آثار پیدا‌شده: ${items.length}`,
-      '⭐ مرتب‌سازی براساس امتیاز IMDb',
-      ''
-    ];
-
-    if (!results.length) {
-      lines.push('موردی مطابق درخواست در آرشیو پیدا نشد.');
-      return lines.join('\n');
-    }
-
-    results.forEach((item, index) => {
-      lines.push(`${index + 1}. ${item.title}`);
-
-      if (item.englishTitle) {
-        lines.push(item.englishTitle);
-      }
-
-      lines.push(
-        `🎭 ژانر: ${item.genres.join(' | ') || 'ثبت نشده'}`,
-        `⭐️ IMDB: ${item.rating ? item.rating.toFixed(1) : 'ثبت نشده'}`,
-        `🌐 وضعیت: ${item.status}`,
-        item.link
-          ? `🔗 لینک پست: ${item.link}`
-          : '🔗 لینک پست: در آرشیو ثبت نشده',
-        ''
-      );
-    });
-
-    return lines.join('\n').trim();
-  };
-
-  const genreText = requestedGenres.length
-    ? `ژانر ${requestedGenres.join(' و ')}`
-    : 'برترین آثار';
-
-  // انیمه و انیمیشن عمومی: دو فهرست جدا، مثل قبل
-  if (
-    requestedMedia.media &&
-    (requestedMedia.media === 'anime' ||
-     requestedMedia.media === 'animation') &&
-    !requestedMedia.format
-  ) {
-    const name = requestedMedia.media === 'anime'
-      ? 'انیمه'
-      : 'انیمیشن';
-
-    return [
-      buildSection(
-        matches.filter(item => item.format === 'movie'),
-        `${name} سینمایی ${genreText}`
-      ),
-      '',
-      buildSection(
-        matches.filter(item => item.format === 'series'),
-        `${name} سریالی ${genreText}`
-      )
-    ].join('\n').trim();
+  if (!results.length) {
+    return (
+      `در آرشیو، اثری با تمام ژانرهای ` +
+      `${requestedGenres.join('، ')} پیدا نشد.`
+    );
   }
 
-  const heading = requestedMedia.media === 'anime'
-    ? `انیمه ${genreText}`
-    : requestedMedia.media === 'animation'
-      ? `انیمیشن ${genreText}`
-      : requestedMedia.format === 'series'
-        ? `سریال‌ها ${genreText}`
-        : requestedMedia.format === 'movie'
-          ? `فیلم‌ها ${genreText}`
-          : `آثار ${genreText}`;
+  const lines = [
+    `🎭 انیمه‌های ژانر ${requestedGenres.join(' و ')} در آرشیو کانال`,
+    '',
+    `📊 تعداد آثار پیدا‌شده: ${matches.length}`,
+    `⭐ مرتب‌سازی براساس امتیاز IMDB`,
+    ''
+  ];
 
-  return buildSection(matches, heading);
+  results.forEach((item, index) => {
+    lines.push(
+      `${index + 1}. ${item.title}`
+    );
+
+    if (item.englishTitle) {
+      lines.push(item.englishTitle);
+    }
+
+    lines.push(
+      `🎭 ژانر: ${item.genres.join(' | ')}`,
+      `⭐️ IMDB: ${item.rating ? item.rating.toFixed(1) : 'ثبت نشده'}`,
+      `🌐 وضعیت: ${item.status}`,
+      item.link
+        ? `🔗 لینک پست: ${item.link}`
+        : '🔗 لینک پست: در آرشیو ثبت نشده',
+      ''
+    );
+  });
+
+  return lines.join('\n').trim();
 }
-
 
 
 
@@ -9399,51 +9305,44 @@ async function nfProcess(
 
       if (
         error?.code === 'NF_PROCESS_TIMEOUT' ||
-        errorCode.startsWith('NF_TIMEOUT:')
+        errorCode.startsWith(
+          'NF_TIMEOUT:'
+        )
       ) {
         timedOut = true;
 
-        console.error('[NF] TIMEOUT:', errorCode);
+        console.error(
+          '[NF] TIMEOUT:',
+          errorCode
+        );
 
-        // تعریف ۲۰ پاسخ متنوع و رندوم برای بخش تایم‌اوت فرآیند
-        const timeoutAnswers = [
-          'وای یادم رفت! فک کردم دیگه چت نمیکنی... دوباره بفرست ببینم 🤔',
-          'ببخشید، حواسم پرت شد! یه بار دیگه میگی؟ 😅',
-          'سیستم یکم خوابش برده بود! لطفاً دوباره بگو ببینم. 😴',
-          'پیامت توی ترافیک گیر کرد، دوباره می‌فرستیش؟ 🚗',
-    'اوپس! ارتباطمون یه لحظه قطع شد. دوباره بفرست ببینم. 📡',
-          'داشتم فکر می‌کردم ولی زمان کم آوردم! لطفاً دوباره بگو. 🧠',
-          'سرعت پردازش کم شد، یه بار دیگه شانسِتو بگو ببینم. ⏳',
-          'فکر کنم پیامت غیب شد! دوباره زحمت می‌کشی بفرستی؟ 🪄',
-          'ای وای، یادم رفت جواب بدم! فکر کردم رفتی. دوباره بگو؟ 🙈',
-          'داشتم به یه چیز دیگه فکر می‌کردم، یه بار دیگه بگو! 🤪'
-        ];
-
-        // انتخاب تصادفی یکی از جملات بالا
-        const randomIndex = Math.floor(Math.random() * timeoutAnswers.length);
-        answer = timeoutAnswers[randomIndex];
+        answer =
+          '⏱ پاسخ‌گویی بیش از حد طول کشید. لطفاً دوباره تلاش کن.';
 
       } else if (
         status === 429 ||
         errorCode === 'NF_AI_RATE_LIMITED'
       ) {
-        answer = '⏳ سرویس AI فعلاً به محدودیت درخواست رسیده. کمی بعد دوباره امتحان کن.';
+        answer =
+          '⏳ سرویس AI فعلاً به محدودیت درخواست رسیده. کمی بعد دوباره امتحان کن.';
 
       } else if (
         error?.code === 'ECONNABORTED' ||
         error?.code === 'ETIMEDOUT'
       ) {
-        answer = '⏱ ارتباط با سرویس AI بیش از حد طول کشید. دوباره امتحان کن.';
+        answer =
+          '⏱ ارتباط با سرویس AI بیش از حد طول کشید. دوباره امتحان کن.';
 
       } else if (
         errorCode === 'NF_API_KEY_MISSING'
       ) {
-        answer = '⚠️ کلید سرویس AI تنظیم نشده است.';
+        answer =
+          '⚠️ کلید سرویس AI تنظیم نشده است.';
 
       } else {
         throw error;
       }
-
+    }
 
     if (
       nfLocks.get(key) !== requestId
@@ -27251,7 +27150,7 @@ bot.on(
 
         await bot.telegram.sendMessage(
           UPDATE_ADMIN_ID,
-          '🚀 Bot started successfully.\n\n' +
+          '🚀 Bott started successfully.\n\n' +
           '🔖 Version: ' +
           nowData.version.substring(0, 7) +
           '\n' +
