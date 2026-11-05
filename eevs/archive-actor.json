@@ -1,0 +1,18 @@
+{
+  "actors": [
+    {
+      "name": "Chris Evans",
+      "image": "https://i.ibb.co/RkYLZnbY/d408b3f44d4e.jpg",
+      "aliases": [
+        "Chris Evans"
+      ]
+    },
+    {
+      "name": "Salman Khan",
+      "image": "https://i.ibb.co/VWRyPqWX/c108faa2e2ed.jpg",
+      "aliases": [
+        "Salman Khan"
+      ]
+    }
+  ]
+}

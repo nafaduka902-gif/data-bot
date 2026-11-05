@@ -1,0 +1,104 @@
+{
+  "comments": [
+    {
+      "id": "demo-001",
+      "workId": "sample-work-1",
+      "name": "احمد",
+      "telegram": "@ahmad_01",
+      "body": "واقعاً انیمه عالی بود، ترجمه هم خیلی روان و خوب بود. منتظر قسمت‌های بعدی هستم ❤️",
+      "createdAt": 1793430000000,
+      "likes": 24,
+      "isDemo": true
+    },
+    {
+      "id": "demo-002",
+      "workId": "sample-work-1",
+      "name": "محمد",
+      "telegram": "@mohammad_fx",
+      "body": "کی قسمت بعدی منتشر میشه؟ خیلی منتظرم 😍",
+      "createdAt": 1793420000000,
+      "likes": 18,
+      "isDemo": true
+    },
+    {
+      "id": "demo-003",
+      "workId": "sample-work-1",
+      "name": "فاطمه",
+      "telegram": "@fatima_anime",
+      "body": "کیفیت زیرنویس عالیه. ممنون از تیم انیمه فارسی 🌹",
+      "createdAt": 1793410000000,
+      "likes": 32,
+      "isDemo": true
+    },
+    {
+      "id": "demo-004",
+      "workId": "sample-work-1",
+      "name": "علی",
+      "telegram": "@ali_2005",
+      "body": "این یکی از بهترین انیمه‌هایی بود که دیدم!",
+      "createdAt": 1793400000000,
+      "likes": 9,
+      "isDemo": true
+    },
+    {
+      "id": "demo-005",
+      "workId": "sample-work-1",
+      "name": "سارا",
+      "telegram": "@sara_ani",
+      "body": "لطفاً قسمت‌های بیشتری از این انیمه قرار بدید 🙏",
+      "createdAt": 1793390000000,
+      "likes": 15,
+      "isDemo": true
+    },
+    {
+      "id": "demo-006",
+      "workId": "sample-work-1",
+      "name": "رضا",
+      "telegram": "@reza_tv",
+      "body": "ممنون بابت زحماتتون. سایت خیلی قشنگ شده.",
+      "createdAt": 1793380000000,
+      "likes": 7,
+      "isDemo": true
+    },
+    {
+      "id": "demo-007",
+      "workId": "sample-work-1",
+      "name": "امیر",
+      "telegram": "@amir_king",
+      "body": "از این انیمه بیشتر بگذارید، داستانش فوق‌العاده است 🔥",
+      "createdAt": 1793370000000,
+      "likes": 21,
+      "isDemo": true
+    },
+    {
+      "id": "demo-008",
+      "workId": "sample-work-1",
+      "name": "مریم",
+      "telegram": "@maryam_ anime",
+      "body": "زیرنویس فارسی خیلی خوب و قابل فهم بود.",
+      "createdAt": 1793360000000,
+      "likes": 12,
+      "isDemo": true
+    },
+    {
+      "id": "demo-009",
+      "workId": "sample-work-1",
+      "name": "حسین",
+      "telegram": "@hosein_77",
+      "body": "منتظر فصل جدید هستیم ❤️",
+      "createdAt": 1793350000000,
+      "likes": 5,
+      "isDemo": true
+    },
+    {
+      "id": "demo-010",
+      "workId": "sample-work-1",
+      "name": "نیما",
+      "telegram": "@nima_anime",
+      "body": "طراحی بخش دیدگاه‌ها خیلی خوب شده 👏",
+      "createdAt": 1793340000000,
+      "likes": 16,
+      "isDemo": true
+    }
+  ]
+}
