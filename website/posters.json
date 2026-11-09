@@ -502,5 +502,11 @@
     "fileName": "poster-616e696d655f6661617273693a31303030-a3d0db3fffab33ee2dd1.jpg",
     "mimeType": "image/jpeg",
     "updatedAt": "2026-11-09T17:21:13.187Z"
+  },
+  "anime_faarsi:998": {
+    "url": "https://raw.githubusercontent.com/nafaduka902-gif/data-bot/main/website/posters/poster-616e696d655f6661617273693a393938-c15252d5262774bbfe94.webp",
+    "fileName": "poster-616e696d655f6661617273693a393938-c15252d5262774bbfe94.webp",
+    "mimeType": "image/webp",
+    "updatedAt": "2026-11-09T17:22:07.803Z"
   }
 }
